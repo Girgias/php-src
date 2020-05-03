@@ -841,7 +841,7 @@ static zend_always_inline zend_string *php_trim_int(zend_string *str, char *what
 		}
 	}
 
-	if (ZSTR_LEN(str) == end - start) {
+	if (ZSTR_LEN(str) == (size_t)(end - start)) {
 		return zend_string_copy(str);
 	} else if (end - start == 0) {
 		return ZSTR_EMPTY_ALLOC();
@@ -2175,7 +2175,7 @@ static zend_string *php_chunk_split(const char *src, size_t srclen, const char *
 	}
 
 	*q = '\0';
-	ZEND_ASSERT(q - ZSTR_VAL(dest) == ZSTR_LEN(dest));
+	ZEND_ASSERT((size_t)(q - ZSTR_VAL(dest)) == ZSTR_LEN(dest));
 
 	return dest;
 }
@@ -2290,7 +2290,7 @@ truncate_len:
 		RETURN_EMPTY_STRING();
 	} else if (l == 1) {
 		RETURN_INTERNED_STR(ZSTR_CHAR((zend_uchar)(ZSTR_VAL(str)[f])));
-	} else if (l == ZSTR_LEN(str)) {
+	} else if ((size_t)l == ZSTR_LEN(str)) {
 		RETURN_STR_COPY(str);
 	}
 
