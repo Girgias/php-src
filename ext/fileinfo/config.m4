@@ -49,7 +49,8 @@ int main(void)
     libmagic_sources="$libmagic_sources libmagic/strcasestr.c"
   ],[AC_MSG_RESULT([skipped, cross-compiling])])
 
-  PHP_NEW_EXTENSION(fileinfo, fileinfo.c $libmagic_sources, $ext_shared,,-I@ext_srcdir@/libmagic)
+  LIBMAGIC_CFLAGS="$LIBMAGIC_CFLAGS -Wno-sign-compare -I@ext_srcdir@/libmagic"
+  PHP_NEW_EXTENSION(fileinfo, fileinfo.c $libmagic_sources, $ext_shared, , $LIBMAGIC_CFLAGS)
   PHP_ADD_BUILD_DIR($ext_builddir/libmagic)
 
   AC_CHECK_FUNCS([utimes strndup])
