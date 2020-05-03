@@ -463,22 +463,22 @@ static void try_remove_trivial_phi(context *ctx, zend_ssa_phi *phi) {
 
 static inline zend_bool may_break_varargs(const zend_op_array *op_array, const zend_ssa *ssa, const zend_ssa_op *ssa_op) {
 	if (ssa_op->op1_def >= 0
-			&& ssa->vars[ssa_op->op1_def].var < op_array->num_args) {
+			&& (uint32_t)ssa->vars[ssa_op->op1_def].var < op_array->num_args) {
 		return 1;
 	}
 	if (ssa_op->op2_def >= 0
-			&& ssa->vars[ssa_op->op2_def].var < op_array->num_args) {
+			&& (uint32_t)ssa->vars[ssa_op->op2_def].var < op_array->num_args) {
 		return 1;
 	}
 	if (ssa_op->result_def >= 0
-			&& ssa->vars[ssa_op->result_def].var < op_array->num_args) {
+			&& (uint32_t)ssa->vars[ssa_op->result_def].var < op_array->num_args) {
 		return 1;
 	}
 	return 0;
 }
 
 int dce_optimize_op_array(zend_op_array *op_array, zend_ssa *ssa, zend_bool reorder_dtor_effects) {
-	int i;
+	uint32_t i;
 	zend_ssa_phi *phi;
 	int removed_ops = 0;
 

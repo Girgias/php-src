@@ -308,7 +308,8 @@ int ssa_verify_integrity(zend_op_array *op_array, zend_ssa *ssa, const char *ext
 	for (i = 0; i < cfg->blocks_count; i++) {
 		zend_basic_block *block = &cfg->blocks[i];
 		int *predecessors = &cfg->predecessors[block->predecessor_offset];
-		int s, j;
+		uint32_t j;
+		int s;
 
 		if (i != 0 && block->start < (block-1)->start + (block-1)->len) {
 			FAIL("Block %d start %d smaller previous end %d\n",
@@ -320,7 +321,7 @@ int ssa_verify_integrity(zend_op_array *op_array, zend_ssa *ssa, const char *ext
 		}
 
 		for (j = block->start; j < block->start + block->len; j++) {
-			if (cfg->map[j] != i) {
+			if (cfg->map[j] != (uint32_t)i) {
 				FAIL("Instr " INSTRFMT " not associated with block %d\n", INSTR(j), i);
 			}
 		}

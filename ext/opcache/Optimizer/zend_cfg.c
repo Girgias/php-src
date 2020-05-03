@@ -197,7 +197,7 @@ static void zend_mark_reachable_blocks(const zend_op_array *op_array, zend_cfg *
 
 	if (cfg->flags & ZEND_FUNC_FREE_LOOP_VAR) {
 		zend_basic_block *b;
-		int j;
+		uint32_t j;
 		uint32_t *block_map = cfg->map;
 
 		/* Mark blocks that are unreachable, but free a loop var created in a reachable block. */

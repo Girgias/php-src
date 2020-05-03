@@ -1425,7 +1425,8 @@ void zend_ssa_remove_block(zend_op_array *op_array, zend_ssa *ssa, int i) /* {{{
 	zend_ssa_block *ssa_block = &ssa->blocks[i];
 	int *predecessors;
 	zend_ssa_phi *phi;
-	int j, s;
+	uint32_t j;
+	int s;
 
 	block->flags &= ~ZEND_BB_REACHABLE;
 

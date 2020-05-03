@@ -1050,7 +1050,7 @@ static void assemble_code_blocks(zend_cfg *cfg, zend_op_array *op_array, zend_op
 				HashTable *jumptable = Z_ARRVAL(ZEND_OP2_LITERAL(opline));
 				zval *zv;
 				uint32_t s = 0;
-				ZEND_ASSERT(b->successors_count == 2 + zend_hash_num_elements(jumptable));
+				ZEND_ASSERT((uint32_t)b->successors_count == 2 + zend_hash_num_elements(jumptable));
 
 				ZEND_HASH_FOREACH_VAL(jumptable, zv) {
 					Z_LVAL_P(zv) = ZEND_OPLINE_TO_OFFSET(opline, new_opcodes + blocks[b->successors[s++]].start);
