@@ -331,7 +331,7 @@ struct bug79096 bug79096(void)
 
 void bug79532(off_t *array, size_t elems)
 {
-	int i;
+	size_t i;
 	for (i = 0; i < elems; i++) {
 		array[i] = i;
 	}
