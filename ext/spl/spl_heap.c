@@ -256,7 +256,7 @@ static spl_ptr_heap *spl_ptr_heap_init(spl_ptr_heap_cmp_func cmp, spl_ptr_heap_c
 static void spl_ptr_heap_insert(spl_ptr_heap *heap, void *elem, void *cmp_userdata) { /* {{{ */
 	int i;
 
-	if (heap->count+1 > heap->max_size) {
+	if ((size_t)heap->count+1 > heap->max_size) {
 		size_t alloc_size = heap->max_size * heap->elem_size;
 		/* we need to allocate more memory */
 		heap->elements  = erealloc(heap->elements, 2 * alloc_size);
