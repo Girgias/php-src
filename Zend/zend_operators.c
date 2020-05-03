@@ -3059,7 +3059,7 @@ ZEND_API const char* ZEND_FASTCALL zend_memnstr_ex(const char *haystack, const c
 	register size_t i;
 	register const char *p;
 
-	if (needle_len == 0 || (end - haystack) < needle_len) {
+	if (needle_len == 0 || (end - haystack) < (ptrdiff_t)needle_len) {
 		return NULL;
 	}
 
@@ -3093,7 +3093,7 @@ ZEND_API const char* ZEND_FASTCALL zend_memnrstr_ex(const char *haystack, const 
 	register size_t i;
 	register const char *p;
 
-	if (needle_len == 0 || (end - haystack) < needle_len) {
+	if (needle_len == 0 || (end - haystack) < (ptrdiff_t)needle_len) {
 		return NULL;
 	}
 
