@@ -138,7 +138,7 @@ dnl
 if test "$PHP_GD" != "no"; then
 
   if test "$PHP_EXTERNAL_GD" = "no"; then
-    GD_CFLAGS=""
+    GD_CFLAGS="-Wno-sign-compare"
     extra_sources="libgd/gd.c libgd/gd_gd.c libgd/gd_gd2.c libgd/gd_io.c libgd/gd_io_dp.c \
                   libgd/gd_io_file.c libgd/gd_ss.c libgd/gd_io_ss.c libgd/gd_webp.c \
                   libgd/gd_png.c libgd/gd_jpeg.c libgd/gdxpm.c libgd/gdfontt.c libgd/gdfonts.c \
