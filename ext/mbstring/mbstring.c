@@ -1928,7 +1928,7 @@ PHP_FUNCTION(mb_str_split)
 	chunks = (mb_len + split_length - 1) / split_length; /* (round up idiom) */
 	array_init_size(return_value, chunks);
 	if (chunks != 0) {
-		zend_long i;
+		size_t i;
 
 		for (i = 0; i < chunks - 1; p += chunk_len, ++i) {
 			add_next_index_stringl(return_value, p, chunk_len);
@@ -2259,7 +2259,7 @@ PHP_FUNCTION(mb_substr)
 	 */
 	if (from >= 0) {
 		real_from = (size_t) from;
-	} else if (-from < mblen) {
+	} else if (-from < (zend_long)mblen) {
 		real_from = mblen + from;
 	} else {
 		real_from = 0;
@@ -2329,7 +2329,7 @@ PHP_FUNCTION(mb_strcut)
 		}
 	}
 
-	if (from > string.len) {
+	if ((size_t)from > string.len) {
 		// TODO Out of bounds ValueError
 		RETURN_FALSE;
 	}
