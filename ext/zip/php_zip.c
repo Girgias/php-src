@@ -734,7 +734,7 @@ int php_zip_pcre(zend_string *regexp, char *path, int path_len, zval *return_val
 		array_init(return_value);
 
 		/* only the files, directories are ignored */
-		for (i = 0; i < files_cnt; i++) {
+		for (int i = 0; i < files_cnt; i++) {
 			zend_stat_t s;
 			char   fullpath[MAXPATHLEN];
 			size_t    namelist_len = ZSTR_LEN(namelist[i]);
@@ -1201,7 +1201,7 @@ PHP_FUNCTION(zip_read)
 	}
 
 	if (rsrc_int && rsrc_int->za) {
-		if (rsrc_int->index_current >= rsrc_int->num_files) {
+		if ((zip_int64_t)rsrc_int->index_current >= rsrc_int->num_files) {
 			RETURN_FALSE;
 		}
 
