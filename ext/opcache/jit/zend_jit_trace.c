@@ -883,7 +883,8 @@ static zend_ssa *zend_jit_trace_build_tssa(zend_jit_trace_rec *trace_buffer, uin
 	const zend_op *opline;
 	const zend_op **ssa_opcodes;
 	zend_jit_trace_rec *p;
-	int i, v, idx, len, ssa_ops_count, vars_count, ssa_vars_count;
+	size_t i;
+	int v, idx, len, ssa_ops_count, vars_count, ssa_vars_count;
 	zend_jit_trace_stack *stack;
 	uint32_t build_flags = ZEND_SSA_RC_INFERENCE | ZEND_SSA_USE_CV_RESULTS;
 	uint32_t optimization_level = ZCG(accel_directives).optimization_level;
