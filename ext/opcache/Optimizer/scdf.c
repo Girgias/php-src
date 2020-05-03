@@ -128,7 +128,7 @@ void scdf_solve(scdf_ctx *scdf, const char *name) {
 					ssa_op--;
 				}
 				scdf->handlers.visit_instr(scdf, opline, ssa_op);
-				if ((uint32_t)i == block->start + block->len - 1) {
+				if (i == block->start + block->len - 1) {
 					if (block->successors_count == 1) {
 						scdf_mark_edge_feasible(scdf, block_num, block->successors[0]);
 					} else if (block->successors_count > 1) {

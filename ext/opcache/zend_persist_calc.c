@@ -479,7 +479,7 @@ static void zend_persist_class_entry_calc(zval *zv)
 			}
 
 			if (ce->trait_precedences) {
-				uint32_t j;
+				int j;
 
 				i = 0;
 				while (ce->trait_precedences[i]) {

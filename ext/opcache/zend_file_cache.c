@@ -680,7 +680,7 @@ static void zend_file_cache_serialize_class(zval                     *zv,
 	zend_file_cache_serialize_hash(&ce->properties_info, script, info, buf, zend_file_cache_serialize_prop_info);
 
 	if (ce->properties_info_table) {
-		int i;
+		uint32_t i;
 		zend_property_info **table;
 
 		SERIALIZE_PTR(ce->properties_info_table);
@@ -1411,7 +1411,7 @@ static void zend_file_cache_unserialize_class(zval                    *zv,
 			script, buf, zend_file_cache_unserialize_prop_info, NULL);
 
 	if (ce->properties_info_table) {
-		int i;
+		uint32_t i;
 		UNSERIALIZE_PTR(ce->properties_info_table);
 
 		for (i = 0; i < ce->default_properties_count; i++) {

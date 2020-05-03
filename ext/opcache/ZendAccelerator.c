@@ -2642,7 +2642,7 @@ static inline int accel_find_sapi(void)
 
 static int zend_accel_init_shm(void)
 {
-	uint32_t i;
+	int i;
 
 	zend_shared_alloc_lock();
 
@@ -3611,7 +3611,7 @@ static zend_bool preload_try_resolve_constants(zend_class_entry *ce)
 			}
 		} ZEND_HASH_FOREACH_END();
 		if (ce->default_properties_count) {
-			int i;
+			uint32_t i;
 			for (i = 0; i < ce->default_properties_count; i++) {
 				val = &ce->default_properties_table[i];
 				if (Z_TYPE_P(val) == IS_CONSTANT_AST) {
