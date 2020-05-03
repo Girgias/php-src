@@ -95,7 +95,7 @@ static ssize_t php_stream_input_read(php_stream *stream, char *buf, size_t count
 	}
 	read = php_stream_read(input->body, buf, count);
 
-	if (!read || read == (size_t) -1) {
+	if (!read || read == (ssize_t) -1) {
 		stream->eof = 1;
 	} else {
 		input->position += read;
