@@ -38,7 +38,7 @@
 
 #define ZEND_MM_ALIGNMENT_MASK ~(ZEND_MM_ALIGNMENT - 1)
 
-#define ZEND_MM_ALIGNED_SIZE(size)	(((size) + ZEND_MM_ALIGNMENT - 1) & ZEND_MM_ALIGNMENT_MASK)
+#define ZEND_MM_ALIGNED_SIZE(size)	((Z_UL((size)) + ZEND_MM_ALIGNMENT - 1) & ZEND_MM_ALIGNMENT_MASK)
 
 #define ZEND_MM_ALIGNED_SIZE_EX(size, alignment) \
 	(((size) + ((alignment) - 1)) & ~((alignment) - 1))
