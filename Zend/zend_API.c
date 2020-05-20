@@ -982,10 +982,9 @@ static zend_result zend_parse_va_args(uint32_t num_args, const char *type_spec, 
 	if (have_varargs) {
 		/* calculate how many required args are at the end of the specifier list */
 		post_varargs = max_num_args - post_varargs;
-		max_num_args = UINT32_MAX;
 	}
 
-	if (num_args < min_num_args || num_args > max_num_args) {
+	if (num_args < min_num_args || (num_args > max_num_args && !have_varargs)) {
 		if (!(flags & ZEND_PARSE_PARAMS_QUIET)) {
 			zend_function *active_function = EG(current_execute_data)->func;
 			const char *class_name = active_function->common.scope ? ZSTR_VAL(active_function->common.scope->name) : "";
@@ -993,7 +992,8 @@ static zend_result zend_parse_va_args(uint32_t num_args, const char *type_spec, 
 					class_name,
 					class_name[0] ? "::" : "",
 					ZSTR_VAL(active_function->common.function_name),
-					min_num_args == max_num_args ? "exactly" : num_args < min_num_args ? "at least" : "at most",
+					(min_num_args == max_num_args && !have_varargs) ? "exactly" :
+						num_args < min_num_args ? "at least" : "at most",
 					num_args < min_num_args ? min_num_args : max_num_args,
 					(num_args < min_num_args ? min_num_args : max_num_args) == 1 ? "" : "s",
 					num_args);
