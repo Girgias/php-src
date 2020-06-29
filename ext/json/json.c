@@ -204,7 +204,8 @@ PHP_JSON_API zend_result php_json_decode_ex(zval *return_value, const char *str,
 
 	if (php_json_yyparse(&parser)) {
 		php_json_error_code error_code = php_json_parser_error_code(&parser);
-		if (!(options & PHP_JSON_THROW_ON_ERROR)) {
+		if (!(options & PHP_JSON_THROW_ON_ERROR) &&
+				(EG(current_execute_data)->prev_execute_data->func->common.fn_flags & ZEND_ACC_THROW_WARNING) == 0) {
 			JSON_G(error_code) = error_code;
 		} else {
 			zend_throw_exception(php_json_exception_ce, php_json_get_error_msg(error_code), error_code);
@@ -237,7 +238,9 @@ PHP_FUNCTION(json_encode)
 	encoder.max_depth = (int)depth;
 	php_json_encode_zval(&buf, parameter, (int)options, &encoder);
 
-	if (!(options & PHP_JSON_THROW_ON_ERROR) || (options & PHP_JSON_PARTIAL_OUTPUT_ON_ERROR)) {
+	if ((!(options & PHP_JSON_THROW_ON_ERROR) &&
+			(EX(prev_execute_data)->func->common.fn_flags & ZEND_ACC_THROW_WARNING) == 0)
+			|| (options & PHP_JSON_PARTIAL_OUTPUT_ON_ERROR)) {
 		JSON_G(error_code) = encoder.error_code;
 		if (encoder.error_code != PHP_JSON_ERROR_NONE && !(options & PHP_JSON_PARTIAL_OUTPUT_ON_ERROR)) {
 			smart_str_free(&buf);
@@ -277,17 +280,19 @@ PHP_FUNCTION(json_decode)
 		Z_PARAM_LONG(options)
 	ZEND_PARSE_PARAMETERS_END();
 
-	if (!(options & PHP_JSON_THROW_ON_ERROR)) {
+	if (!(options & PHP_JSON_THROW_ON_ERROR) &&
+			(EX(prev_execute_data)->func->common.fn_flags & ZEND_ACC_THROW_WARNING) == 0) {
 		JSON_G(error_code) = PHP_JSON_ERROR_NONE;
 	}
 
 	if (!str_len) {
-		if (!(options & PHP_JSON_THROW_ON_ERROR)) {
+		if (!(options & PHP_JSON_THROW_ON_ERROR) &&
+			(EX(prev_execute_data)->func->common.fn_flags & ZEND_ACC_THROW_WARNING) == 0) {
 			JSON_G(error_code) = PHP_JSON_ERROR_SYNTAX;
-		} else {
-			zend_throw_exception(php_json_exception_ce, php_json_get_error_msg(PHP_JSON_ERROR_SYNTAX), PHP_JSON_ERROR_SYNTAX);
+			RETURN_NULL();
 		}
-		RETURN_NULL();
+		zend_throw_exception(php_json_exception_ce, php_json_get_error_msg(PHP_JSON_ERROR_SYNTAX), PHP_JSON_ERROR_SYNTAX);
+		RETURN_THROWS();
 	}
 
 	if (depth <= 0) {
