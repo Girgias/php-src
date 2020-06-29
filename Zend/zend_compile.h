@@ -295,7 +295,7 @@ typedef struct _zend_oparray_context {
 /* loaded from file cache to process memory               |     |     |     */
 #define ZEND_ACC_FILE_CACHED             (1 << 27) /*  X  |     |     |     */
 /*                                                        |     |     |     */
-/* Function Flags (unused: 27-30)                         |     |     |     */
+/* Function Flags (unused: 27-29)                         |     |     |     */
 /* ==============                                         |     |     |     */
 /*                                                        |     |     |     */
 /* deprecation flag                                       |     |     |     */
@@ -350,6 +350,9 @@ typedef struct _zend_oparray_context {
 /*                                                        |     |     |     */
 /* method flag used by Closure::__invoke() (int only)     |     |     |     */
 #define ZEND_ACC_USER_ARG_INFO           (1 << 26) /*     |  X  |     |     */
+/*                                                        |     |     |     */
+/* op_array uses throw_on_error mode                      |     |     |     */
+#define ZEND_ACC_THROW_WARNING           (1U << 30) /*    |  X  |     |     */
 /*                                                        |     |     |     */
 /* op_array uses strict mode types                        |     |     |     */
 #define ZEND_ACC_STRICT_TYPES            (1U << 31) /*    |  X  |     |     */

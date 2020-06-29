@@ -70,6 +70,8 @@ function zend_string_or_stdclass_or_null($param): stdClass|string|null {}
 
 function zend_iterable(iterable $arg1, ?iterable $arg2 = null): void {}
 
+function zend_throw_on_error_declare_exception_or_warning(): void {}
+
 }
 
 namespace ZendTestNS {
