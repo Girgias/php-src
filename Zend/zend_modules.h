@@ -24,11 +24,10 @@
 #include "zend_compile.h"
 #include "zend_build.h"
 
-/* For BC */
-#define INIT_FUNC_ARGS
-#define INIT_FUNC_ARGS_PASSTHRU
-#define SHUTDOWN_FUNC_ARGS
-#define SHUTDOWN_FUNC_ARGS_PASSTHRU
+#define INIT_FUNC_ARGS		int type, int module_number
+#define INIT_FUNC_ARGS_PASSTHRU	type, module_number
+#define SHUTDOWN_FUNC_ARGS	int type, int module_number
+#define SHUTDOWN_FUNC_ARGS_PASSTHRU type, module_number
 #define ZEND_MODULE_INFO_FUNC_ARGS zend_module_entry *zend_module
 #define ZEND_MODULE_INFO_FUNC_ARGS_PASSTHRU zend_module
 
