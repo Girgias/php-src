@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: f322ba2ed3e636b6e99400edfbff98102b7e3d06 */
+ * Stub hash: b987c82b0a663e3a8ef20c85362bb77d6612446d */
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Throwable_getMessage, 0, 0, IS_STRING, 0)
 ZEND_END_ARG_INFO()
@@ -183,6 +183,11 @@ static const zend_function_entry class_DivisionByZeroError_methods[] = {
 
 
 static const zend_function_entry class_UnhandledMatchError_methods[] = {
+	ZEND_FE_END
+};
+
+
+static const zend_function_entry class_IO_methods[] = {
 	ZEND_FE_END
 };
 
@@ -391,6 +396,17 @@ static zend_class_entry *register_class_UnhandledMatchError(zend_class_entry *cl
 
 	INIT_CLASS_ENTRY(ce, "UnhandledMatchError", class_UnhandledMatchError_methods);
 	class_entry = zend_register_internal_class_ex(&ce, class_entry_Error);
+
+	return class_entry;
+}
+
+static zend_class_entry *register_class_IO(zend_class_entry *class_entry_Throwable)
+{
+	zend_class_entry ce, *class_entry;
+
+	INIT_CLASS_ENTRY(ce, "IO", class_IO_methods);
+	class_entry = zend_register_internal_interface(&ce);
+	zend_class_implements(class_entry, 1, class_entry_Throwable);
 
 	return class_entry;
 }
