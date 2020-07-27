@@ -23,6 +23,7 @@
 #include "php_string.h"
 #include "php_scandir.h"
 #include "basic_functions.h"
+#include "io_exceptions.h"
 #include "dir_arginfo.h"
 
 #if HAVE_UNISTD_H
@@ -278,7 +279,7 @@ PHP_FUNCTION(chroot)
 
 	ret = chroot(str);
 	if (ret != 0) {
-		php_error_docref(NULL, E_WARNING, "%s (errno %d)", strerror(errno), errno);
+		php_exception_or_warning_docref(NULL, zend_ce_filesystem_error, "%s (errno %d)", strerror(errno), errno);
 		RETURN_FALSE;
 	}
 
@@ -287,7 +288,7 @@ PHP_FUNCTION(chroot)
 	ret = chdir("/");
 
 	if (ret != 0) {
-		php_error_docref(NULL, E_WARNING, "%s (errno %d)", strerror(errno), errno);
+		php_exception_or_warning_docref(NULL, zend_ce_filesystem_error, "%s (errno %d)", strerror(errno), errno);
 		RETURN_FALSE;
 	}
 
@@ -313,7 +314,7 @@ PHP_FUNCTION(chdir)
 	ret = VCWD_CHDIR(str);
 
 	if (ret != 0) {
-		php_error_docref(NULL, E_WARNING, "%s (errno %d)", strerror(errno), errno);
+		php_exception_or_warning_docref(NULL, zend_ce_filesystem_error, "%s (errno %d)", strerror(errno), errno);
 		RETURN_FALSE;
 	}
 
@@ -415,12 +416,12 @@ PHP_FUNCTION(glob)
 	ZEND_PARSE_PARAMETERS_END();
 
 	if (pattern_len >= MAXPATHLEN) {
-		php_error_docref(NULL, E_WARNING, "Pattern exceeds the maximum allowed length of %d characters", MAXPATHLEN);
+		php_exception_or_warning_docref(NULL, zend_ce_filesystem_error, "Pattern exceeds the maximum allowed length of %d characters", MAXPATHLEN);
 		RETURN_FALSE;
 	}
 
 	if ((GLOB_AVAILABLE_FLAGS & flags) != flags) {
-		php_error_docref(NULL, E_WARNING, "At least one of the passed flags is invalid or not supported on this platform");
+		php_exception_or_warning_docref(NULL, zend_ce_filesystem_error, "At least one of the passed flags is invalid or not supported on this platform");
 		RETURN_FALSE;
 	}
 
@@ -558,7 +559,7 @@ PHP_FUNCTION(scandir)
 		n = php_stream_scandir(dirn, &namelist, context, (void *) php_stream_dirent_alphasortr);
 	}
 	if (n < 0) {
-		php_error_docref(NULL, E_WARNING, "(errno %d): %s", errno, strerror(errno));
+		php_exception_or_warning_docref(NULL, zend_ce_filesystem_error, "(errno %d): %s", errno, strerror(errno));
 		RETURN_FALSE;
 	}
 
