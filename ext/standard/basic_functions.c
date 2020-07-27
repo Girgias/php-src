@@ -30,6 +30,7 @@
 #include "ext/session/php_session.h"
 #include "zend_exceptions.h"
 #include "zend_operators.h"
+#include "io_exceptions.h"
 #include "ext/standard/php_dns.h"
 #include "ext/standard/php_uuencode.h"
 #include "ext/standard/php_mt_rand.h"
@@ -354,6 +355,8 @@ PHP_MINIT_FUNCTION(basic) /* {{{ */
 	register_phpinfo_constants(INIT_FUNC_ARGS_PASSTHRU);
 	register_html_constants(INIT_FUNC_ARGS_PASSTHRU);
 	register_string_constants(INIT_FUNC_ARGS_PASSTHRU);
+
+	BASIC_MINIT_SUBMODULE(io_exceptions)
 
 	BASIC_MINIT_SUBMODULE(var)
 	BASIC_MINIT_SUBMODULE(file)
