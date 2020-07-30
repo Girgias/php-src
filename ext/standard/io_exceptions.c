@@ -24,6 +24,8 @@
 PHPAPI zend_class_entry *zend_ce_filesystem;
 PHPAPI zend_class_entry *zend_ce_network;
 PHPAPI zend_class_entry *zend_ce_filesystem_error;
+PHPAPI zend_class_entry *zend_ce_file_not_found;
+PHPAPI zend_class_entry *zend_ce_not_directory;
 PHPAPI zend_class_entry *zend_ce_insufficient_permissions;
 PHPAPI zend_class_entry *zend_ce_temporary_failure;
 
@@ -42,6 +44,14 @@ PHP_MINIT_FUNCTION(io_exceptions) {
 	zend_ce_filesystem_error = zend_register_internal_class_ex(&ce, zend_ce_exception);
 	zend_class_implements(zend_ce_filesystem_error, 1, zend_ce_filesystem);
 
+	INIT_CLASS_ENTRY(ce, "FileNotFound", class_FileNotFound_methods);
+	zend_ce_file_not_found = zend_register_internal_class_ex(&ce, zend_ce_exception);
+	zend_class_implements(zend_ce_file_not_found, 1, zend_ce_filesystem);
+
+	INIT_CLASS_ENTRY(ce, "NotDirectory", class_FileNotFound_methods);
+	zend_ce_not_directory = zend_register_internal_class_ex(&ce, zend_ce_exception);
+	zend_class_implements(zend_ce_not_directory, 1, zend_ce_filesystem);
+
 	INIT_CLASS_ENTRY(ce, "InsufficientPermissions", class_InsufficientPermissions_methods);
 	zend_ce_insufficient_permissions = zend_register_internal_class_ex(&ce, zend_ce_exception);
 	zend_class_implements(zend_ce_insufficient_permissions, 1, zend_ce_filesystem);
@@ -51,4 +61,21 @@ PHP_MINIT_FUNCTION(io_exceptions) {
 	zend_class_implements(zend_ce_temporary_failure, 1, zend_ce_network);
 
 	return SUCCESS;
+}
+
+PHPAPI void handle_io_error(int error, const char *path) {
+	if (path == NULL) {
+		path = "[unknown]";
+	}
+	switch (error) {
+		case ENOENT:
+            php_exception_or_warning_docref(NULL, zend_ce_file_not_found, "File not found: \"%s\"", path);
+		    break;
+		case ENOTDIR:
+            php_exception_or_warning_docref(NULL, zend_ce_not_directory, "\"%s\" is not a directory", path);
+		    break;
+		default:
+            php_exception_or_warning_docref(NULL, zend_ce_filesystem_error, "%s (path: \"%s\", errno %d)", strerror(errno), path, errno);
+			break;
+	}
 }

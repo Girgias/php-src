@@ -24,9 +24,13 @@ BEGIN_EXTERN_C()
 extern PHPAPI zend_class_entry *zend_ce_filesystem;
 extern PHPAPI zend_class_entry *zend_ce_network;
 extern PHPAPI zend_class_entry *zend_ce_filesystem_error;
+extern PHPAPI zend_class_entry *zend_ce_file_not_found;
+extern PHPAPI zend_class_entry *zend_ce_not_directory;
 extern PHPAPI zend_class_entry *zend_ce_insufficient_permissions;
 extern PHPAPI zend_class_entry *zend_ce_temporary_failure;
 
 END_EXTERN_C()
+
+PHPAPI void handle_io_error(int error, const char *path);
 
 #endif /* PHP_IO_EXCEPTION */
