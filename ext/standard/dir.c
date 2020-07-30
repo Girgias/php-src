@@ -283,7 +283,7 @@ PHP_FUNCTION(chroot)
 
 	ret = chroot(str);
 	if (ret != 0) {
-		php_exception_or_warning_docref(NULL, zend_ce_filesystem_error, "%s (errno %d)", strerror(errno), errno);
+		handle_io_error(errno, str);
 		RETURN_FALSE;
 	}
 

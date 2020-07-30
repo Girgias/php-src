@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 68880a94d8393c0d367cee9e9c18c8ac6d16d9f2 */
+ * Stub hash: c4ecc9d6fb58a424dc63d5c5a039843b89273142 */
 
 
 
@@ -15,6 +15,16 @@ static const zend_function_entry class_Network_methods[] = {
 
 
 static const zend_function_entry class_FileSystemError_methods[] = {
+	ZEND_FE_END
+};
+
+
+static const zend_function_entry class_FileNotFound_methods[] = {
+	ZEND_FE_END
+};
+
+
+static const zend_function_entry class_NotDirectory_methods[] = {
 	ZEND_FE_END
 };
 
