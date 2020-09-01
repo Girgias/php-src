@@ -404,25 +404,25 @@ static zend_always_inline zend_ulong zend_inline_hash_func(const char *str, size
 # else
 		hash =
 			hash   * 33 * 33 * 33 * 33 +
-			str[0] * 33 * 33 * 33 +
-			str[1] * 33 * 33 +
-			str[2] * 33 +
-			str[3];
+			(zend_ulong) str[0] * 33 * 33 * 33 +
+			(zend_ulong) str[1] * 33 * 33 +
+			(zend_ulong) str[2] * 33 +
+			(zend_ulong) str[3];
 		hash =
 			hash   * 33 * 33 * 33 * 33 +
-			str[4] * 33 * 33 * 33 +
-			str[5] * 33 * 33 +
-			str[6] * 33 +
-			str[7];
+			(zend_ulong) str[4] * 33 * 33 * 33 +
+			(zend_ulong) str[5] * 33 * 33 +
+			(zend_ulong) str[6] * 33 +
+			(zend_ulong) str[7];
 # endif
 	}
 	if (len >= 4) {
 		hash =
 			hash   * 33 * 33 * 33 * 33 +
-			str[0] * 33 * 33 * 33 +
-			str[1] * 33 * 33 +
-			str[2] * 33 +
-			str[3];
+			(zend_ulong) str[0] * 33 * 33 * 33 +
+			(zend_ulong) str[1] * 33 * 33 +
+			(zend_ulong) str[2] * 33 +
+			(zend_ulong) str[3];
 		len -= 4;
 		str += 4;
 	}
@@ -430,14 +430,14 @@ static zend_always_inline zend_ulong zend_inline_hash_func(const char *str, size
 		if (len > 2) {
 			hash =
 				hash   * 33 * 33 * 33 +
-				str[0] * 33 * 33 +
-				str[1] * 33 +
-				str[2];
+				(zend_ulong) str[0] * 33 * 33 +
+				(zend_ulong) str[1] * 33 +
+				(zend_ulong) str[2];
 		} else {
 			hash =
 				hash   * 33 * 33 +
-				str[0] * 33 +
-				str[1];
+				(zend_ulong) str[0] * 33 +
+				(zend_ulong) str[1];
 		}
 	} else if (len != 0) {
 		hash = hash * 33 + *str;
