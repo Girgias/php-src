@@ -36,12 +36,12 @@
 # define ZEND_MM_ALIGNMENT_LOG2 Z_L(2)
 #endif
 
-#define ZEND_MM_ALIGNMENT_MASK ~(ZEND_MM_ALIGNMENT - 1)
+#define ZEND_MM_ALIGNMENT_MASK (unsigned int)~(ZEND_MM_ALIGNMENT - 1)
 
 #define ZEND_MM_ALIGNED_SIZE(size)	((Z_UL((size)) + ZEND_MM_ALIGNMENT - 1) & ZEND_MM_ALIGNMENT_MASK)
 
 #define ZEND_MM_ALIGNED_SIZE_EX(size, alignment) \
-	(((size) + ((alignment) - 1)) & ~((alignment) - 1))
+	((unsigned int)((size) + ((alignment) - 1)) & (unsigned int)~((alignment) - 1))
 
 typedef struct _zend_leak_info {
 	void *addr;
