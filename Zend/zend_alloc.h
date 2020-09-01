@@ -97,20 +97,20 @@ ZEND_API void* ZEND_FASTCALL _emalloc_large(size_t size) ZEND_ATTRIBUTE_MALLOC Z
 ZEND_API void* ZEND_FASTCALL _emalloc_huge(size_t size) ZEND_ATTRIBUTE_MALLOC ZEND_ATTRIBUTE_ALLOC_SIZE(1);
 
 # define _ZEND_BIN_ALLOCATOR_SELECTOR_START(_num, _size, _elements, _pages, size, y) \
-	((size <= _size) ? _emalloc_ ## _size() :
+	(((size) <= (_size)) ? _emalloc_ ## _size() :
 # define _ZEND_BIN_ALLOCATOR_SELECTOR_END(_num, _size, _elements, _pages, size, y) \
 	)
 
 # define ZEND_ALLOCATOR(size) \
-	ZEND_MM_BINS_INFO(_ZEND_BIN_ALLOCATOR_SELECTOR_START, size, y) \
-	((size <= ZEND_MM_MAX_LARGE_SIZE) ? _emalloc_large(size) : _emalloc_huge(size)) \
-	ZEND_MM_BINS_INFO(_ZEND_BIN_ALLOCATOR_SELECTOR_END, size, y)
+	ZEND_MM_BINS_INFO(_ZEND_BIN_ALLOCATOR_SELECTOR_START, (size), y) \
+	(((size) <= ZEND_MM_MAX_LARGE_SIZE) ? _emalloc_large((size)) : _emalloc_huge((size))) \
+	ZEND_MM_BINS_INFO(_ZEND_BIN_ALLOCATOR_SELECTOR_END, (size), y)
 
 # define _emalloc(size) \
-	(__builtin_constant_p(size) ? \
-		ZEND_ALLOCATOR(size) \
+	(__builtin_constant_p((size)) ? \
+		ZEND_ALLOCATOR((size)) \
 	: \
-		_emalloc(size) \
+		_emalloc((size)) \
 	)
 
 # define _ZEND_BIN_DEALLOCATOR_DEF(_num, _size, _elements, _pages, x, y) \
@@ -122,29 +122,29 @@ ZEND_API void ZEND_FASTCALL _efree_large(void *, size_t size);
 ZEND_API void ZEND_FASTCALL _efree_huge(void *, size_t size);
 
 # define _ZEND_BIN_DEALLOCATOR_SELECTOR_START(_num, _size, _elements, _pages, ptr, size) \
-	if (size <= _size) { _efree_ ## _size(ptr); } else
+	if ((size) <= (_size)) { _efree_ ## _size((ptr)); } else
 
 # define ZEND_DEALLOCATOR(ptr, size) \
-	ZEND_MM_BINS_INFO(_ZEND_BIN_DEALLOCATOR_SELECTOR_START, ptr, size) \
-	if (size <= ZEND_MM_MAX_LARGE_SIZE) { _efree_large(ptr, size); } \
-	else { _efree_huge(ptr, size); }
+	ZEND_MM_BINS_INFO(_ZEND_BIN_DEALLOCATOR_SELECTOR_START, (ptr), (size)) \
+	if ((size) <= ZEND_MM_MAX_LARGE_SIZE) { _efree_large((ptr), (size)); } \
+	else { _efree_huge((ptr), (size)); }
 
 # define efree_size(ptr, size) do { \
-		if (__builtin_constant_p(size)) { \
-			ZEND_DEALLOCATOR(ptr, size) \
+		if (__builtin_constant_p((size))) { \
+			ZEND_DEALLOCATOR((ptr), (size)) \
 		} else { \
-			_efree(ptr); \
+			_efree((ptr)); \
 		} \
 	} while (0)
 # define efree_size_rel(ptr, size) \
-	efree_size(ptr, size)
+	efree_size((ptr), (size))
 
 #else
 
 # define efree_size(ptr, size) \
-	efree(ptr)
+	efree((ptr))
 # define efree_size_rel(ptr, size) \
-	efree_rel(ptr)
+	efree_rel((ptr))
 
 #define _emalloc_large _emalloc
 #define _emalloc_huge  _emalloc
@@ -192,12 +192,12 @@ ZEND_API void * __zend_realloc(void *p, size_t len) ZEND_ATTRIBUTE_ALLOC_SIZE(2)
 /* Selective persistent/non persistent allocation macros */
 #define pemalloc(size, persistent) ((persistent)?__zend_malloc(size):emalloc(size))
 #define safe_pemalloc(nmemb, size, offset, persistent)	((persistent)?_safe_malloc(nmemb, size, offset):safe_emalloc(nmemb, size, offset))
-#define pefree(ptr, persistent)  ((persistent)?free(ptr):efree(ptr))
+#define pefree(ptr, persistent)  ((persistent)?free((ptr)):efree((ptr)))
 #define pefree_size(ptr, size, persistent)  do { \
-		if (persistent) { \
-			free(ptr); \
+		if ((persistent)) { \
+			free((ptr)); \
 		} else { \
-			efree_size(ptr, size);\
+			efree_size((ptr), (size));\
 		} \
 	} while (0)
 
