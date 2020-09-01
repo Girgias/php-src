@@ -191,7 +191,7 @@ static inline int zend_bitset_first(zend_bitset set, uint32_t len)
 
 	for (i = 0; i < len; i++) {
 		if (set[i]) {
-			return ZEND_BITSET_ELM_SIZE * 8 * i + zend_ulong_ntz(set[i]);
+			return ZEND_BITSET_ELM_SIZE * 8 * i + (unsigned int)zend_ulong_ntz(set[i]);
 		}
 	}
 	return -1; /* empty set */
@@ -246,7 +246,7 @@ static inline int zend_bitset_last(zend_bitset set, uint32_t len)
 static inline int zend_bitset_pop_first(zend_bitset set, uint32_t len) {
 	int i = zend_bitset_first(set, len);
 	if (i >= 0) {
-		zend_bitset_excl(set, i);
+		zend_bitset_excl(set, (uint32_t)i);
 	}
 	return i;
 }
