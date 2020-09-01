@@ -1157,7 +1157,7 @@ static zend_always_inline zval *_zend_hash_append_ex(HashTable *ht, zend_string 
 
 	ZVAL_COPY_VALUE(&p->val, zv);
 	if (!interned && !ZSTR_IS_INTERNED(key)) {
-		HT_FLAGS(ht) &= ~HASH_FLAG_STATIC_KEYS;
+		HT_FLAGS(ht) &= Z_UL(~HASH_FLAG_STATIC_KEYS);
 		zend_string_addref(key);
 		zend_string_hash_val(key);
 	}
@@ -1183,7 +1183,7 @@ static zend_always_inline zval *_zend_hash_append_ptr_ex(HashTable *ht, zend_str
 
 	ZVAL_PTR(&p->val, ptr);
 	if (!interned && !ZSTR_IS_INTERNED(key)) {
-		HT_FLAGS(ht) &= ~HASH_FLAG_STATIC_KEYS;
+		HT_FLAGS(ht) &= Z_UL(~HASH_FLAG_STATIC_KEYS);
 		zend_string_addref(key);
 		zend_string_hash_val(key);
 	}
@@ -1209,7 +1209,7 @@ static zend_always_inline void _zend_hash_append_ind(HashTable *ht, zend_string 
 
 	ZVAL_INDIRECT(&p->val, ptr);
 	if (!ZSTR_IS_INTERNED(key)) {
-		HT_FLAGS(ht) &= ~HASH_FLAG_STATIC_KEYS;
+		HT_FLAGS(ht) &= Z_UL(~HASH_FLAG_STATIC_KEYS);
 		zend_string_addref(key);
 		zend_string_hash_val(key);
 	}
