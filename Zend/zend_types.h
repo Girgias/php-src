@@ -640,7 +640,7 @@ static zend_always_inline uint32_t zval_gc_info(uint32_t gc_type_info) {
 		GC_TYPE_INFO(p) |= (flags) << GC_FLAGS_SHIFT; \
 	} while (0)
 #define GC_DEL_FLAGS(p, flags) do { \
-		GC_TYPE_INFO(p) &= ~((flags) << GC_FLAGS_SHIFT); \
+		GC_TYPE_INFO(p) &= (uint32_t)~((flags) << GC_FLAGS_SHIFT); \
 	} while (0)
 
 #define Z_GC_TYPE(zval)				GC_TYPE(Z_COUNTED(zval))
