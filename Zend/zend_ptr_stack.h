@@ -21,7 +21,7 @@
 #define ZEND_PTR_STACK_H
 
 typedef struct _zend_ptr_stack {
-	int top, max;
+	zend_ulong top, max;
 	void **elements;
 	void **top_element;
 	zend_bool persistent;
@@ -39,7 +39,7 @@ ZEND_API void zend_ptr_stack_destroy(zend_ptr_stack *stack);
 ZEND_API void zend_ptr_stack_apply(zend_ptr_stack *stack, void (*func)(void *));
 ZEND_API void zend_ptr_stack_reverse_apply(zend_ptr_stack *stack, void (*func)(void *));
 ZEND_API void zend_ptr_stack_clean(zend_ptr_stack *stack, void (*func)(void *), zend_bool free_elements);
-ZEND_API int zend_ptr_stack_num_elements(zend_ptr_stack *stack);
+ZEND_API zend_ulong zend_ptr_stack_num_elements(zend_ptr_stack *stack);
 END_EXTERN_C()
 
 #define ZEND_PTR_STACK_RESIZE_IF_NEEDED(stack, count)		\
