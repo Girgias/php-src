@@ -334,7 +334,7 @@ int main() {
 	Optimizer/compact_vars.c \
 	Optimizer/zend_dump.c \
 	$ZEND_JIT_SRC,
-	shared,,-DZEND_ENABLE_STATIC_TSRMLS_CACHE=1,,yes)
+	shared,,[-Wno-sign-conversion -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1],,yes)
 
   PHP_ADD_BUILD_DIR([$ext_builddir/Optimizer], 1)
   PHP_ADD_EXTENSION_DEP(opcache, pcre)
