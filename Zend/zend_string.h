@@ -440,7 +440,7 @@ static zend_always_inline zend_ulong zend_inline_hash_func(const char *str, size
 				(zend_ulong) str[1];
 		}
 	} else if (len != 0) {
-		hash = hash * 33 + *str;
+		hash = hash * 33 + (zend_ulong)*str;
 	}
 #else
 	/* variant with the hash unrolled eight times */
