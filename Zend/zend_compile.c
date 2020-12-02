@@ -8868,6 +8868,7 @@ void zend_compile_isset_or_empty(znode *result, zend_ast *ast) /* {{{ */
 void zend_compile_silence(znode *result, zend_ast *ast) /* {{{ */
 {
 	zend_ast *expr_ast = ast->child[0];
+	zend_op *opline = NULL;
 	znode silence_node;
 
 	zend_emit_op_tmp(&silence_node, ZEND_BEGIN_SILENCE, NULL, NULL);
@@ -8879,6 +8880,18 @@ void zend_compile_silence(znode *result, zend_ast *ast) /* {{{ */
 	} else {
 		zend_compile_expr(result, expr_ast);
 	}
+
+	opline = get_next_op();
+	opline->opcode = ZEND_CATCH;
+	opline->op1_type = IS_CONST;
+	opline->op1.constant = zend_add_class_name_literal("Throwable");
+	opline->extended_value = zend_alloc_cache_slot();
+	opline->result_type = IS_UNUSED;
+	opline->result.var = -1;
+	opline->extended_value |= ZEND_LAST_CATCH;
+	SET_NODE(&silence_node, opline);
+
+	zend_emit_op_tmp(&silence_node, ZEND_BEGIN_SILENCE, &silence_node, NULL);
 
 	zend_emit_op(NULL, ZEND_END_SILENCE, &silence_node, NULL);
 }
