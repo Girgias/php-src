@@ -7290,6 +7290,15 @@ ZEND_VM_HANDLER(58, ZEND_END_SILENCE, TMP, ANY)
 			&& !E_HAS_ONLY_FATAL_ERRORS(Z_LVAL_P(EX_VAR(opline->op1.var)))) {
 		EG(error_reporting) = Z_LVAL_P(EX_VAR(opline->op1.var));
 	}
+
+	/* Catch unhandled exceptions */
+	if (UNEXPECTED(EG(exception))) {
+		//FREE_OP1();
+		//ZVAL_UNDEF(EX_VAR(opline->result.var));
+		//HANDLE_EXCEPTION();
+		cleanup_unfinished_calls(execute_data, 0);
+	}
+
 	ZEND_VM_NEXT_OPCODE();
 }
 

@@ -19004,6 +19004,15 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_END_SILENCE_SPEC_TMP_HANDLER(Z
 			&& !E_HAS_ONLY_FATAL_ERRORS(Z_LVAL_P(EX_VAR(opline->op1.var)))) {
 		EG(error_reporting) = Z_LVAL_P(EX_VAR(opline->op1.var));
 	}
+
+	/* Catch unhandled exceptions */
+	if (UNEXPECTED(EG(exception))) {
+		//zval_ptr_dtor_nogc(EX_VAR(opline->op1.var));
+		//ZVAL_UNDEF(EX_VAR(opline->result.var));
+		//HANDLE_EXCEPTION();
+		cleanup_unfinished_calls(execute_data, 0);
+	}
+
 	ZEND_VM_NEXT_OPCODE();
 }
 
