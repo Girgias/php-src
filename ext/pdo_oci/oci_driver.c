@@ -562,7 +562,7 @@ static bool oci_handle_set_attribute(pdo_dbh_t *dbh, zend_long attr, zval *val) 
 }
 /* }}} */
 
-static int oci_handle_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *return_value)  /* {{{ */
+static bool oci_handle_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *return_value)  /* {{{ */
 {
 	pdo_oci_db_handle *H = (pdo_oci_db_handle *)dbh->driver_data;
 
@@ -591,7 +591,7 @@ static int oci_handle_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *return
 					ZVAL_STRING(return_value, verstr);
 				}
 			}
-			return TRUE;
+			return true;
 		}
 
 		case PDO_ATTR_CLIENT_VERSION:
@@ -608,20 +608,20 @@ static int oci_handle_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *return
 			/* Compile time client version */
 			ZVAL_STRING(return_value, PHP_PDO_OCI_CLIENT_VERSION);
 #else
-			return FALSE;
+			return false;
 
 #endif /* Check for OCIClientVersion() support */
 
-			return TRUE;
+			return true;
 		}
 
 		case PDO_ATTR_AUTOCOMMIT:
 			ZVAL_BOOL(return_value, dbh->auto_commit);
-			return TRUE;
+			return true;
 
 		case PDO_ATTR_PREFETCH:
 			ZVAL_LONG(return_value, H->prefetch);
-			return TRUE;
+			return true;
 		case PDO_OCI_ATTR_CALL_TIMEOUT:
 		{
 #if (OCI_MAJOR_VERSION >= 18)
@@ -632,21 +632,21 @@ static int oci_handle_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *return
 				OCI_ATTR_CALL_TIMEOUT, H->err);
 			if (H->last_err) {
 				oci_drv_error("OCIAttrGet: OCI_ATTR_CALL_TIMEOUT");
-				return FALSE;
+				return false;
 			}
 
 			ZVAL_LONG(return_value, (zend_long) timeout);
-			return TRUE;
+			return true;
 #else
 			oci_drv_error("Unsupported attribute type");
-			return FALSE;
+			return false;
 #endif
 		}
 		default:
-			return FALSE;
+			return false;
 
 	}
-	return FALSE;
+	return false;
 
 }
 /* }}} */

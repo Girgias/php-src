@@ -280,7 +280,7 @@ static bool sqlite_handle_rollback(pdo_dbh_t *dbh)
 	return true;
 }
 
-static int pdo_sqlite_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *return_value)
+static bool pdo_sqlite_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *return_value)
 {
 	switch (attr) {
 		case PDO_ATTR_CLIENT_VERSION:
@@ -289,10 +289,10 @@ static int pdo_sqlite_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *return
 			break;
 
 		default:
-			return 0;
+			return false;
 	}
 
-	return 1;
+	return true;
 }
 
 static bool pdo_sqlite_set_attr(pdo_dbh_t *dbh, zend_long attr, zval *val)

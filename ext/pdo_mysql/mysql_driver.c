@@ -447,7 +447,7 @@ static bool pdo_mysql_set_attribute(pdo_dbh_t *dbh, zend_long attr, zval *val)
 /* }}} */
 
 /* {{{ pdo_mysql_get_attribute */
-static int pdo_mysql_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *return_value)
+static bool pdo_mysql_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *return_value)
 {
 	pdo_mysql_db_handle *H = (pdo_mysql_db_handle *)dbh->driver_data;
 
@@ -512,10 +512,10 @@ static int pdo_mysql_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *return_
 			break;
 
 		default:
-			PDO_DBG_RETURN(0);
+			PDO_DBG_RETURN(false);
 	}
 
-	PDO_DBG_RETURN(1);
+	PDO_DBG_RETURN(true);
 }
 /* }}} */
 

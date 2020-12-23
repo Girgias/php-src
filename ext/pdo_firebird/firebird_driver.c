@@ -914,7 +914,7 @@ static void firebird_info_cb(void *arg, char const *s) /* {{{ */
 /* }}} */
 
 /* called by PDO to get a driver-specific dbh attribute */
-static int firebird_handle_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *val) /* {{{ */
+static bool firebird_handle_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *val) /* {{{ */
 {
 	pdo_firebird_db_handle *H = (pdo_firebird_db_handle *)dbh->driver_data;
 
@@ -923,11 +923,11 @@ static int firebird_handle_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *v
 
 		case PDO_ATTR_AUTOCOMMIT:
 			ZVAL_LONG(val,dbh->auto_commit);
-			return 1;
+			return true;
 
 		case PDO_ATTR_CONNECTION_STATUS:
 			ZVAL_BOOL(val, !isc_version(&H->db, firebird_info_cb, NULL));
-			return 1;
+			return true;
 
 		case PDO_ATTR_CLIENT_VERSION: {
 #if defined(__GNUC__) || defined(PHP_WIN32)
@@ -950,7 +950,7 @@ static int firebird_handle_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *v
 			ZVAL_NULL(val);
 #endif
 			}
-			return 1;
+			return true;
 
 		case PDO_ATTR_SERVER_VERSION:
 		case PDO_ATTR_SERVER_INFO:
@@ -958,14 +958,15 @@ static int firebird_handle_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *v
 
 			if (!isc_version(&H->db, firebird_info_cb, (void*)tmp)) {
 				ZVAL_STRING(val, tmp);
-				return 1;
+				return true;
 			}
+			/* TODO missing break? */
 
 		case PDO_ATTR_FETCH_TABLE_NAMES:
 			ZVAL_BOOL(val, H->fetch_table_names);
-			return 1;
+			return true;
 	}
-	return 0;
+	return false;
 }
 /* }}} */
 

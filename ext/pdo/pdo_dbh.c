@@ -893,20 +893,13 @@ PHP_METHOD(PDO, getAttribute)
 		RETURN_FALSE;
 	}
 
-	switch (dbh->methods->get_attribute(dbh, attr, return_value)) {
-		case -1:
-			PDO_HANDLE_DBH_ERR();
-			RETURN_FALSE;
-
-		case 0:
-			pdo_raise_impl_error(dbh, NULL, "IM001", "driver does not support that attribute");
-			RETURN_FALSE;
-
-		default:
-			/* No error state, just return as the return_value has been assigned
-			 * by the get_attribute handler */
-			return;
+	if (dbh->methods->get_attribute(dbh, attr, return_value) == false) {
+		pdo_raise_impl_error(dbh, NULL, "IM001", "driver does not support that attribute");
+		RETURN_FALSE;
 	}
+	/* No error state, just return as the return_value has been assigned
+	 * by the get_attribute handler */
+	 return;
 }
 /* }}} */
 

@@ -393,7 +393,7 @@ void pdo_libpq_version(char *buf, size_t len)
 	}
 }
 
-static int pdo_pgsql_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *return_value)
+static bool pdo_pgsql_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *return_value)
 {
 	pdo_pgsql_db_handle *H = (pdo_pgsql_db_handle *)dbh->driver_data;
 
@@ -481,10 +481,10 @@ static int pdo_pgsql_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *return_
 		}
 
 		default:
-			return 0;
+			return false;
 	}
 
-	return 1;
+	return true;
 }
 
 /* {{{ */

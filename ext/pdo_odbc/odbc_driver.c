@@ -349,13 +349,13 @@ static bool odbc_handle_set_attr(pdo_dbh_t *dbh, zend_long attr, zval *val)
 	}
 }
 
-static int odbc_handle_get_attr(pdo_dbh_t *dbh, zend_long attr, zval *val)
+static bool odbc_handle_get_attr(pdo_dbh_t *dbh, zend_long attr, zval *val)
 {
 	pdo_odbc_db_handle *H = (pdo_odbc_db_handle *)dbh->driver_data;
 	switch (attr) {
 		case PDO_ATTR_CLIENT_VERSION:
 			ZVAL_STRING(val, "ODBC-" PDO_ODBC_TYPE);
-			return 1;
+			return true;
 
 		case PDO_ATTR_SERVER_VERSION:
 		case PDO_ATTR_PREFETCH:
@@ -365,10 +365,10 @@ static int odbc_handle_get_attr(pdo_dbh_t *dbh, zend_long attr, zval *val)
 			break;
 		case PDO_ODBC_ATTR_ASSUME_UTF8:
 			ZVAL_BOOL(val, H->assume_utf8 ? 1 : 0);
-			return 1;
+			return true;
 
 	}
-	return 0;
+	return false;
 }
 
 static const struct pdo_dbh_methods odbc_methods = {

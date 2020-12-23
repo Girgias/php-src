@@ -361,7 +361,7 @@ static void dblib_get_tds_version(zval *return_value, int tds)
 	}
 }
 
-static int dblib_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *return_value)
+static bool dblib_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *return_value)
 {
 	pdo_dblib_db_handle *H = (pdo_dblib_db_handle *)dbh->driver_data;
 
@@ -396,10 +396,10 @@ static int dblib_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *return_valu
 			break;
 
 		default:
-			return 0;
+			return false;
 	}
 
-	return 1;
+	return true;
 }
 
 static const struct pdo_dbh_methods dblib_methods = {

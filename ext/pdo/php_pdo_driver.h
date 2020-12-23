@@ -257,8 +257,9 @@ typedef char *(*pdo_dbh_last_id_func)(pdo_dbh_t *dbh, const char *name, size_t *
  *   specific data ...  */
 typedef	int (*pdo_dbh_fetch_error_func)(pdo_dbh_t *dbh, pdo_stmt_t *stmt, zval *info);
 
-/* fetching of attributes */
-typedef int (*pdo_dbh_get_attr_func)(pdo_dbh_t *dbh, zend_long attr, zval *val);
+/* fetching of attributes
+ * Return true on success and false in case of failure */
+typedef bool (*pdo_dbh_get_attr_func)(pdo_dbh_t *dbh, zend_long attr, zval *val);
 
 /* checking/pinging persistent connections; return SUCCESS if the connection
  * is still alive and ready to be used, FAILURE otherwise.
