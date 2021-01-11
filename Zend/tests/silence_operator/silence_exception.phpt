@@ -10,6 +10,9 @@ function test1() {
 
 $var = @test1();
 
+var_dump($var);
+
 echo "Done\n";
 ?>
 --EXPECT--
+Done

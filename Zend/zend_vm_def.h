@@ -7291,13 +7291,8 @@ ZEND_VM_HANDLER(58, ZEND_END_SILENCE, TMP, ANY)
 		EG(error_reporting) = Z_LVAL_P(EX_VAR(opline->op1.var));
 	}
 
-	/* Catch unhandled exceptions */
-	if (UNEXPECTED(EG(exception))) {
-		//FREE_OP1();
-		//ZVAL_UNDEF(EX_VAR(opline->result.var));
-		//HANDLE_EXCEPTION();
-		cleanup_unfinished_calls(execute_data, 0);
-	}
+	/* Exceptions must be swallowed */
+	ZEND_ASSERT(!EG(exception));
 
 	ZEND_VM_NEXT_OPCODE();
 }
@@ -7744,6 +7739,35 @@ ZEND_VM_HANDLER(149, ZEND_HANDLE_EXCEPTION, ANY, ANY)
 		const zend_live_range *range = find_live_range(
 			&EX(func)->op_array, throw_op_num, throw_op->op1.var);
 		throw_op_num = range->end;
+	}
+
+	//  (live_range[i].var & ZEND_LIVE_MASK) == ZEND_LIVE_SILENCE
+	for (i = 0; i < EX(func)->op_array.last_live_range; i++) {
+		const zend_live_range *range = &EX(func)->op_array.live_range[i];
+		if (range->start > throw_op_num) {
+			/* further blocks will not be relevant... */
+			break;
+		} else if (throw_op_num < range->end) {
+			if ((range->var & ZEND_LIVE_MASK) == ZEND_LIVE_SILENCE) {
+				/* Suppress exception */
+				if (EG(exception)) {
+					OBJ_RELEASE(EG(exception));
+					EG(exception) = NULL;
+				}
+				FREE_OP1();
+				FREE_OP2();
+				if (EX(return_value)) {
+					ZVAL_NULL(EX(return_value));
+				}
+				/* TODO Figure out value for internal functions
+				 * Iterate through EX(prev_execute_data) ?
+				 * EX(call)->func->type == ZEND_INTERNAL_FUNCTION to check type */
+				/* TODO Figure out which OPcode need to jump to */
+				//ZEND_VM_SET_NEXT_OPCODE(throw_op + 1);
+				ZEND_VM_SET_NEXT_OPCODE(&EX(func)->op_array.opcodes[range->end + 1]);
+				ZEND_VM_CONTINUE();
+			}
+		}
 	}
 
 	/* Find the innermost try/catch/finally the exception was thrown in */
