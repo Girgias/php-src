@@ -1121,7 +1121,8 @@ expr:
 	|	T_BOOL_CAST expr	{ $$ = zend_ast_create_cast(_IS_BOOL, $2); }
 	|	T_UNSET_CAST expr	{ $$ = zend_ast_create_cast(IS_NULL, $2); }
 	|	T_EXIT exit_expr	{ $$ = zend_ast_create(ZEND_AST_EXIT, $2); }
-	|	'@' expr			{ $$ = zend_ast_create(ZEND_AST_SILENCE, $2); }
+	|	'@' expr ':' expr	{ $$ = zend_ast_create(ZEND_AST_SILENCE, $2, $4); }
+	|	'@' expr			{ $$ = zend_ast_create(ZEND_AST_SILENCE, $2, NULL); }
 	|	scalar { $$ = $1; }
 	|	'`' backticks_expr '`' { $$ = zend_ast_create(ZEND_AST_SHELL_EXEC, $2); }
 	|	T_PRINT expr { $$ = zend_ast_create(ZEND_AST_PRINT, $2); }

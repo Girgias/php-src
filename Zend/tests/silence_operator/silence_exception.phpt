@@ -15,4 +15,5 @@ var_dump($var);
 echo "Done\n";
 ?>
 --EXPECT--
+NULL
 Done

@@ -8869,17 +8869,27 @@ void zend_compile_isset_or_empty(znode *result, zend_ast *ast) /* {{{ */
 //TODO LOOK HERE
 void zend_compile_silence(znode *result, zend_ast *ast) /* {{{ */
 {
-	zend_ast *expr_ast = ast->child[0];
+	zend_ast *normal_expr_ast = ast->child[0];
+	zend_ast *fallback_expr_ast = ast->child[1];
 	znode silence_node;
+	znode normal_node;
+	znode fallback_node;
 
 	zend_emit_op_tmp(&silence_node, ZEND_BEGIN_SILENCE, NULL, NULL);
 
-	if (expr_ast->kind == ZEND_AST_VAR) {
+	if (normal_expr_ast->kind == ZEND_AST_VAR) {
 		/* For @$var we need to force a FETCH instruction, otherwise the CV access will
 		 * happen outside the silenced section. */
-		zend_compile_simple_var_no_cv(result, expr_ast, BP_VAR_R, 0 );
+		zend_compile_simple_var_no_cv(&normal_node, normal_expr_ast, BP_VAR_R, 0 );
 	} else {
-		zend_compile_expr(result, expr_ast);
+		zend_compile_expr(&normal_node, normal_expr_ast);
+	}
+
+	if (fallback_expr_ast != NULL) {
+		zend_compile_expr(&fallback_node, normal_expr_ast);
+		zend_emit_op_tmp(result, ZEND_END_SILENCE_FALLBACK, &normal_node, &fallback_node);
+	} else {
+		*result = normal_node;
 	}
 
 	zend_emit_op(NULL, ZEND_END_SILENCE, &silence_node, NULL);

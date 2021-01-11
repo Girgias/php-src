@@ -7294,6 +7294,40 @@ ZEND_VM_HANDLER(58, ZEND_END_SILENCE, TMP, ANY)
 	/* Exceptions must be swallowed */
 	ZEND_ASSERT(!EG(exception));
 
+	/*
+	// Undef means do not use fallback
+	// ZVAL_UNDEF(EX_VAR(opline->result.var));
+	// Check if exception has been swallowed, if yes use fallback value.
+	*/
+
+	ZEND_VM_NEXT_OPCODE();
+}
+
+ZEND_VM_HANDLER(201, ZEND_END_SILENCE_FALLBACK, ANY, ANY)
+{
+	USE_OPLINE
+
+	zval *value;
+	zval *result = EX_VAR(opline->result.var);
+
+	/* Normal expression failed */
+	if (OP1_TYPE == IS_UNDEF) {
+		/* No fallback provided */
+		if (OP2_TYPE == IS_UNDEF) {
+			ZVAL_NULL(result);
+		} else {
+			value = GET_OP2_ZVAL_PTR(BP_VAR_R);
+			ZVAL_COPY_VALUE(result, value);
+		}
+	} else {
+		value = GET_OP1_ZVAL_PTR(BP_VAR_R);
+		ZVAL_COPY_VALUE(result, value);
+	}
+>>>>>>> 0780547aae... Something for fallback
+
+	FREE_OP1();
+	FREE_OP2();
+
 	ZEND_VM_NEXT_OPCODE();
 }
 
@@ -7730,17 +7764,6 @@ ZEND_VM_HANDLER(149, ZEND_HANDLE_EXCEPTION, ANY, ANY)
 	uint32_t throw_op_num = throw_op - EX(func)->op_array.opcodes;
 	int i, current_try_catch_offset = -1;
 
-	if ((throw_op->opcode == ZEND_FREE || throw_op->opcode == ZEND_FE_FREE)
-		&& throw_op->extended_value & ZEND_FREE_ON_RETURN) {
-		/* exceptions thrown because of loop var destruction on return/break/...
-		 * are logically thrown at the end of the foreach loop, so adjust the
-		 * throw_op_num.
-		 */
-		const zend_live_range *range = find_live_range(
-			&EX(func)->op_array, throw_op_num, throw_op->op1.var);
-		throw_op_num = range->end;
-	}
-
 	//  (live_range[i].var & ZEND_LIVE_MASK) == ZEND_LIVE_SILENCE
 	for (i = 0; i < EX(func)->op_array.last_live_range; i++) {
 		const zend_live_range *range = &EX(func)->op_array.live_range[i];
@@ -7749,15 +7772,22 @@ ZEND_VM_HANDLER(149, ZEND_HANDLE_EXCEPTION, ANY, ANY)
 			break;
 		} else if (throw_op_num < range->end) {
 			if ((range->var & ZEND_LIVE_MASK) == ZEND_LIVE_SILENCE) {
+				//int ops_to_end_range = range->end - throw_op_num;
+
+/*
+				printf("Start %d", range->start);
+				printf("End %d", range->end);
+				printf("Throw op num %d", throw_op_num);
+				printf("%d", ops_to_end_range); */
+
 				/* Suppress exception */
 				if (EG(exception)) {
 					OBJ_RELEASE(EG(exception));
 					EG(exception) = NULL;
 				}
-				FREE_OP1();
-				FREE_OP2();
+
 				if (EX(return_value)) {
-					ZVAL_NULL(EX(return_value));
+					ZVAL_UNDEF(EX(return_value));
 				}
 				/* TODO Figure out value for internal functions
 				 * Iterate through EX(prev_execute_data) ?
@@ -7768,6 +7798,17 @@ ZEND_VM_HANDLER(149, ZEND_HANDLE_EXCEPTION, ANY, ANY)
 				ZEND_VM_CONTINUE();
 			}
 		}
+	}
+
+	if ((throw_op->opcode == ZEND_FREE || throw_op->opcode == ZEND_FE_FREE)
+		&& throw_op->extended_value & ZEND_FREE_ON_RETURN) {
+		/* exceptions thrown because of loop var destruction on return/break/...
+		 * are logically thrown at the end of the foreach loop, so adjust the
+		 * throw_op_num.
+		 */
+		const zend_live_range *range = find_live_range(
+			&EX(func)->op_array, throw_op_num, throw_op->op1.var);
+		throw_op_num = range->end;
 	}
 
 	/* Find the innermost try/catch/finally the exception was thrown in */

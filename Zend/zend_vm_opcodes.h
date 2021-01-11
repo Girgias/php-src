@@ -283,7 +283,8 @@ END_EXTERN_C()
 #define ZEND_JMP_NULL                   198
 #define ZEND_CHECK_UNDEF_ARGS           199
 #define ZEND_FETCH_GLOBALS              200
+#define ZEND_END_SILENCE_FALLBACK       201
 
-#define ZEND_VM_LAST_OPCODE             200
+#define ZEND_VM_LAST_OPCODE             201
 
 #endif
