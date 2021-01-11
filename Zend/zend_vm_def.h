@@ -7759,12 +7759,16 @@ ZEND_VM_HANDLER(149, ZEND_HANDLE_EXCEPTION, ANY, ANY)
 				if (EX(return_value)) {
 					ZVAL_NULL(EX(return_value));
 				}
+				if (EX(call)->func->type == ZEND_INTERNAL_FUNCTION) {
+					//printf("Hello I'm internal");
+				}
 				/* TODO Figure out value for internal functions
 				 * Iterate through EX(prev_execute_data) ?
 				 * EX(call)->func->type == ZEND_INTERNAL_FUNCTION to check type */
 				/* TODO Figure out which OPcode need to jump to */
 				//ZEND_VM_SET_NEXT_OPCODE(throw_op + 1);
-				ZEND_VM_SET_NEXT_OPCODE(&EX(func)->op_array.opcodes[range->end + 1]);
+				ZEND_VM_SET_NEXT_OPCODE(&EX(func)->op_array.opcodes[range->end]);
+				//ZEND_VM_SET_NEXT_OPCODE(&EX(func)->op_array.opcodes[range->end + 1]);
 				ZEND_VM_CONTINUE();
 			}
 		}

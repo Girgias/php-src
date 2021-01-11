@@ -2956,6 +2956,9 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_HANDLE_EXCEPTION_SPEC_HANDLER(
 				if (EX(return_value)) {
 					ZVAL_NULL(EX(return_value));
 				}
+				if (EX(call)->func->type == ZEND_INTERNAL_FUNCTION) {
+					//printf("Hello I'm internal");
+				}
 				/* TODO Figure out value for internal functions
 				 * Iterate through EX(prev_execute_data) ?
 				 * EX(call)->func->type == ZEND_INTERNAL_FUNCTION to check type */
