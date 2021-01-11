@@ -244,12 +244,37 @@ static ZEND_FUNCTION(namespaced_func)
 
 /* Tests possibility to return a value different than null for internal functions
  * being swallowed by the @ operator. */
-static ZEND_FUNCTION(zend_false_return_suppression_op)
+static ZEND_FUNCTION(zend_suppress_exception_internal_return_false)
 {
 	ZEND_PARSE_PARAMETERS_NONE();
 
 	RETVAL_FALSE;
 	zend_throw_error(NULL, "Shouldn't be seen");
+	RETURN_TRUE;
+}
+static ZEND_FUNCTION(zend_suppress_exception_internal_return_true)
+{
+	ZEND_PARSE_PARAMETERS_NONE();
+
+	RETVAL_TRUE;
+	zend_throw_error(NULL, "Shouldn't be seen");
+	RETURN_FALSE;
+}
+static ZEND_FUNCTION(zend_suppress_exception_internal_return_int)
+{
+	ZEND_PARSE_PARAMETERS_NONE();
+
+	RETVAL_LONG(20);
+	zend_throw_error(NULL, "Shouldn't be seen");
+	RETURN_LONG(40);
+}
+static ZEND_FUNCTION(zend_suppress_exception_internal_return_string)
+{
+	ZEND_PARSE_PARAMETERS_NONE();
+
+	RETVAL_STRING("Before");
+	zend_throw_error(NULL, "Shouldn't be seen");
+	RETURN_STRING("After");
 }
 
 static zend_object *zend_test_class_new(zend_class_entry *class_type) /* {{{ */ {

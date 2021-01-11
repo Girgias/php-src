@@ -73,7 +73,10 @@ function zend_string_or_stdclass_or_null($param): stdClass|string|null {}
 
 function zend_iterable(iterable $arg1, ?iterable $arg2 = null): void {}
 
-function zend_false_return_suppression_op(): bool {}
+function zend_suppress_exception_internal_return_false(): bool {}
+function zend_suppress_exception_internal_return_true(): bool {}
+function zend_suppress_exception_internal_return_int(): int {}
+function zend_suppress_exception_internal_return_string(): string {}
 
 }
 
