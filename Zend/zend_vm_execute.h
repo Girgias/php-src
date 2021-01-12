@@ -2946,6 +2946,7 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_HANDLE_EXCEPTION_SPEC_HANDLER(
 			break;
 		} else if (throw_op_num < range->end) {
 			if ((range->var & ZEND_LIVE_MASK) == ZEND_LIVE_SILENCE) {
+
 				/* Suppress exception */
 				if (EG(exception)) {
 					OBJ_RELEASE(EG(exception));
@@ -2966,6 +2967,7 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_HANDLE_EXCEPTION_SPEC_HANDLER(
 				 * and compare against ZEND_INTERNAL_FUNCTION)
 				 */
 
+				cleanup_unfinished_calls(execute_data, throw_op_num);
 				/* This goes to far? as it produces an undefined var error
 				cleanup_live_vars(execute_data, range->start, range->end);
 				*/

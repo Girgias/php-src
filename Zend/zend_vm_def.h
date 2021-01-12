@@ -7749,6 +7749,7 @@ ZEND_VM_HANDLER(149, ZEND_HANDLE_EXCEPTION, ANY, ANY)
 			break;
 		} else if (throw_op_num < range->end) {
 			if ((range->var & ZEND_LIVE_MASK) == ZEND_LIVE_SILENCE) {
+
 				/* Suppress exception */
 				if (EG(exception)) {
 					OBJ_RELEASE(EG(exception));
@@ -7769,6 +7770,7 @@ ZEND_VM_HANDLER(149, ZEND_HANDLE_EXCEPTION, ANY, ANY)
 				 * and compare against ZEND_INTERNAL_FUNCTION)
 				 */
 
+				cleanup_unfinished_calls(execute_data, throw_op_num);
 				/* This goes to far? as it produces an undefined var error
 				cleanup_live_vars(execute_data, range->start, range->end);
 				*/
