@@ -2941,7 +2941,6 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_HANDLE_EXCEPTION_SPEC_HANDLER(
 	/* TODO: is there a better way? Maybe using find_live_range()? */
 	/* Check if we are in a silence live range (i.e. exception was thrown in an expression
 	 * prefixed by the silence operator '@' */
-	//  (live_range[i].var & ZEND_LIVE_MASK) == ZEND_LIVE_SILENCE
 	for (i = 0; i < EX(func)->op_array.last_live_range; i++) {
 		const zend_live_range *range = &EX(func)->op_array.live_range[i];
 		if (range->start > throw_op_num) {
@@ -2951,7 +2950,6 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_HANDLE_EXCEPTION_SPEC_HANDLER(
 			if ((range->var & ZEND_LIVE_MASK) == ZEND_LIVE_SILENCE) {
 				zend_class_entry *ce = EG(exception)->ce;
                 zend_class_entry *suppressable_ce = NULL;
-				//zval *result;
 
 				/* TODO How to pass suppressable_ce, possible directly in OPCode? */
 				/*
@@ -2967,36 +2965,9 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_HANDLE_EXCEPTION_SPEC_HANDLER(
 				 * - Exception is part of the @ class list.
 				 */
 				if (suppressable_ce == NULL || ce == suppressable_ce || instanceof_function(ce, suppressable_ce)) {
-
-
-					/* We are in a silence live range, so jump to END_SILENCE opcode after cleaning up */
-					/* This goes to far? as it produces an undefined var error
-					cleanup_live_vars(execute_data, range->start, range->end);
-					*/
-
 					cleanup_unfinished_calls(execute_data, throw_op_num);
 					cleanup_live_vars(execute_data, range->start, throw_op_num);
 
-					/* TODO Set return value */
-					if (EX(return_value)) {
-						zval_ptr_dtor(EX(return_value));
-						ZVAL_NULL(EX(return_value));
-						//ZVAL_UNDEF(EX(return_value));
-					}
-					//result = EX_VAR(&EX(func)->op_array.opcodes[range->end].result.var);
-					//ZVAL_BOOL(result, false);
-
-					//ZVAL_UNDEF(EX_VAR(opline->result.var));
-					//ZVAL_UNDEF(EX_VAR(opline->result.var));
-					/* TODO Figure out value for internal functions
-					 * NOTE: This seems to work "kinda" out of the box...
-					 * Iterate through EX(prev_execute_data) ?
-					 * EX(call)->func->type == ZEND_INTERNAL_FUNCTION to check type */
-
-					/* Need to clean up vars
-					 * Only for userland? (so see if can explore EX(call)->func->type
-					 * and compare against ZEND_INTERNAL_FUNCTION)
-					 */
 					/* Jump to END_SILENCE opcode */
 					ZEND_VM_SET_NEXT_OPCODE(&EX(func)->op_array.opcodes[range->end]);
 					ZEND_VM_CONTINUE();
@@ -19535,6 +19506,17 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_END_SILENCE_SPEC_TMP_CONST_HAN
 		}
 #endif /* HAVE_DTRACE */
 
+/*
+		if (EX(return_value)) {
+			zval_ptr_dtor(EX(return_value));
+			ZVAL_NULL(EX(return_value));
+		}
+*/
+		/* TODO Figure out value if internal functions could pass another value than NULL
+		 * Iterate through EX(prev_execute_data) ?
+		 * EX(call)->func->type == ZEND_INTERNAL_FUNCTION to check type */
+
+		/* Set value to NULL */
 		ZVAL_NULL(EX_VAR(opline->result.var));
 	} else {
 		ZVAL_COPY_VALUE(EX_VAR(opline->result.var), expression_result);
@@ -19967,6 +19949,17 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_END_SILENCE_SPEC_TMP_TMPVAR_HA
 		}
 #endif /* HAVE_DTRACE */
 
+/*
+		if (EX(return_value)) {
+			zval_ptr_dtor(EX(return_value));
+			ZVAL_NULL(EX(return_value));
+		}
+*/
+		/* TODO Figure out value if internal functions could pass another value than NULL
+		 * Iterate through EX(prev_execute_data) ?
+		 * EX(call)->func->type == ZEND_INTERNAL_FUNCTION to check type */
+
+		/* Set value to NULL */
 		ZVAL_NULL(EX_VAR(opline->result.var));
 	} else {
 		ZVAL_COPY_VALUE(EX_VAR(opline->result.var), expression_result);
@@ -20857,6 +20850,17 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_END_SILENCE_SPEC_TMP_CV_HANDLE
 		}
 #endif /* HAVE_DTRACE */
 
+/*
+		if (EX(return_value)) {
+			zval_ptr_dtor(EX(return_value));
+			ZVAL_NULL(EX(return_value));
+		}
+*/
+		/* TODO Figure out value if internal functions could pass another value than NULL
+		 * Iterate through EX(prev_execute_data) ?
+		 * EX(call)->func->type == ZEND_INTERNAL_FUNCTION to check type */
+
+		/* Set value to NULL */
 		ZVAL_NULL(EX_VAR(opline->result.var));
 	} else {
 		ZVAL_COPY_VALUE(EX_VAR(opline->result.var), expression_result);
