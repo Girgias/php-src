@@ -8873,6 +8873,7 @@ void zend_compile_silence(znode *result, zend_ast *ast) /* {{{ */
 	zend_ast *expr_ast = ast->child[0];
 	zend_ast_list *classes = NULL;
 	znode silence_node;
+	znode expr_result;
 
 	if (ast->child[1] != NULL) {
 		classes = zend_ast_get_list(ast->child[1]);
@@ -8890,15 +8891,15 @@ void zend_compile_silence(znode *result, zend_ast *ast) /* {{{ */
 	if (expr_ast->kind == ZEND_AST_VAR) {
 		/* For @$var we need to force a FETCH instruction, otherwise the CV access will
 		 * happen outside the silenced section. */
-		zend_compile_simple_var_no_cv(result, expr_ast, BP_VAR_R, 0 );
+		zend_compile_simple_var_no_cv(&expr_result, expr_ast, BP_VAR_R, 0 );
 	} else {
-		zend_compile_expr(result, expr_ast);
+		zend_compile_expr(&expr_result, expr_ast);
 	}
 
 	/* TODO Check if one can pass the class AST directly to the OpCode */
 	/* TODO Use result */
 
-	zend_emit_op(NULL, ZEND_END_SILENCE, &silence_node, NULL);
+	zend_emit_op(result, ZEND_END_SILENCE, &silence_node, &expr_result);
 }
 /* }}} */
 
