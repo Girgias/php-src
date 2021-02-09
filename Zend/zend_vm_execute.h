@@ -19928,48 +19928,6 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_INIT_ARRAY_SPEC_TMP_TMPVAR_HAN
 	}
 }
 
-static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_END_SILENCE_SPEC_TMP_TMPVAR_HANDLER(ZEND_OPCODE_HANDLER_ARGS)
-{
-	USE_OPLINE
-	zval *expression_result = _get_zval_ptr_var(opline->op2.var EXECUTE_DATA_CC);
-
-	if (E_HAS_ONLY_FATAL_ERRORS(EG(error_reporting))
-			&& !E_HAS_ONLY_FATAL_ERRORS(Z_LVAL_P(EX_VAR(opline->op1.var)))) {
-		EG(error_reporting) = Z_LVAL_P(EX_VAR(opline->op1.var));
-	}
-
-	/* If an exception is present this means we've jumped from HANDLE_EXCEPTION */
-	if (EG(exception)) {
-		OBJ_RELEASE(EG(exception));
-		EG(exception) = NULL;
-
-#ifdef HAVE_DTRACE
-		if (DTRACE_EXCEPTION_CAUGHT_ENABLED()) {
-			DTRACE_EXCEPTION_CAUGHT((char *)ce->name);
-		}
-#endif /* HAVE_DTRACE */
-
-/*
-		if (EX(return_value)) {
-			zval_ptr_dtor(EX(return_value));
-			ZVAL_NULL(EX(return_value));
-		}
-*/
-		/* TODO Figure out value if internal functions could pass another value than NULL
-		 * Iterate through EX(prev_execute_data) ?
-		 * EX(call)->func->type == ZEND_INTERNAL_FUNCTION to check type */
-
-		/* Set value to NULL */
-		ZVAL_NULL(EX_VAR(opline->result.var));
-	} else {
-		ZVAL_COPY_VALUE(EX_VAR(opline->result.var), expression_result);
-	}
-
-	zval_ptr_dtor_nogc(EX_VAR(opline->op2.var));
-
-	ZEND_VM_NEXT_OPCODE();
-}
-
 static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_YIELD_SPEC_TMP_TMPVAR_HANDLER(ZEND_OPCODE_HANDLER_ARGS)
 {
 	USE_OPLINE
@@ -20138,6 +20096,48 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_IS_NOT_IDENTICAL_SPEC_TMP_TMP_
 	ZEND_VM_SMART_BRANCH(result, 1);
 }
 
+static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_END_SILENCE_SPEC_TMP_TMP_HANDLER(ZEND_OPCODE_HANDLER_ARGS)
+{
+	USE_OPLINE
+	zval *expression_result = _get_zval_ptr_tmp(opline->op2.var EXECUTE_DATA_CC);
+
+	if (E_HAS_ONLY_FATAL_ERRORS(EG(error_reporting))
+			&& !E_HAS_ONLY_FATAL_ERRORS(Z_LVAL_P(EX_VAR(opline->op1.var)))) {
+		EG(error_reporting) = Z_LVAL_P(EX_VAR(opline->op1.var));
+	}
+
+	/* If an exception is present this means we've jumped from HANDLE_EXCEPTION */
+	if (EG(exception)) {
+		OBJ_RELEASE(EG(exception));
+		EG(exception) = NULL;
+
+#ifdef HAVE_DTRACE
+		if (DTRACE_EXCEPTION_CAUGHT_ENABLED()) {
+			DTRACE_EXCEPTION_CAUGHT((char *)ce->name);
+		}
+#endif /* HAVE_DTRACE */
+
+/*
+		if (EX(return_value)) {
+			zval_ptr_dtor(EX(return_value));
+			ZVAL_NULL(EX(return_value));
+		}
+*/
+		/* TODO Figure out value if internal functions could pass another value than NULL
+		 * Iterate through EX(prev_execute_data) ?
+		 * EX(call)->func->type == ZEND_INTERNAL_FUNCTION to check type */
+
+		/* Set value to NULL */
+		ZVAL_NULL(EX_VAR(opline->result.var));
+	} else {
+		ZVAL_COPY_VALUE(EX_VAR(opline->result.var), expression_result);
+	}
+
+	zval_ptr_dtor_nogc(EX_VAR(opline->op2.var));
+
+	ZEND_VM_NEXT_OPCODE();
+}
+
 static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_CASE_STRICT_SPEC_TMP_VAR_HANDLER(ZEND_OPCODE_HANDLER_ARGS)
 {
 	USE_OPLINE
@@ -20150,6 +20150,48 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_CASE_STRICT_SPEC_TMP_VAR_HANDL
 	result = fast_is_identical_function(op1, op2);
 	zval_ptr_dtor_nogc(EX_VAR(opline->op2.var));
 	ZEND_VM_SMART_BRANCH(result, 1);
+}
+
+static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_END_SILENCE_SPEC_TMP_VAR_HANDLER(ZEND_OPCODE_HANDLER_ARGS)
+{
+	USE_OPLINE
+	zval *expression_result = _get_zval_ptr_var(opline->op2.var EXECUTE_DATA_CC);
+
+	if (E_HAS_ONLY_FATAL_ERRORS(EG(error_reporting))
+			&& !E_HAS_ONLY_FATAL_ERRORS(Z_LVAL_P(EX_VAR(opline->op1.var)))) {
+		EG(error_reporting) = Z_LVAL_P(EX_VAR(opline->op1.var));
+	}
+
+	/* If an exception is present this means we've jumped from HANDLE_EXCEPTION */
+	if (EG(exception)) {
+		OBJ_RELEASE(EG(exception));
+		EG(exception) = NULL;
+
+#ifdef HAVE_DTRACE
+		if (DTRACE_EXCEPTION_CAUGHT_ENABLED()) {
+			DTRACE_EXCEPTION_CAUGHT((char *)ce->name);
+		}
+#endif /* HAVE_DTRACE */
+
+/*
+		if (EX(return_value)) {
+			zval_ptr_dtor(EX(return_value));
+			ZVAL_NULL(EX(return_value));
+		}
+*/
+		/* TODO Figure out value if internal functions could pass another value than NULL
+		 * Iterate through EX(prev_execute_data) ?
+		 * EX(call)->func->type == ZEND_INTERNAL_FUNCTION to check type */
+
+		/* Set value to NULL */
+		ZVAL_NULL(EX_VAR(opline->result.var));
+	} else {
+		ZVAL_COPY_VALUE(EX_VAR(opline->result.var), expression_result);
+	}
+
+	zval_ptr_dtor_nogc(EX_VAR(opline->op2.var));
+
+	ZEND_VM_NEXT_OPCODE();
 }
 
 static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_FETCH_DIM_FUNC_ARG_SPEC_TMP_UNUSED_HANDLER(ZEND_OPCODE_HANDLER_ARGS)
@@ -52332,8 +52374,8 @@ ZEND_API void execute_ex(zend_execute_data *ex)
 			(void*)&&ZEND_ROPE_END_SPEC_TMP_CV_LABEL,
 			(void*)&&ZEND_BEGIN_SILENCE_SPEC_LABEL,
 			(void*)&&ZEND_END_SILENCE_SPEC_TMP_CONST_LABEL,
-			(void*)&&ZEND_END_SILENCE_SPEC_TMP_TMPVAR_LABEL,
-			(void*)&&ZEND_END_SILENCE_SPEC_TMP_TMPVAR_LABEL,
+			(void*)&&ZEND_END_SILENCE_SPEC_TMP_TMP_LABEL,
+			(void*)&&ZEND_END_SILENCE_SPEC_TMP_VAR_LABEL,
 			(void*)&&ZEND_NULL_LABEL,
 			(void*)&&ZEND_END_SILENCE_SPEC_TMP_CV_LABEL,
 			(void*)&&ZEND_INIT_FCALL_BY_NAME_SPEC_CONST_LABEL,
@@ -56669,10 +56711,6 @@ zend_leave_helper_SPEC_LABEL:
 				VM_TRACE(ZEND_INIT_ARRAY_SPEC_TMP_TMPVAR)
 				ZEND_INIT_ARRAY_SPEC_TMP_TMPVAR_HANDLER(ZEND_OPCODE_HANDLER_ARGS_PASSTHRU);
 				HYBRID_BREAK();
-			HYBRID_CASE(ZEND_END_SILENCE_SPEC_TMP_TMPVAR):
-				VM_TRACE(ZEND_END_SILENCE_SPEC_TMP_TMPVAR)
-				ZEND_END_SILENCE_SPEC_TMP_TMPVAR_HANDLER(ZEND_OPCODE_HANDLER_ARGS_PASSTHRU);
-				HYBRID_BREAK();
 			HYBRID_CASE(ZEND_YIELD_SPEC_TMP_TMPVAR):
 				VM_TRACE(ZEND_YIELD_SPEC_TMP_TMPVAR)
 				ZEND_YIELD_SPEC_TMP_TMPVAR_HANDLER(ZEND_OPCODE_HANDLER_ARGS_PASSTHRU);
@@ -56689,9 +56727,17 @@ zend_leave_helper_SPEC_LABEL:
 				VM_TRACE(ZEND_IS_NOT_IDENTICAL_SPEC_TMP_TMP)
 				ZEND_IS_NOT_IDENTICAL_SPEC_TMP_TMP_HANDLER(ZEND_OPCODE_HANDLER_ARGS_PASSTHRU);
 				HYBRID_BREAK();
+			HYBRID_CASE(ZEND_END_SILENCE_SPEC_TMP_TMP):
+				VM_TRACE(ZEND_END_SILENCE_SPEC_TMP_TMP)
+				ZEND_END_SILENCE_SPEC_TMP_TMP_HANDLER(ZEND_OPCODE_HANDLER_ARGS_PASSTHRU);
+				HYBRID_BREAK();
 			HYBRID_CASE(ZEND_CASE_STRICT_SPEC_TMP_VAR):
 				VM_TRACE(ZEND_CASE_STRICT_SPEC_TMP_VAR)
 				ZEND_CASE_STRICT_SPEC_TMP_VAR_HANDLER(ZEND_OPCODE_HANDLER_ARGS_PASSTHRU);
+				HYBRID_BREAK();
+			HYBRID_CASE(ZEND_END_SILENCE_SPEC_TMP_VAR):
+				VM_TRACE(ZEND_END_SILENCE_SPEC_TMP_VAR)
+				ZEND_END_SILENCE_SPEC_TMP_VAR_HANDLER(ZEND_OPCODE_HANDLER_ARGS_PASSTHRU);
 				HYBRID_BREAK();
 			HYBRID_CASE(ZEND_FETCH_DIM_FUNC_ARG_SPEC_TMP_UNUSED):
 				VM_TRACE(ZEND_FETCH_DIM_FUNC_ARG_SPEC_TMP_UNUSED)
@@ -60372,8 +60418,8 @@ void zend_vm_init(void)
 		ZEND_ROPE_END_SPEC_TMP_CV_HANDLER,
 		ZEND_BEGIN_SILENCE_SPEC_HANDLER,
 		ZEND_END_SILENCE_SPEC_TMP_CONST_HANDLER,
-		ZEND_END_SILENCE_SPEC_TMP_TMPVAR_HANDLER,
-		ZEND_END_SILENCE_SPEC_TMP_TMPVAR_HANDLER,
+		ZEND_END_SILENCE_SPEC_TMP_TMP_HANDLER,
+		ZEND_END_SILENCE_SPEC_TMP_VAR_HANDLER,
 		ZEND_NULL_HANDLER,
 		ZEND_END_SILENCE_SPEC_TMP_CV_HANDLER,
 		ZEND_INIT_FCALL_BY_NAME_SPEC_CONST_HANDLER,

@@ -8874,6 +8874,8 @@ void zend_compile_silence(znode *result, zend_ast *ast) /* {{{ */
 	zend_ast_list *classes = NULL;
 	znode silence_node;
 	znode expr_result;
+	zend_op *start_opline;
+	zend_op *end_opline;
 
 	if (ast->child[1] != NULL) {
 		classes = zend_ast_get_list(ast->child[1]);
@@ -8886,7 +8888,7 @@ void zend_compile_silence(znode *result, zend_ast *ast) /* {{{ */
 		}
 	}
 
-	zend_emit_op_tmp(&silence_node, ZEND_BEGIN_SILENCE, NULL, NULL);
+	start_opline = zend_emit_op_tmp(&silence_node, ZEND_BEGIN_SILENCE, NULL, NULL);
 
 	if (expr_ast->kind == ZEND_AST_VAR) {
 		/* For @$var we need to force a FETCH instruction, otherwise the CV access will
@@ -8896,10 +8898,21 @@ void zend_compile_silence(znode *result, zend_ast *ast) /* {{{ */
 		zend_compile_expr(&expr_result, expr_ast);
 	}
 
+	/**
+	FROM CATCH
+			opline = get_next_op();
+			opline->opcode = ZEND_CATCH;
+			opline->op1_type = IS_CONST;
+			opline->op1.constant = zend_add_class_name_literal(
+					zend_resolve_class_name_ast(class_ast));
+			opline->extended_value = zend_alloc_cache_slot();
+			opline = zend_emit_op_data(&expr_node);
+			*/
+
 	/* TODO Check if one can pass the class AST directly to the OpCode */
 	/* TODO Use result */
 
-	zend_emit_op(result, ZEND_END_SILENCE, &silence_node, &expr_result);
+	end_opline = zend_emit_op(result, ZEND_END_SILENCE, &silence_node, &expr_result);
 }
 /* }}} */
 
