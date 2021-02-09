@@ -2938,6 +2938,9 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_HANDLE_EXCEPTION_SPEC_HANDLER(
 		throw_op_num = range->end;
 	}
 
+	/* TODO: is there a better way? Maybe using find_live_range()? */
+	/* Check if we are in a silence live range (i.e. exception was thrown in an expression
+	 * prefixed by the silence operator '@' */
 	//  (live_range[i].var & ZEND_LIVE_MASK) == ZEND_LIVE_SILENCE
 	for (i = 0; i < EX(func)->op_array.last_live_range; i++) {
 		const zend_live_range *range = &EX(func)->op_array.live_range[i];
@@ -2946,38 +2949,21 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_HANDLE_EXCEPTION_SPEC_HANDLER(
 			break;
 		} else if (throw_op_num < range->end) {
 			if ((range->var & ZEND_LIVE_MASK) == ZEND_LIVE_SILENCE) {
-
-				/* Suppress exception */
-				if (EG(exception)) {
-					OBJ_RELEASE(EG(exception));
-					EG(exception) = NULL;
-				}
-
-				if (EX(return_value)) {
-					ZVAL_NULL(EX(return_value));
-				}
-
-				/* TODO Figure out value for internal functions
-				 * NOTE: This seems to work "kinda" out of the box...
-				 * Iterate through EX(prev_execute_data) ?
-				 * EX(call)->func->type == ZEND_INTERNAL_FUNCTION to check type */
-
-				/* Need to clean up vars
-				 * Only for userland? (so see if can explore EX(call)->func->type
-				 * and compare against ZEND_INTERNAL_FUNCTION)
-				 */
-
-				cleanup_unfinished_calls(execute_data, throw_op_num);
+				/* We are in a silence live range, so jump to END_SILENCE opcode after cleaning up */
 				/* This goes to far? as it produces an undefined var error
-				cleanup_live_vars(execute_data, range->start, range->end);
-				*/
-				cleanup_live_vars(execute_data, range->start, throw_op_num);
+					cleanup_live_vars(execute_data, range->start, range->end);
+					*/
+				if (EX(return_value)) {
+					//ZVAL_NULL(EX(return_value));
+					ZVAL_UNDEF(EX(return_value));
+				}
 
-				/* zend_live_range.end is exclusive therefore need to add +1 */
-				/* Should push from throw_op? Or fetching directly from the op_array is fine.
-				 * //ZEND_VM_SET_NEXT_OPCODE(throw_op + 1);
-				 */
-				ZEND_VM_SET_NEXT_OPCODE(&EX(func)->op_array.opcodes[range->end + 1]);
+				//cleanup_unfinished_calls(execute_data, throw_op_num);
+				//cleanup_live_vars(execute_data, range->start, range->end);
+
+
+				/* Jump to END_SILENCE opcode */
+				ZEND_VM_SET_NEXT_OPCODE(&EX(func)->op_array.opcodes[range->end]);
 				ZEND_VM_CONTINUE();
 			}
 		}
@@ -19044,14 +19030,67 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_FE_RESET_RW_SPEC_TMP_HANDLER(Z
 static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_END_SILENCE_SPEC_TMP_HANDLER(ZEND_OPCODE_HANDLER_ARGS)
 {
 	USE_OPLINE
+	zend_class_entry *ce, *suppressable_ce = NULL;
+	zend_object *exception;
+	zval *result;
 
 	if (E_HAS_ONLY_FATAL_ERRORS(EG(error_reporting))
 			&& !E_HAS_ONLY_FATAL_ERRORS(Z_LVAL_P(EX_VAR(opline->op1.var)))) {
 		EG(error_reporting) = Z_LVAL_P(EX_VAR(opline->op1.var));
 	}
 
-	/* Exceptions must be swallowed */
-	ZEND_ASSERT(!EG(exception));
+	SAVE_OPLINE();
+
+	/* An exception has occurred */
+	if (EG(exception) != NULL) {
+		/* TODO How to pass suppressable_ce, possible directly in OPCode? */
+		/*
+		suppressable_ce = CACHED_PTR(opline->extended_value & ~ZEND_LAST_CATCH);
+		if (UNEXPECTED(suppressable_ce == NULL)) {
+			catch_ce = zend_fetch_class_by_name(Z_STR_P(RT_CONSTANT(opline, opline->op1)), Z_STR_P(RT_CONSTANT(opline, opline->op1) + 1), ZEND_FETCH_CLASS_NO_AUTOLOAD);
+
+			CACHE_PTR(opline->extended_value & ~ZEND_LAST_CATCH, catch_ce);
+		}
+		*/
+		ce = EG(exception)->ce;
+
+		/* Suppress an exception in the following case:
+		 * - No class list is used with @, suppress all exceptions.
+		 * - Exception is part of the @ class list.
+		 */
+	// Temp just throw away object unconditionally for now
+			OBJ_RELEASE(EG(exception));
+			EG(exception) = NULL;
+		if (suppressable_ce == NULL || ce == suppressable_ce || instanceof_function(ce, suppressable_ce)) {
+#ifdef HAVE_DTRACE
+			if (DTRACE_EXCEPTION_CAUGHT_ENABLED()) {
+				DTRACE_EXCEPTION_CAUGHT((char *)ce->name);
+			}
+#endif /* HAVE_DTRACE */
+
+
+			/* TODO Set return value */
+			result = EX_VAR(opline->result.var);
+
+			//ZVAL_UNDEF(EX_VAR(opline->result.var));
+			ZVAL_BOOL(result, false);
+			//ZVAL_UNDEF(EX_VAR(opline->result.var));
+
+				/* TODO Figure out value for internal functions
+				 * NOTE: This seems to work "kinda" out of the box...
+				 * Iterate through EX(prev_execute_data) ?
+				 * EX(call)->func->type == ZEND_INTERNAL_FUNCTION to check type */
+
+				/* Need to clean up vars
+				 * Only for userland? (so see if can explore EX(call)->func->type
+				 * and compare against ZEND_INTERNAL_FUNCTION)
+				 */
+		} else {
+			/* Might need to rethrow ? */
+			//HANDLE_EXCEPTION();
+		}
+	}
+	ZEND_ASSERT(EG(exception) == NULL);
 
 	ZEND_VM_NEXT_OPCODE();
 }

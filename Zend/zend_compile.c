@@ -8867,10 +8867,23 @@ void zend_compile_isset_or_empty(znode *result, zend_ast *ast) /* {{{ */
 /* }}} */
 
 //TODO LOOK HERE
+/* @ operator and expression suppresor compilation */
 void zend_compile_silence(znode *result, zend_ast *ast) /* {{{ */
 {
 	zend_ast *expr_ast = ast->child[0];
+	zend_ast_list *classes = NULL;
 	znode silence_node;
+
+	if (ast->child[1] != NULL) {
+		classes = zend_ast_get_list(ast->child[1]);
+		for (size_t j = 0; j < classes->children; j++) {
+			zend_ast *class_ast = classes->child[j];
+
+			if (!zend_is_const_default_class_ref(class_ast)) {
+				zend_error_noreturn(E_COMPILE_ERROR, "Bad class name in the silence class union list");
+			}
+		}
+	}
 
 	zend_emit_op_tmp(&silence_node, ZEND_BEGIN_SILENCE, NULL, NULL);
 
@@ -8881,6 +8894,9 @@ void zend_compile_silence(znode *result, zend_ast *ast) /* {{{ */
 	} else {
 		zend_compile_expr(result, expr_ast);
 	}
+
+	/* TODO Check if one can pass the class AST directly to the OpCode */
+	/* TODO Use result */
 
 	zend_emit_op(NULL, ZEND_END_SILENCE, &silence_node, NULL);
 }
