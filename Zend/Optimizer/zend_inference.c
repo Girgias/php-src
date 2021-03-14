@@ -2208,7 +2208,7 @@ ZEND_API uint32_t zend_fetch_arg_info_type(const zend_script *script, zend_arg_i
 	}
 
 	tmp = zend_convert_type_declaration_mask(ZEND_TYPE_PURE_MASK(arg_info->type));
-	if (ZEND_TYPE_HAS_CLASS(arg_info->type)) {
+	if (ZEND_TYPE_IS_COMPLEX(arg_info->type)) {
 		tmp |= MAY_BE_OBJECT;
 		/* As we only have space to store one CE, we use a plain object type for class unions. */
 		if (ZEND_TYPE_HAS_NAME(arg_info->type)) {
@@ -2316,7 +2316,7 @@ static uint32_t zend_fetch_prop_type(const zend_script *script, zend_property_in
 	}
 	if (prop_info && ZEND_TYPE_IS_SET(prop_info->type)) {
 		uint32_t type = zend_convert_type_declaration_mask(ZEND_TYPE_PURE_MASK(prop_info->type));
-		if (ZEND_TYPE_HAS_CLASS(prop_info->type)) {
+		if (ZEND_TYPE_IS_COMPLEX(prop_info->type)) {
 			type |= MAY_BE_OBJECT;
 			if (pce) {
 				if (ZEND_TYPE_HAS_CE(prop_info->type)) {

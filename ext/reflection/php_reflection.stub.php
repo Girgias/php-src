@@ -591,6 +591,11 @@ class ReflectionUnionType extends ReflectionType
     public function getTypes(): array {}
 }
 
+class ReflectionIntersectionType extends ReflectionType
+{
+    public function getTypes(): array {}
+}
+
 class ReflectionExtension implements Reflector
 {
     public string $name;

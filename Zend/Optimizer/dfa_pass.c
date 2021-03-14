@@ -313,7 +313,7 @@ static inline bool can_elide_return_type_check(
 		return 0;
 	}
 
-	if (ZEND_TYPE_HAS_CLASS(info->type)) {
+	if (ZEND_TYPE_IS_COMPLEX(info->type)) {
 		if (!use_info->ce || !def_info->ce || !safe_instanceof(use_info->ce, def_info->ce)) {
 			return 0;
 		}
