@@ -1194,15 +1194,62 @@ static zend_string *resolve_class_name(zend_string *name, zend_class_entry *scop
 	return zend_string_copy(name);
 }
 
+static zend_string *resolve_intersection_type(zend_string *str,
+	zend_type_list *intersection_type_list, zend_class_entry *scope)
+{
+	zend_type *single_type;
+	/* First type is not part of an intersection with the previous type */
+	bool is_intersection = false;
+
+	ZEND_TYPE_LIST_FOREACH(intersection_type_list, single_type) {
+		if (ZEND_TYPE_HAS_CE(*single_type)) {
+			str = add_type_string(str, ZEND_TYPE_CE(*single_type)->name, is_intersection);
+		} else {
+			zend_string *name = ZEND_TYPE_NAME(*single_type);
+
+			if (ZSTR_HAS_CE_CACHE(name)
+			 && ZSTR_GET_CE_CACHE(name)) {
+				zend_class_entry *ce = ZSTR_GET_CE_CACHE(name);
+				/* Can this happen? */
+				if (ce->ce_flags & ZEND_ACC_ANON_CLASS) {
+					zend_string *tmp = zend_string_init(ZSTR_VAL(ce->name), strlen(ZSTR_VAL(ce->name)), 0);
+					str = add_type_string(str, tmp, is_intersection);
+				} else {
+					str = add_type_string(str, ce->name, is_intersection);
+				}
+			} else {
+				zend_string *resolved = resolve_class_name(name, scope);
+				str = add_type_string(str, resolved, is_intersection);
+				zend_string_release(resolved);
+			}
+		}
+		/* Following types are part of the intersection */
+		is_intersection = true;
+	} ZEND_TYPE_LIST_FOREACH_END();
+
+	return str;
+}
+
 zend_string *zend_type_to_string_resolved(zend_type type, zend_class_entry *scope) {
 	zend_string *str = NULL;
 
-	if (ZEND_TYPE_HAS_LIST(type)) {
+	/* Pure intersection type */
+	if (ZEND_TYPE_IS_INTERSECTION(type)) {
+		ZEND_ASSERT(!ZEND_TYPE_IS_UNION(type));
+		str = resolve_intersection_type(str, ZEND_TYPE_LIST(type), scope);
+	}
+
+	if (ZEND_TYPE_IS_UNION(type)) {
 		zend_type *list_type;
-		bool is_intersection = ZEND_TYPE_IS_INTERSECTION(type);
 		ZEND_TYPE_LIST_FOREACH(ZEND_TYPE_LIST(type), list_type) {
+			/* Type within the union is an intersection */
+			if (ZEND_TYPE_IS_INTERSECTION(*list_type)) {
+				str = resolve_intersection_type(str, ZEND_TYPE_LIST(*list_type), scope);
+				continue;
+			}
+
 			if (ZEND_TYPE_HAS_CE(*list_type)) {
-				str = add_type_string(str, ZEND_TYPE_CE(*list_type)->name, is_intersection);
+				str = add_type_string(str, ZEND_TYPE_CE(*list_type)->name, /* is_intersection */ false);
 			} else {
 				zend_string *name = ZEND_TYPE_NAME(*list_type);
 
@@ -1211,13 +1258,13 @@ zend_string *zend_type_to_string_resolved(zend_type type, zend_class_entry *scop
 					zend_class_entry *ce = ZSTR_GET_CE_CACHE(name);
 					if (ce->ce_flags & ZEND_ACC_ANON_CLASS) {
 						zend_string *tmp = zend_string_init(ZSTR_VAL(ce->name), strlen(ZSTR_VAL(ce->name)), 0);
-						str = add_type_string(str, tmp, is_intersection);
+						str = add_type_string(str, tmp, /* is_intersection */ false);
 					} else {
-						str = add_type_string(str, ce->name, is_intersection);
+						str = add_type_string(str, ce->name, /* is_intersection */ false);
 					}
 				} else {
 					zend_string *resolved = resolve_class_name(name, scope);
-					str = add_type_string(str, resolved, is_intersection);
+					str = add_type_string(str, resolved, /* is_intersection */ false);
 					zend_string_release(resolved);
 				}
 			}
@@ -6236,8 +6283,31 @@ static zend_type zend_compile_typename(
 
 		for (uint32_t i = 0; i < list->children; i++) {
 			zend_ast *type_ast = list->child[i];
-			zend_type single_type = zend_compile_single_typename(type_ast);
-			uint32_t single_type_mask = ZEND_TYPE_PURE_MASK(single_type);
+			zend_type single_type;
+			uint32_t single_type_mask;
+
+			if (type_ast->kind == ZEND_AST_TYPE_INTERSECTION) {
+				/* The first class type can be stored directly as the type ptr payload. */
+				if (ZEND_TYPE_IS_COMPLEX(type) && !ZEND_TYPE_HAS_LIST(type)) {
+					/* Switch from single name to name list. */
+					type_list->num_types = 1;
+					type_list->types[0] = type;
+					/* Reset flags for first type */
+					ZEND_TYPE_FULL_MASK(type_list->types[0]) &= ~_ZEND_TYPE_MAY_BE_MASK;
+					ZEND_TYPE_SET_LIST(type, type_list);
+				}
+
+				single_type = zend_compile_typename(type_ast, false);
+				ZEND_ASSERT(ZEND_TYPE_IS_INTERSECTION(single_type));
+
+				type_list->types[type_list->num_types++] = single_type;
+
+				/* TODO Check for trivially redundant class types? */
+				continue;
+			}
+
+			single_type = zend_compile_single_typename(type_ast);
+			single_type_mask = ZEND_TYPE_PURE_MASK(single_type);
 
 			if (single_type_mask == MAY_BE_ANY) {
 				zend_error_noreturn(E_COMPILE_ERROR, "Type mixed can only be used as a standalone type");
@@ -6271,6 +6341,9 @@ static zend_type zend_compile_typename(
 
 					/* Check for trivially redundant class types */
 					for (size_t i = 0; i < type_list->num_types - 1; i++) {
+						if (ZEND_TYPE_IS_INTERSECTION(type_list->types[i])) {
+							continue;
+						}
 						if (zend_string_equals_ci(
 								ZEND_TYPE_NAME(type_list->types[i]), ZEND_TYPE_NAME(single_type))) {
 							zend_string *single_type_str = zend_type_to_string(single_type);
