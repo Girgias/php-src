@@ -21,6 +21,7 @@
 #include "zend_API.h"
 #include "zend_gc.h"
 #include "zend_builtin_functions.h"
+#include "zend_autoload.h"
 #include "zend_constants.h"
 #include "zend_ini.h"
 #include "zend_exceptions.h"
@@ -34,6 +35,7 @@
 
 ZEND_MINIT_FUNCTION(core) { /* {{{ */
 	zend_standard_class_def = register_class_stdClass();
+	zend_autoload = zend_autoload_call;
 
 	zend_register_default_classes();
 
@@ -1025,14 +1027,19 @@ ZEND_FUNCTION(enum_exists)
 }
 
 /* {{{ Checks if the function exists */
+/* TODO Add autoload support */
+// func = zend_lookup_function_ex(name, NULL, autoload); ???
 ZEND_FUNCTION(function_exists)
 {
 	zend_string *name;
 	bool exists;
+	bool autoload = true;
 	zend_string *lcname;
 
-	ZEND_PARSE_PARAMETERS_START(1, 1)
+	ZEND_PARSE_PARAMETERS_START(1, 2)
 		Z_PARAM_STR(name)
+		Z_PARAM_OPTIONAL
+		Z_PARAM_BOOL(autoload)
 	ZEND_PARSE_PARAMETERS_END();
 
 	if (ZSTR_VAL(name)[0] == '\\') {

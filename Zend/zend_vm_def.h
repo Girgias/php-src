@@ -3690,11 +3690,12 @@ ZEND_VM_HOT_HANDLER(59, ZEND_INIT_FCALL_BY_NAME, ANY, CONST, NUM|CACHE_SLOT)
 	fbc = CACHED_PTR(opline->result.num);
 	if (UNEXPECTED(fbc == NULL)) {
 		function_name = (zval*)RT_CONSTANT(opline, opline->op2);
-		func = zend_hash_find_known_hash(EG(function_table), Z_STR_P(function_name+1));
-		if (UNEXPECTED(func == NULL)) {
+		//func = zend_hash_find_ex(EG(function_table), Z_STR_P(function_name+1), 1);
+		//if (UNEXPECTED(func == NULL)) {
+		if (UNEXPECTED(!ZEND_LOOKUP_FUNCTION_BY_NAME(Z_STR_P(function_name+1), fbc))) {
 			ZEND_VM_DISPATCH_TO_HELPER(zend_undefined_function_helper);
 		}
-		fbc = Z_FUNC_P(func);
+		//fbc = Z_FUNC_P(func);
 		if (EXPECTED(fbc->type == ZEND_USER_FUNCTION) && UNEXPECTED(!RUN_TIME_CACHE(&fbc->op_array))) {
 			init_func_run_time_cache(&fbc->op_array);
 		}
@@ -3834,7 +3835,13 @@ ZEND_VM_HOT_HANDLER(69, ZEND_INIT_NS_FCALL_BY_NAME, ANY, CONST, NUM|CACHE_SLOT)
 	fbc = CACHED_PTR(opline->result.num);
 	if (UNEXPECTED(fbc == NULL)) {
 		func_name = (zval *)RT_CONSTANT(opline, opline->op2);
-		func = zend_hash_find_known_hash(EG(function_table), Z_STR_P(func_name + 1));
+		func = zend_hash_find_ex(EG(function_table), Z_STR_P(func_name + 1), 1);
+		/*
+		// Don't autoload the global function
+		if (UNEXPECTED(!ZEND_LOOKUP_FUNCTION_BY_NS_KEY(Z_STR_P(function_name), fbc))) {
+			ZEND_VM_DISPATCH_TO_HELPER(zend_undefined_function_helper);
+		}
+		*/
 		if (func == NULL) {
 			func = zend_hash_find_known_hash(EG(function_table), Z_STR_P(func_name + 2));
 			if (UNEXPECTED(func == NULL)) {
@@ -3868,10 +3875,16 @@ ZEND_VM_HOT_HANDLER(61, ZEND_INIT_FCALL, NUM, CONST, NUM|CACHE_SLOT)
 	if (UNEXPECTED(fbc == NULL)) {
 		fname = (zval*)RT_CONSTANT(opline, opline->op2);
 		func = zend_hash_find_known_hash(EG(function_table), Z_STR_P(fname));
+		/*
+		func = zend_hash_find_ex(EG(function_table), Z_STR_P(fname), 1);
 		if (UNEXPECTED(func == NULL)) {
 			ZEND_VM_DISPATCH_TO_HELPER(zend_undefined_function_helper);
 		}
 		fbc = Z_FUNC_P(func);
+		*/
+		if (UNEXPECTED(!ZEND_LOOKUP_FUNCTION_BY_NAME(Z_STR_P(fname), fbc))) {
+			ZEND_VM_DISPATCH_TO_HELPER(zend_undefined_function_helper);
+		}
 		if (EXPECTED(fbc->type == ZEND_USER_FUNCTION) && UNEXPECTED(!RUN_TIME_CACHE(&fbc->op_array))) {
 			init_func_run_time_cache(&fbc->op_array);
 		}

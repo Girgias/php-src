@@ -25,6 +25,7 @@
 #include "zend_operators.h"
 #include "zend_globals.h"
 #include "zend_API.h"
+#include "zend_autoload.h"
 
 /* Protection from recursive self-referencing class constants */
 #define IS_CONSTANT_VISITED_MARK    0x80
@@ -130,6 +131,12 @@ void zend_register_standard_constants(void)
 	REGISTER_MAIN_LONG_CONSTANT("DEBUG_BACKTRACE_IGNORE_ARGS", DEBUG_BACKTRACE_IGNORE_ARGS, CONST_PERSISTENT | CONST_CS);
 	REGISTER_MAIN_BOOL_CONSTANT("ZEND_THREAD_SAFE", ZTS_V, CONST_PERSISTENT | CONST_CS);
 	REGISTER_MAIN_BOOL_CONSTANT("ZEND_DEBUG_BUILD", ZEND_DEBUG, CONST_PERSISTENT | CONST_CS);
+
+	/* Auto-loading constants (want to make this an enum?) */
+	REGISTER_MAIN_LONG_CONSTANT("AUTOLOAD_CLASS", ZEND_AUTOLOAD_CLASS, CONST_PERSISTENT | CONST_CS);
+	REGISTER_MAIN_LONG_CONSTANT("AUTOLOAD_FUNCTION", ZEND_AUTOLOAD_FUNCTION, CONST_PERSISTENT | CONST_CS);
+	REGISTER_MAIN_LONG_CONSTANT("AUTOLOAD_CONSTANT", ZEND_AUTOLOAD_CONSTANT, CONST_PERSISTENT | CONST_CS);
+	REGISTER_MAIN_LONG_CONSTANT("AUTOLOAD_FLAG_PREPEND", ZEND_AUTOLOAD_FLAG_PREPEND, CONST_PERSISTENT | CONST_CS);
 
 	/* Special constants true/false/null.  */
 	REGISTER_MAIN_BOOL_CONSTANT("TRUE", 1, CONST_PERSISTENT);
@@ -318,6 +325,13 @@ static zend_constant *zend_get_constant_impl(zend_string *name)
 ZEND_API zval *zend_get_constant(zend_string *name)
 {
 	zend_constant *c = zend_get_constant_impl(name);
+	if (c) {
+		return &c->value;
+	}
+
+	// TODO Does this handle visibility?
+	/* Constant not found, try to autoload it */
+	c = (zend_constant*) zend_autoload_call(name, name, ZEND_AUTOLOAD_CONSTANT);
 	if (c) {
 		return &c->value;
 	}

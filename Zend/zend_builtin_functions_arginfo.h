@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: f87d92c002674c431827895a8d8b3a5da3b95482 */
+ * Stub hash: 9295d5104d2bc25a9a426a4137bd558578cfd84a */
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_zend_version, 0, 0, IS_STRING, 0)
 ZEND_END_ARG_INFO()
@@ -115,6 +115,7 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_function_exists, 0, 1, _IS_BOOL, 0)
 	ZEND_ARG_TYPE_INFO(0, function, IS_STRING, 0)
+	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, autoload, _IS_BOOL, 0, "true")
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_alias, 0, 2, _IS_BOOL, 0)
@@ -216,6 +217,20 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_gc_status arginfo_func_get_args
 
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_autoload_register, 0, 2, _IS_BOOL, 0)
+	ZEND_ARG_TYPE_INFO(0, type, IS_LONG, 0)
+	ZEND_ARG_TYPE_INFO(0, callback, IS_CALLABLE, 0)
+	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, flag, IS_LONG, 0, "0")
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_autoload_unregister, 0, 1, _IS_BOOL, 0)
+	ZEND_ARG_TYPE_INFO(0, callback, IS_CALLABLE, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_autoload_unregister_all, 0, 0, _IS_BOOL, 0)
+	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, type, IS_LONG, 0, "0")
+ZEND_END_ARG_INFO()
+
 
 ZEND_FUNCTION(zend_version);
 ZEND_FUNCTION(func_num_args);
@@ -275,6 +290,9 @@ ZEND_FUNCTION(gc_enabled);
 ZEND_FUNCTION(gc_enable);
 ZEND_FUNCTION(gc_disable);
 ZEND_FUNCTION(gc_status);
+ZEND_FUNCTION(autoload_register);
+ZEND_FUNCTION(autoload_unregister);
+ZEND_FUNCTION(autoload_unregister_all);
 
 
 static const zend_function_entry ext_functions[] = {
@@ -338,6 +356,9 @@ static const zend_function_entry ext_functions[] = {
 	ZEND_FE(gc_enable, arginfo_gc_enable)
 	ZEND_FE(gc_disable, arginfo_gc_disable)
 	ZEND_FE(gc_status, arginfo_gc_status)
+	ZEND_FE(autoload_register, arginfo_autoload_register)
+	ZEND_FE(autoload_unregister, arginfo_autoload_unregister)
+	ZEND_FE(autoload_unregister_all, arginfo_autoload_unregister_all)
 	ZEND_FE_END
 };
 

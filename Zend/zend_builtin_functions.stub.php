@@ -74,7 +74,7 @@ function trait_exists(string $trait, bool $autoload = true): bool {}
 
 function enum_exists(string $enum, bool $autoload = true): bool {}
 
-function function_exists(string $function): bool {}
+function function_exists(string $function, bool $autoload = true): bool {}
 
 function class_alias(string $class, string $alias, bool $autoload = true): bool {}
 
@@ -195,3 +195,9 @@ function gc_disable(): void {}
  * @refcount 1
  */
 function gc_status(): array {}
+
+function autoload_register(int $type, callable $callback, int $flag = 0): bool {}
+
+function autoload_unregister(callable $callback): bool {}
+
+function autoload_unregister_all(int $type = 0): bool {}

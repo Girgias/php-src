@@ -699,7 +699,7 @@ PHP_MINFO_FUNCTION(spl)
 /* {{{ PHP_MINIT_FUNCTION(spl) */
 PHP_MINIT_FUNCTION(spl)
 {
-	zend_autoload = spl_perform_autoload;
+	//zend_autoload = spl_perform_autoload;
 
 	PHP_MINIT(spl_exceptions)(INIT_FUNC_ARGS_PASSTHRU);
 	PHP_MINIT(spl_iterators)(INIT_FUNC_ARGS_PASSTHRU);

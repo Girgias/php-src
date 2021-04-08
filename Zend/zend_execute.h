@@ -32,7 +32,8 @@ ZEND_API extern void (*zend_execute_ex)(zend_execute_data *execute_data);
 ZEND_API extern void (*zend_execute_internal)(zend_execute_data *execute_data, zval *return_value);
 
 /* The lc_name may be stack allocated! */
-ZEND_API extern zend_class_entry *(*zend_autoload)(zend_string *name, zend_string *lc_name);
+/* may return zend_class_entry, zend_constant or zend_function */
+ZEND_API extern void *(*zend_autoload)(zend_string *name, zend_string *lc_name, zend_long type);
 
 void init_executor(void);
 void shutdown_executor(void);
@@ -48,6 +49,15 @@ ZEND_API void execute_internal(zend_execute_data *execute_data, zval *return_val
 ZEND_API bool zend_is_valid_class_name(zend_string *name);
 ZEND_API zend_class_entry *zend_lookup_class(zend_string *name);
 ZEND_API zend_class_entry *zend_lookup_class_ex(zend_string *name, zend_string *lcname, uint32_t flags);
+
+ZEND_API zend_function *zend_lookup_function(zend_string *name);
+ZEND_API zend_function *zend_lookup_function_ns(zend_string *name);
+ZEND_API zend_function *zend_lookup_function_ex(zend_string *name, zend_string *key, bool use_autoload);
+
+#define ZEND_LOOKUP_FUNCTION_BY_NAME(name, fbc) ((fbc = (zend_function*) zend_hash_find_ptr(EG(function_table), name)) != NULL || (fbc = zend_lookup_function(name)) != NULL)
+#define ZEND_LOOKUP_FUNCTION_BY_KEY(name, key, fbc) ((fbc = (zend_function*) zend_hash_find_ptr(EG(function_table), Z_STR_P(key))) != NULL || (fbc = zend_lookup_function_ex(name, key, 1)) != NULL)
+#define ZEND_LOOKUP_FUNCTION_BY_NS_KEY(name, key, fbc) ((fbc = (zend_function*) zend_hash_find_ptr(EG(function_table), Z_STR_P(key))) != NULL || (fbc = zend_lookup_function_ns(name)) != NULL)
+
 ZEND_API zend_class_entry *zend_get_called_scope(zend_execute_data *ex);
 ZEND_API zend_object *zend_get_this_object(zend_execute_data *ex);
 ZEND_API zend_result zend_eval_string(const char *str, zval *retval_ptr, const char *string_name);

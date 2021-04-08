@@ -34,6 +34,7 @@
 #include "zend_vm.h"
 #include "zend_float.h"
 #include "zend_fibers.h"
+#include "zend_autoload.h"
 #include "zend_weakrefs.h"
 #include "zend_inheritance.h"
 #include "zend_observer.h"
@@ -46,7 +47,7 @@
 
 ZEND_API void (*zend_execute_ex)(zend_execute_data *execute_data);
 ZEND_API void (*zend_execute_internal)(zend_execute_data *execute_data, zval *return_value);
-ZEND_API zend_class_entry *(*zend_autoload)(zend_string *name, zend_string *lc_name);
+ZEND_API void *(*zend_autoload)(zend_string *name, zend_string *lc_name, zend_long type);
 
 /* true globals */
 ZEND_API const zend_fcall_info empty_fcall_info = {0};
@@ -145,6 +146,12 @@ void init_executor(void) /* {{{ */
 	EG(in_autoload) = NULL;
 	EG(error_handling) = EH_NORMAL;
 	EG(flags) = EG_FLAGS_INITIAL;
+
+	zend_hash_init(&EG(autoload.stack.class), 8, NULL, NULL, 0);
+    zend_hash_init(&EG(autoload.stack.function), 8, NULL, NULL, 0);
+    zend_hash_init(&EG(autoload.stack.constant), 8, NULL, NULL, 0);
+    zend_hash_init(&EG(autoload.functions), 8, NULL, zend_autoload_dtor, 0);
+    EG(autoload.class_loader_count) = 0;
 
 	zend_vm_stack_init();
 
@@ -442,6 +449,11 @@ void shutdown_executor(void) /* {{{ */
 		zend_stack_destroy(&EG(user_error_handlers));
 		zend_stack_destroy(&EG(user_exception_handlers));
 		zend_objects_store_destroy(&EG(objects_store));
+		zend_hash_destroy(&EG(autoload.functions));
+        zend_hash_destroy(&EG(autoload.stack.class));
+        zend_hash_destroy(&EG(autoload.stack.function));
+        zend_hash_destroy(&EG(autoload.stack.constant));
+
 		if (EG(in_autoload)) {
 			zend_hash_destroy(EG(in_autoload));
 			FREE_HASHTABLE(EG(in_autoload));
@@ -1153,7 +1165,7 @@ ZEND_API zend_class_entry *zend_lookup_class_ex(zend_string *name, zend_string *
 	}
 
 	zend_exception_save();
-	ce = zend_autoload(autoload_name, lc_name);
+	ce = (zend_class_entry*) zend_autoload(autoload_name, lc_name, ZEND_AUTOLOAD_CLASS);
 	zend_exception_restore();
 
 	zend_string_release_ex(autoload_name, 0);
@@ -1209,6 +1221,84 @@ ZEND_API zend_object *zend_get_this_object(zend_execute_data *ex) /* {{{ */
 		ex = ex->prev_execute_data;
 	}
 	return NULL;
+}
+/* }}} */
+
+ZEND_API zend_function *zend_lookup_function(zend_string *name) /* {{{ */
+{
+    return zend_lookup_function_ex(name, NULL, 1);
+}
+/* }}} */
+
+ZEND_API zend_function *zend_lookup_function_ns(zend_string *name) /* {{{ */
+{
+    int pos = name->len - 1;
+    zend_string *new_name;
+    zend_function *result;
+
+    while (pos > 0 && name->val[pos - 1] != '\\') {
+        pos--;
+    }
+
+    new_name = zend_string_init(name->val + pos, name->len - pos, 0);
+    result = zend_lookup_function_ex(new_name, NULL, 1);
+    zend_string_release(new_name);
+    return result;
+}
+/* }}} */
+
+
+ZEND_API zend_function *zend_lookup_function_ex(zend_string *name, zend_string *key, bool use_autoload) /* {{{ */
+{
+    zend_function *fe = NULL;
+	zend_string *lc_name;
+	zend_string *autoload_name;
+
+	if (key) {
+		lc_name = key;
+	} else {
+		if (name == NULL || !ZSTR_LEN(name)) {
+			return NULL;
+		}
+
+		if (ZSTR_VAL(name)[0] == '\\') {
+			lc_name = zend_string_alloc(ZSTR_LEN(name) - 1, 0);
+			zend_str_tolower_copy(ZSTR_VAL(lc_name), ZSTR_VAL(name) + 1, ZSTR_LEN(name) - 1);
+		} else {
+			lc_name = zend_string_tolower(name);
+		}
+	}
+
+    fe = zend_hash_find_ptr(EG(function_table), lc_name);
+    if (fe) {
+        if (!key) {
+			zend_string_release_ex(lc_name, 0);
+        }
+        return fe;
+    }
+
+	/* The compiler is not-reentrant. Make sure we autoload only during run-time. */
+	if (zend_is_compiling()) {
+		if (!key) {
+			zend_string_release_ex(lc_name, 0);
+		}
+		return NULL;
+	}
+
+	if (ZSTR_VAL(name)[0] == '\\') {
+		autoload_name = zend_string_init(ZSTR_VAL(name) + 1, ZSTR_LEN(name) - 1, 0);
+	} else {
+		autoload_name = zend_string_copy(name);
+	}
+
+	zend_exception_save();
+    fe = (zend_function*) zend_autoload(autoload_name, lc_name, ZEND_AUTOLOAD_FUNCTION);
+	zend_exception_restore();
+
+    if (!key) {
+        zend_string_free(lc_name);
+    }
+    return fe;
 }
 /* }}} */
 

@@ -3415,6 +3415,9 @@ static zend_always_inline bool zend_is_callable_check_func(int check_flags, zval
 		zend_function *func;
 		zend_string *lmname;
 
+		// TODO Autoload support
+		// ZEND_LOOKUP_FUNCTION_BY_NAME(lmname, fcc->function_handler) ????
+
 		/* Check if function with given name exists.
 		 * This may be a compound name that includes namespace name */
 		if (UNEXPECTED(Z_STRVAL_P(callable)[0] == '\\')) {
