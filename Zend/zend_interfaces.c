@@ -56,14 +56,26 @@ ZEND_API zval* zend_call_method(zend_object *object, zend_class_entry *obj_ce, z
 			fn = zend_hash_str_find_ptr_lc(
 				&obj_ce->function_table, function_name, function_name_len);
 			if (UNEXPECTED(fn == NULL)) {
-				/* error at c-level */
-				zend_error_noreturn(E_CORE_ERROR, "Couldn't find implementation for method %s::%s", ZSTR_VAL(obj_ce->name), function_name);
+				zend_string *str_func_name = zend_string_init(function_name, function_name_len, false);
+				/* Try to autoload function before error-ing */
+				fn = zend_lookup_function(str_func_name);
+				if (UNEXPECTED(fn == NULL)) {
+					/* error at c-level */
+					zend_error_noreturn(E_CORE_ERROR, "Couldn't find implementation for method %s::%s", ZSTR_VAL(obj_ce->name), function_name);
+				}
+				zend_string_release_ex(str_func_name, false);
 			}
 		} else {
 			fn = zend_fetch_function_str(function_name, function_name_len);
 			if (UNEXPECTED(fn == NULL)) {
-				/* error at c-level */
-				zend_error_noreturn(E_CORE_ERROR, "Couldn't find implementation for function %s", function_name);
+				zend_string *str_func_name = zend_string_init(function_name, function_name_len, false);
+				/* Try to autoload function before error-ing */
+				fn = zend_lookup_function(str_func_name);
+				if (UNEXPECTED(fn == NULL)) {
+					/* error at c-level */
+					zend_error_noreturn(E_CORE_ERROR, "Couldn't find implementation for function %s", function_name);
+				}
+				zend_string_release_ex(str_func_name, false);
 			}
 		}
 		if (fn_proxy) {
