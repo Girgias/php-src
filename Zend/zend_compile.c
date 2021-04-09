@@ -6276,6 +6276,7 @@ static zend_type zend_compile_typename(
 	if (ast->kind == ZEND_AST_TYPE_UNION) {
 		zend_ast_list *list = zend_ast_get_list(ast);
 		zend_type_list *type_list;
+		bool is_composite = false;
 		ALLOCA_FLAG(use_heap)
 
 		type_list = do_alloca(ZEND_TYPE_LIST_SIZE(list->children), use_heap);
@@ -6287,6 +6288,7 @@ static zend_type zend_compile_typename(
 			uint32_t single_type_mask;
 
 			if (type_ast->kind == ZEND_AST_TYPE_INTERSECTION) {
+				is_composite = true;
 				/* The first class type can be stored directly as the type ptr payload. */
 				if (ZEND_TYPE_IS_COMPLEX(type) && !ZEND_TYPE_HAS_LIST(type)) {
 					/* Switch from single name to name list. */
@@ -6324,7 +6326,7 @@ static zend_type zend_compile_typename(
 			ZEND_TYPE_FULL_MASK(single_type) &= ~_ZEND_TYPE_MAY_BE_MASK;
 
 			if (ZEND_TYPE_IS_COMPLEX(single_type)) {
-				if (!ZEND_TYPE_IS_COMPLEX(type)) {
+				if (!ZEND_TYPE_IS_COMPLEX(type) && !is_composite) {
 					/* The first class type can be stored directly as the type ptr payload. */
 					ZEND_TYPE_SET_PTR(type, ZEND_TYPE_NAME(single_type));
 					ZEND_TYPE_FULL_MASK(type) |= _ZEND_TYPE_NAME_BIT;
