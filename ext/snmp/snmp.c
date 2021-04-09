@@ -124,8 +124,8 @@ zend_class_entry *php_snmp_exception_ce;
 static HashTable php_snmp_properties;
 
 struct objid_query {
-	int count;
-	int step;
+	size_t count;
+	size_t step;
 	zend_long non_repeaters;
 	zend_long max_repetitions;
 	int valueretrieval;
@@ -403,7 +403,8 @@ static void php_snmp_internal(INTERNAL_FUNCTION_PARAMETERS, int st,
 	struct variable_list *vars;
 	oid root[MAX_NAME_LEN];
 	size_t rootlen = 0;
-	int status, count, found;
+	int status, found;
+	size_t count;
 	char buf[2048];
 	char buf2[2048];
 	bool keepwalking = true;
