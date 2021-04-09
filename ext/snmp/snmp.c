@@ -125,7 +125,6 @@ static HashTable php_snmp_properties;
 
 struct objid_query {
 	int count;
-	int offset;
 	int step;
 	zend_long non_repeaters;
 	zend_long max_repetitions;
@@ -411,6 +410,7 @@ static void php_snmp_internal(INTERNAL_FUNCTION_PARAMETERS, int st,
 	char *err;
 	zval snmpval;
 	int snmp_errno;
+	size_t query_offset = 0;
 
 	/* we start with retval=FALSE. If any actual data is acquired, retval will be set to appropriate type */
 	RETVAL_FALSE;
@@ -421,7 +421,7 @@ static void php_snmp_internal(INTERNAL_FUNCTION_PARAMETERS, int st,
 	if (st & SNMP_CMD_WALK) { /* remember root OID */
 		memmove((char *)root, (char *)(objid_query->vars[0].name), (objid_query->vars[0].name_length) * sizeof(oid));
 		rootlen = objid_query->vars[0].name_length;
-		objid_query->offset = objid_query->count;
+		query_offset = objid_query->count;
 	}
 
 	if ((ss = snmp_open(session)) == NULL) {
@@ -458,17 +458,17 @@ static void php_snmp_internal(INTERNAL_FUNCTION_PARAMETERS, int st,
 				php_error_docref(NULL, E_ERROR, "Unknown SNMP command (internals)");
 				RETURN_FALSE;
 			}
-			for (count = 0; objid_query->offset < objid_query->count && count < objid_query->step; objid_query->offset++, count++){
+			for (count = 0; query_offset < objid_query->count && count < objid_query->step; query_offset++, count++){
 				if (st & SNMP_CMD_SET) {
-					if ((snmp_errno = snmp_add_var(pdu, objid_query->vars[objid_query->offset].name, objid_query->vars[objid_query->offset].name_length, objid_query->vars[objid_query->offset].type, objid_query->vars[objid_query->offset].value))) {
-						snprint_objid(buf, sizeof(buf), objid_query->vars[objid_query->offset].name, objid_query->vars[objid_query->offset].name_length);
-						php_snmp_error(getThis(), PHP_SNMP_ERRNO_OID_PARSING_ERROR, "Could not add variable: OID='%s' type='%c' value='%s': %s", buf, objid_query->vars[objid_query->offset].type, objid_query->vars[objid_query->offset].value, snmp_api_errstring(snmp_errno));
+					if ((snmp_errno = snmp_add_var(pdu, objid_query->vars[query_offset].name, objid_query->vars[query_offset].name_length, objid_query->vars[query_offset].type, objid_query->vars[query_offset].value))) {
+						snprint_objid(buf, sizeof(buf), objid_query->vars[query_offset].name, objid_query->vars[query_offset].name_length);
+						php_snmp_error(getThis(), PHP_SNMP_ERRNO_OID_PARSING_ERROR, "Could not add variable: OID='%s' type='%c' value='%s': %s", buf, objid_query->vars[query_offset].type, objid_query->vars[query_offset].value, snmp_api_errstring(snmp_errno));
 						snmp_free_pdu(pdu);
 						snmp_close(ss);
 						RETURN_FALSE;
 					}
 				} else {
-					snmp_add_null_var(pdu, objid_query->vars[objid_query->offset].name, objid_query->vars[objid_query->offset].name_length);
+					snmp_add_null_var(pdu, objid_query->vars[query_offset].name, objid_query->vars[query_offset].name_length);
 				}
 			}
 			if(pdu->variables == NULL){
@@ -483,7 +483,7 @@ retry:
 		if (status == STAT_SUCCESS) {
 			if (response->errstat == SNMP_ERR_NOERROR) {
 				if (st & SNMP_CMD_SET) {
-					if (objid_query->offset < objid_query->count) { /* we have unprocessed OIDs */
+					if (query_offset < objid_query->count) { /* we have unprocessed OIDs */
 						keepwalking = true;
 						snmp_free_pdu(response);
 						continue;
@@ -514,7 +514,7 @@ retry:
 							/* first fetched OID is out of subtree, fallback to GET query */
 							st |= SNMP_CMD_GET;
 							st ^= SNMP_CMD_WALK;
-							objid_query->offset = 0;
+							query_offset = 0;
 							keepwalking = true;
 						}
 						break;
@@ -579,7 +579,7 @@ retry:
 						}
 					}
 				}
-				if (objid_query->offset < objid_query->count) { /* we have unprocessed OIDs */
+				if (query_offset < objid_query->count) { /* we have unprocessed OIDs */
 					keepwalking = true;
 				}
 			} else {
@@ -595,7 +595,7 @@ retry:
 						vars = vars->next_variable, count++);
 
 					if (st & (SNMP_CMD_GET | SNMP_CMD_GETNEXT) && response->errstat == SNMP_ERR_TOOBIG && objid_query->step > 1) { /* Answer will not fit into single packet */
-						objid_query->offset = ((objid_query->offset > objid_query->step) ? (objid_query->offset - objid_query->step) : 0 );
+						query_offset = ((query_offset > objid_query->step) ? (query_offset - objid_query->step) : 0 );
 						objid_query->step /= 2;
 						snmp_free_pdu(response);
 						keepwalking = true;
@@ -791,16 +791,15 @@ static bool php_snmp_parse_oid(
 			objid_query->vars[0].name_length = sizeof(objid_mib) / sizeof(oid);
 		}
 	} else {
-		for (objid_query->offset = 0; objid_query->offset < objid_query->count; objid_query->offset++) {
-			objid_query->vars[objid_query->offset].name_length = MAX_OID_LEN;
-			if (!snmp_parse_oid(objid_query->vars[objid_query->offset].oid, objid_query->vars[objid_query->offset].name, &(objid_query->vars[objid_query->offset].name_length))) {
-				php_snmp_error(object, PHP_SNMP_ERRNO_OID_PARSING_ERROR, "Invalid object identifier: %s", objid_query->vars[objid_query->offset].oid);
+		for (size_t query_offset = 0; query_offset < objid_query->count; query_offset++) {
+			objid_query->vars[query_offset].name_length = MAX_OID_LEN;
+			if (!snmp_parse_oid(objid_query->vars[query_offset].oid, objid_query->vars[query_offset].name, &(objid_query->vars[query_offset].name_length))) {
+				php_snmp_error(object, PHP_SNMP_ERRNO_OID_PARSING_ERROR, "Invalid object identifier: %s", objid_query->vars[query_offset].oid);
 				efree(objid_query->vars);
 				return false;
 			}
 		}
 	}
-	objid_query->offset = 0;
 	objid_query->step = objid_query->count;
 	return (objid_query->count > 0);
 }
