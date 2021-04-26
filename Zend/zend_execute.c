@@ -1592,6 +1592,14 @@ static zend_never_inline void zend_assign_to_string_offset(zval *str, zval *dim,
 	zend_long offset;
 
 	offset = zend_check_string_offset(dim, BP_VAR_W EXECUTE_DATA_CC);
+	/* Illegal offset assignment */
+	if (UNEXPECTED(EG(exception) != NULL)) {
+		if (UNEXPECTED(RETURN_VALUE_USED(opline))) {
+			ZVAL_UNDEF(EX_VAR(opline->result.var));
+		}
+		return;
+	}
+
 	if (offset < -(zend_long)Z_STRLEN_P(str)) {
 		/* Error on negative offset */
 		zend_error(E_WARNING, "Illegal string offset " ZEND_LONG_FMT, offset);
@@ -3784,9 +3792,28 @@ static zend_always_inline zend_generator *zend_get_running_generator(EXECUTE_DAT
 }
 /* }}} */
 
+/* TODO Can this be done using find_live_range? */
+static bool is_in_silence_live_range(const zend_op_array op_array, uint32_t op_num) {
+	for (int i = 0; i < op_array.last_live_range; i++) {
+		zend_live_range range = op_array.live_range[i];
+		if (op_num >= range.start && op_num < range.end
+				&& (range.var & ZEND_LIVE_MASK) == ZEND_LIVE_SILENCE) {
+			return true;
+		}
+	}
+	return false;
+}
+
 static void cleanup_unfinished_calls(zend_execute_data *execute_data, uint32_t op_num) /* {{{ */
 {
 	if (UNEXPECTED(EX(call))) {
+		/* Do not cleanup unfinished calls for SILENCE live range as it might still get executed
+		 * However, this can only happen if the exception is an instance of Exception
+		 * (Error never gets suppressed) */
+		if (UNEXPECTED(is_in_silence_live_range(EX(func)->op_array, op_num)
+				&& instanceof_function(zend_ce_exception, EG(exception)->ce))) {
+			return;
+		}
 		zend_execute_data *call = EX(call);
 		zend_op *opline = EX(func)->op_array.opcodes + op_num;
 		int level;
