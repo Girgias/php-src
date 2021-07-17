@@ -588,26 +588,26 @@ static void init_process_info(PROCESS_INFORMATION *pi)
 	memset(&pi, 0, sizeof(pi));
 }
 
-static int convert_command_to_use_shell(wchar_t **cmdw, size_t cmdw_len)
+static bool convert_command_to_use_shell(wchar_t **cmdw, size_t cmdw_len)
 {
 	size_t len = sizeof(COMSPEC_NT) + sizeof(" /s /c ") + cmdw_len + 3;
 	wchar_t *cmdw_shell = (wchar_t *)malloc(len * sizeof(wchar_t));
 
 	if (cmdw_shell == NULL) {
 		php_error_docref(NULL, E_WARNING, "Command conversion failed");
-		return FAILURE;
+		return false;
 	}
 
 	if (_snwprintf(cmdw_shell, len, L"%hs /s /c \"%s\"", COMSPEC_NT, *cmdw) == -1) {
 		free(cmdw_shell);
 		php_error_docref(NULL, E_WARNING, "Command conversion failed");
-		return FAILURE;
+		return false;
 	}
 
 	free(*cmdw);
 	*cmdw = cmdw_shell;
 
-	return SUCCESS;
+	return true;
 }
 #endif
 
@@ -659,26 +659,26 @@ static zend_string* get_string_parameter(zval *array, int index, char *param_nam
 	return zval_try_get_string(array_item);
 }
 
-static int set_proc_descriptor_to_blackhole(descriptorspec_item *desc)
+static bool set_proc_descriptor_to_blackhole(descriptorspec_item *desc)
 {
 #ifdef PHP_WIN32
 	desc->childend = CreateFileA("nul", GENERIC_READ | GENERIC_WRITE,
 		FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
 	if (desc->childend == NULL) {
 		php_error_docref(NULL, E_WARNING, "Failed to open nul");
-		return FAILURE;
+		return false;
 	}
 #else
 	desc->childend = open("/dev/null", O_RDWR);
 	if (desc->childend < 0) {
 		php_error_docref(NULL, E_WARNING, "Failed to open /dev/null: %s", strerror(errno));
-		return FAILURE;
+		return false;
 	}
 #endif
-	return SUCCESS;
+	return true;
 }
 
-static int set_proc_descriptor_to_pty(descriptorspec_item *desc, int *master_fd, int *slave_fd)
+static bool set_proc_descriptor_to_pty(descriptorspec_item *desc, int *master_fd, int *slave_fd)
 {
 #if HAVE_OPENPTY
 	/* All FDs set to PTY in the child process will go to the slave end of the same PTY.
@@ -689,7 +689,7 @@ static int set_proc_descriptor_to_pty(descriptorspec_item *desc, int *master_fd,
 	if (*master_fd == -1) {
 		if (openpty(master_fd, slave_fd, NULL, NULL, NULL)) {
 			php_error_docref(NULL, E_WARNING, "Could not open PTY (pseudoterminal): %s", strerror(errno));
-			return FAILURE;
+			return false;
 		}
 	}
 
@@ -697,10 +697,10 @@ static int set_proc_descriptor_to_pty(descriptorspec_item *desc, int *master_fd,
 	desc->childend   = dup(*slave_fd);
 	desc->parentend  = dup(*master_fd);
 	desc->mode_flags = O_RDWR;
-	return SUCCESS;
+	return true;
 #else
 	php_error_docref(NULL, E_WARNING, "PTY (pseudoterminal) not supported on this system");
-	return FAILURE;
+	return false;
 #endif
 }
 
@@ -717,13 +717,13 @@ static php_file_descriptor_t make_descriptor_cloexec(php_file_descriptor_t fd)
 #endif
 }
 
-static int set_proc_descriptor_to_pipe(descriptorspec_item *desc, zend_string *zmode)
+static bool set_proc_descriptor_to_pipe(descriptorspec_item *desc, zend_string *zmode)
 {
 	php_file_descriptor_t newpipe[2];
 
 	if (pipe(newpipe)) {
 		php_error_docref(NULL, E_WARNING, "Unable to create pipe %s", strerror(errno));
-		return FAILURE;
+		return false;
 	}
 
 	desc->type = DESCRIPTOR_TYPE_PIPE;
@@ -745,7 +745,7 @@ static int set_proc_descriptor_to_pipe(descriptorspec_item *desc, zend_string *z
 		desc->mode_flags |= O_BINARY;
 #endif
 
-	return SUCCESS;
+	return true;
 }
 
 #ifdef PHP_WIN32
@@ -754,7 +754,7 @@ static int set_proc_descriptor_to_pipe(descriptorspec_item *desc, zend_string *z
 #define create_socketpair(socks) socketpair(AF_UNIX, SOCK_STREAM, 0, (socks))
 #endif
 
-static int set_proc_descriptor_to_socket(descriptorspec_item *desc)
+static bool set_proc_descriptor_to_socket(descriptorspec_item *desc)
 {
 	php_socket_t sock[2];
 
@@ -762,7 +762,7 @@ static int set_proc_descriptor_to_socket(descriptorspec_item *desc)
 		zend_string *err = php_socket_error_str(php_socket_errno());
 		php_error_docref(NULL, E_WARNING, "Unable to create socket pair: %s", ZSTR_VAL(err));
 		zend_string_release(err);
-		return FAILURE;
+		return false;
 	}
 
 	desc->type = DESCRIPTOR_TYPE_SOCKET;
@@ -771,10 +771,10 @@ static int set_proc_descriptor_to_socket(descriptorspec_item *desc)
 	/* Pass sock[1] to child because it will never use overlapped IO on Windows. */
 	desc->childend = (php_file_descriptor_t) sock[1];
 
-	return SUCCESS;
+	return true;
 }
 
-static int set_proc_descriptor_to_file(descriptorspec_item *desc, zend_string *file_path,
+static bool set_proc_descriptor_to_file(descriptorspec_item *desc, zend_string *file_path,
 	zend_string *file_mode)
 {
 	php_socket_t fd;
@@ -783,13 +783,13 @@ static int set_proc_descriptor_to_file(descriptorspec_item *desc, zend_string *f
 	php_stream *stream = php_stream_open_wrapper(ZSTR_VAL(file_path), ZSTR_VAL(file_mode),
 		REPORT_ERRORS|STREAM_WILL_CAST, NULL);
 	if (stream == NULL) {
-		return FAILURE;
+		return false;
 	}
 
 	/* force into an fd */
 	if (php_stream_cast(stream, PHP_STREAM_CAST_RELEASE|PHP_STREAM_AS_FD, (void **)&fd,
 		REPORT_ERRORS) == FAILURE) {
-		return FAILURE;
+		return false;
 	}
 
 #ifdef PHP_WIN32
@@ -804,30 +804,30 @@ static int set_proc_descriptor_to_file(descriptorspec_item *desc, zend_string *f
 #else
 	desc->childend = fd;
 #endif
-	return SUCCESS;
+	return true;
 }
 
-static int dup_proc_descriptor(php_file_descriptor_t from, php_file_descriptor_t *to,
+static bool dup_proc_descriptor(php_file_descriptor_t from, php_file_descriptor_t *to,
 	size_t nindex)
 {
 #ifdef PHP_WIN32
 	*to = dup_handle(from, TRUE, FALSE);
 	if (*to == NULL) {
 		php_error_docref(NULL, E_WARNING, "Failed to dup() for descriptor %zu", nindex);
-		return FAILURE;
+		return false;
 	}
 #else
 	*to = dup(from);
 	if (*to < 0) {
 		php_error_docref(NULL, E_WARNING, "Failed to dup() for descriptor %zu: %s",
 			nindex, strerror(errno));
-		return FAILURE;
+		return false;
 	}
 #endif
-	return SUCCESS;
+	return true;
 }
 
-static int redirect_proc_descriptor(descriptorspec_item *desc, int target,
+static bool redirect_proc_descriptor(descriptorspec_item *desc, int target,
 	descriptorspec_item *descriptors, size_t ndesc, size_t nindex)
 {
 	php_file_descriptor_t redirect_to = PHP_INVALID_FD;
@@ -842,7 +842,7 @@ static int redirect_proc_descriptor(descriptorspec_item *desc, int target,
 	if (redirect_to == PHP_INVALID_FD) { /* Didn't find the index we wanted */
 		if (target < 0 || target > 2) {
 			php_error_docref(NULL, E_WARNING, "Redirection target %d not found", target);
-			return FAILURE;
+			return false;
 		}
 
 		/* Support referring to a stdin/stdout/stderr pipe adopted from the parent,
@@ -863,15 +863,16 @@ static int redirect_proc_descriptor(descriptorspec_item *desc, int target,
 }
 
 /* Process one item from `$descriptorspec` argument to `proc_open` */
-static int set_proc_descriptor_from_array(zval *descitem, descriptorspec_item *descriptors,
+static bool set_proc_descriptor_from_array(zval *descitem, descriptorspec_item *descriptors,
 	size_t ndesc, size_t nindex, int *pty_master_fd, int *pty_slave_fd) {
 	zend_string *ztype = get_string_parameter(descitem, 0, "handle qualifier");
 	if (!ztype) {
-		return FAILURE;
+		return false;
 	}
 
 	zend_string *zmode = NULL, *zfile = NULL;
-	int retval = FAILURE;
+	bool retval = false;
+
 	if (zend_string_equals_literal(ztype, "pipe")) {
 		/* Set descriptor to pipe */
 		zmode = get_string_parameter(descitem, 1, "mode parameter for 'pipe'");
@@ -923,19 +924,19 @@ finish:
 	return retval;
 }
 
-static int set_proc_descriptor_from_resource(zval *resource, descriptorspec_item *desc, size_t nindex)
+static bool set_proc_descriptor_from_resource(zval *resource, descriptorspec_item *desc, size_t nindex)
 {
 	/* Should be a stream - try and dup the descriptor */
 	php_stream *stream = (php_stream*)zend_fetch_resource(Z_RES_P(resource), "stream",
 		php_file_le_stream());
 	if (stream == NULL) {
-		return FAILURE;
+		return false;
 	}
 
 	php_socket_t fd;
 	int status = php_stream_cast(stream, PHP_STREAM_AS_FD, (void **)&fd, REPORT_ERRORS);
 	if (status == FAILURE) {
-		return FAILURE;
+		return false;
 	}
 
 #ifdef PHP_WIN32
@@ -943,15 +944,15 @@ static int set_proc_descriptor_from_resource(zval *resource, descriptorspec_item
 #else
 	php_file_descriptor_t fd_t = fd;
 #endif
-	if (dup_proc_descriptor(fd_t, &desc->childend, nindex) == FAILURE) {
-		return FAILURE;
+	if (!dup_proc_descriptor(fd_t, &desc->childend, nindex)) {
+		return false;
 	}
 
-	return SUCCESS;
+	return true;
 }
 
 #ifndef PHP_WIN32
-static int close_parentends_of_pipes(descriptorspec_item *descriptors, size_t ndesc)
+static bool close_parentends_of_pipes(descriptorspec_item *descriptors, size_t ndesc)
 {
 	/* We are running in child process
 	 * Close the 'parent end' of pipes which were opened before forking/spawning
@@ -965,13 +966,13 @@ static int close_parentends_of_pipes(descriptorspec_item *descriptors, size_t nd
 			if (dup2(descriptors[i].childend, descriptors[i].index) < 0) {
 				php_error_docref(NULL, E_WARNING, "Unable to copy file descriptor %d (for pipe) into " \
 					"file descriptor %d: %s", descriptors[i].childend, descriptors[i].index, strerror(errno));
-				return FAILURE;
+				return false;
 			}
 			close(descriptors[i].childend);
 		}
 	}
 
-	return SUCCESS;
+	return true;
 }
 #endif
 
@@ -1096,12 +1097,12 @@ PHP_FUNCTION(proc_open)
 		descriptors[ndesc].index = nindex;
 
 		if (Z_TYPE_P(descitem) == IS_RESOURCE) {
-			if (set_proc_descriptor_from_resource(descitem, &descriptors[ndesc], ndesc) == FAILURE) {
+			if (!set_proc_descriptor_from_resource(descitem, &descriptors[ndesc], ndesc)) {
 				goto exit_fail;
 			}
 		} else if (Z_TYPE_P(descitem) == IS_ARRAY) {
-			if (set_proc_descriptor_from_array(descitem, descriptors, ndesc, nindex,
-				&pty_master_fd, &pty_slave_fd) == FAILURE) {
+			if (!set_proc_descriptor_from_array(descitem, descriptors, ndesc, nindex,
+					&pty_master_fd, &pty_slave_fd)) {
 				goto exit_fail;
 			}
 		} else {
@@ -1160,7 +1161,7 @@ PHP_FUNCTION(proc_open)
 	}
 
 	if (!bypass_shell) {
-		if (convert_command_to_use_shell(&cmdw, cmdw_len) == FAILURE) {
+		if (!convert_command_to_use_shell(&cmdw, cmdw_len)) {
 			goto exit_fail;
 		}
 	}
@@ -1188,7 +1189,7 @@ PHP_FUNCTION(proc_open)
 	if (child == 0) {
 		/* This is the child process */
 
-		if (close_parentends_of_pipes(descriptors, ndesc) == FAILURE) {
+		if (!close_parentends_of_pipes(descriptors, ndesc)) {
 			/* We are already in child process and can't do anything to make
 			 * `proc_open` return an error in the parent
 			 * All we can do is exit with a non-zero (error) exit code */
