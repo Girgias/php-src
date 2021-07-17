@@ -241,7 +241,7 @@ static void proc_open_rsrc_dtor(zend_resource *rsrc)
 #endif
 
 	/* Close all handles to avoid a deadlock */
-	for (int i = 0; i < proc->npipes; i++) {
+	for (size_t i = 0; i < proc->npipes; i++) {
 		if (proc->pipes[i] != NULL) {
 			GC_DELREF(proc->pipes[i]);
 			zend_list_close(proc->pipes[i]);
@@ -557,7 +557,7 @@ static int get_option(zval *other_options, char *opt_name)
 
 /* Initialize STARTUPINFOW struct, used on Windows when spawning a process.
  * Ref: https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/ns-processthreadsapi-startupinfow */
-static void init_startup_info(STARTUPINFOW *si, descriptorspec_item *descriptors, int ndesc)
+static void init_startup_info(STARTUPINFOW *si, descriptorspec_item *descriptors, size_t ndesc)
 {
 	memset(si, 0, sizeof(STARTUPINFOW));
 	si->cb = sizeof(STARTUPINFOW);
@@ -568,7 +568,7 @@ static void init_startup_info(STARTUPINFOW *si, descriptorspec_item *descriptors
 	si->hStdError  = GetStdHandle(STD_ERROR_HANDLE);
 
 	/* redirect stdin/stdout/stderr if requested */
-	for (int i = 0; i < ndesc; i++) {
+	for (size_t i = 0; i < ndesc; i++) {
 		switch (descriptors[i].index) {
 			case 0:
 				si->hStdInput = descriptors[i].childend;
@@ -612,11 +612,11 @@ static int convert_command_to_use_shell(wchar_t **cmdw, size_t cmdw_len)
 #endif
 
 /* Convert command parameter array passed as first argument to `proc_open` into command string */
-static zend_string* get_command_from_array(HashTable *array, char ***argv, int num_elems)
+static zend_string* get_command_from_array(HashTable *array, char ***argv, uint32_t num_elems)
 {
 	zval *arg_zv;
 	zend_string *command = NULL;
-	int i = 0;
+	size_t i = 0;
 
 	*argv = safe_emalloc(sizeof(char *), num_elems + 1, 0);
 
@@ -645,7 +645,7 @@ static zend_string* get_command_from_array(HashTable *array, char ***argv, int n
 
 static descriptorspec_item* alloc_descriptor_array(zval *descriptorspec)
 {
-	int ndescriptors = zend_hash_num_elements(Z_ARRVAL_P(descriptorspec));
+	uint32_t ndescriptors = zend_hash_num_elements(Z_ARRVAL_P(descriptorspec));
 	return ecalloc(sizeof(descriptorspec_item), ndescriptors);
 }
 
@@ -808,18 +808,18 @@ static int set_proc_descriptor_to_file(descriptorspec_item *desc, zend_string *f
 }
 
 static int dup_proc_descriptor(php_file_descriptor_t from, php_file_descriptor_t *to,
-	zend_ulong nindex)
+	size_t nindex)
 {
 #ifdef PHP_WIN32
 	*to = dup_handle(from, TRUE, FALSE);
 	if (*to == NULL) {
-		php_error_docref(NULL, E_WARNING, "Failed to dup() for descriptor " ZEND_LONG_FMT, nindex);
+		php_error_docref(NULL, E_WARNING, "Failed to dup() for descriptor %zu", nindex);
 		return FAILURE;
 	}
 #else
 	*to = dup(from);
 	if (*to < 0) {
-		php_error_docref(NULL, E_WARNING, "Failed to dup() for descriptor " ZEND_LONG_FMT ": %s",
+		php_error_docref(NULL, E_WARNING, "Failed to dup() for descriptor %zu: %s",
 			nindex, strerror(errno));
 		return FAILURE;
 	}
@@ -828,11 +828,11 @@ static int dup_proc_descriptor(php_file_descriptor_t from, php_file_descriptor_t
 }
 
 static int redirect_proc_descriptor(descriptorspec_item *desc, int target,
-	descriptorspec_item *descriptors, int ndesc, int nindex)
+	descriptorspec_item *descriptors, size_t ndesc, size_t nindex)
 {
 	php_file_descriptor_t redirect_to = PHP_INVALID_FD;
 
-	for (int i = 0; i < ndesc; i++) {
+	for (size_t i = 0; i < ndesc; i++) {
 		if (descriptors[i].index == target) {
 			redirect_to = descriptors[i].childend;
 			break;
@@ -864,7 +864,7 @@ static int redirect_proc_descriptor(descriptorspec_item *desc, int target,
 
 /* Process one item from `$descriptorspec` argument to `proc_open` */
 static int set_proc_descriptor_from_array(zval *descitem, descriptorspec_item *descriptors,
-	int ndesc, int nindex, int *pty_master_fd, int *pty_slave_fd) {
+	size_t ndesc, size_t nindex, int *pty_master_fd, int *pty_slave_fd) {
 	zend_string *ztype = get_string_parameter(descitem, 0, "handle qualifier");
 	if (!ztype) {
 		return FAILURE;
@@ -923,7 +923,7 @@ finish:
 	return retval;
 }
 
-static int set_proc_descriptor_from_resource(zval *resource, descriptorspec_item *desc, int nindex)
+static int set_proc_descriptor_from_resource(zval *resource, descriptorspec_item *desc, size_t nindex)
 {
 	/* Should be a stream - try and dup the descriptor */
 	php_stream *stream = (php_stream*)zend_fetch_resource(Z_RES_P(resource), "stream",
@@ -951,13 +951,13 @@ static int set_proc_descriptor_from_resource(zval *resource, descriptorspec_item
 }
 
 #ifndef PHP_WIN32
-static int close_parentends_of_pipes(descriptorspec_item *descriptors, int ndesc)
+static int close_parentends_of_pipes(descriptorspec_item *descriptors, size_t ndesc)
 {
 	/* We are running in child process
 	 * Close the 'parent end' of pipes which were opened before forking/spawning
 	 * Also, dup() the child end of all pipes as necessary so they will use the FD
 	 * number which the user requested */
-	for (int i = 0; i < ndesc; i++) {
+	for (size_t i = 0; i < ndesc; i++) {
 		if (descriptors[i].type != DESCRIPTOR_TYPE_STD) {
 			close(descriptors[i].parentend);
 		}
@@ -975,9 +975,9 @@ static int close_parentends_of_pipes(descriptorspec_item *descriptors, int ndesc
 }
 #endif
 
-static void close_all_descriptors(descriptorspec_item *descriptors, int ndesc)
+static void close_all_descriptors(descriptorspec_item *descriptors, size_t ndesc)
 {
-	for (int i = 0; i < ndesc; i++) {
+	for (size_t i = 0; i < ndesc; i++) {
 		close_descriptor(descriptors[i].childend);
 		if (descriptors[i].parentend)
 			close_descriptor(descriptors[i].parentend);
@@ -1007,8 +1007,8 @@ PHP_FUNCTION(proc_open)
 	zval *environment = NULL, *other_options = NULL; /* Optional arguments */
 
 	php_process_env env;
-	int ndesc = 0;
-	int i;
+	size_t ndesc = 0;
+	size_t i;
 	zval *descitem = NULL;
 	zend_string *str_index;
 	zend_ulong nindex;
@@ -1093,14 +1093,14 @@ PHP_FUNCTION(proc_open)
 			goto exit_fail;
 		}
 
-		descriptors[ndesc].index = (int)nindex;
+		descriptors[ndesc].index = nindex;
 
 		if (Z_TYPE_P(descitem) == IS_RESOURCE) {
 			if (set_proc_descriptor_from_resource(descitem, &descriptors[ndesc], ndesc) == FAILURE) {
 				goto exit_fail;
 			}
 		} else if (Z_TYPE_P(descitem) == IS_ARRAY) {
-			if (set_proc_descriptor_from_array(descitem, descriptors, ndesc, (int)nindex,
+			if (set_proc_descriptor_from_array(descitem, descriptors, ndesc, nindex,
 				&pty_master_fd, &pty_slave_fd) == FAILURE) {
 				goto exit_fail;
 			}

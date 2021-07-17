@@ -39,7 +39,7 @@ typedef struct _php_process_handle {
 #ifdef PHP_WIN32
 	HANDLE childHandle;
 #endif
-	int npipes;
+	size_t npipes;
 	zend_resource **pipes;
 	char *command;
 	php_process_env env;
