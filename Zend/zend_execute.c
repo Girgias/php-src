@@ -2389,8 +2389,7 @@ try_array:
 		}
 	}
 	if (!is_list && EXPECTED(Z_TYPE_P(container) == IS_STRING)) {
-		zend_long offset;
-		offset = zend_check_string_offset(dim, BP_VAR_IS EXECUTE_DATA_CC);
+		zend_long offset = zend_check_string_offset(dim, dim_type EXECUTE_DATA_CC);
 		/* Illegal offset */
 		if (UNEXPECTED(EG(exception) != NULL)) {
 			ZVAL_NULL(result);
