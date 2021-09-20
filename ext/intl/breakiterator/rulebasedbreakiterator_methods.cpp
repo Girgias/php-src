@@ -94,8 +94,12 @@ static void _php_intlrbbi_constructor_body(INTERNAL_FUNCTION_PARAMETERS)
 
 U_CFUNC PHP_METHOD(IntlRuleBasedBreakIterator, __construct)
 {
+	zend_error_handling error_handling;
+
+	zend_replace_error_handling(EH_THROW, IntlException_ce_ptr, &error_handling);
 	return_value = ZEND_THIS;
 	_php_intlrbbi_constructor_body(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+	zend_restore_error_handling(&error_handling);
 }
 
 U_CFUNC PHP_METHOD(IntlRuleBasedBreakIterator, getRules)

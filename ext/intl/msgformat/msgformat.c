@@ -104,7 +104,7 @@ static int msgfmt_ctor(INTERNAL_FUNCTION_PARAMETERS)
 PHP_FUNCTION( msgfmt_create )
 {
 	object_init_ex( return_value, MessageFormatter_ce_ptr );
-	if (msgfmt_ctor(INTERNAL_FUNCTION_PARAM_PASSTHRU, false) == FAILURE) {
+	if (msgfmt_ctor(INTERNAL_FUNCTION_PARAM_PASSTHRU) == FAILURE) {
 		zval_ptr_dtor(return_value);
 		RETURN_NULL();
 	}
@@ -114,10 +114,18 @@ PHP_FUNCTION( msgfmt_create )
 /* {{{ MessageFormatter object constructor. */
 PHP_METHOD( MessageFormatter, __construct )
 {
+	zend_error_handling error_handling;
+
+	zend_replace_error_handling(EH_THROW, IntlException_ce_ptr, &error_handling);
 	return_value = ZEND_THIS;
-	if (msgfmt_ctor(INTERNAL_FUNCTION_PARAM_PASSTHRU, true) == FAILURE) {
-		ZEND_ASSERT(EG(exception));
+	if (msgfmt_ctor(INTERNAL_FUNCTION_PARAM_PASSTHRU) == FAILURE) {
+		if (!EG(exception)) {
+			zend_string *err = intl_error_get_message(NULL);
+			zend_throw_exception(IntlException_ce_ptr, ZSTR_VAL(err), intl_error_get_code(NULL));
+			zend_string_release_ex(err, 0);
+		}
 	}
+	zend_restore_error_handling(&error_handling);
 }
 /* }}} */
 

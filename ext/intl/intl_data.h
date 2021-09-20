@@ -96,7 +96,7 @@ typedef struct _intl_data {
     intl_error_set_code( NULL, INTL_DATA_ERROR_CODE((obj)) );						\
     if( U_FAILURE( INTL_DATA_ERROR_CODE((obj)) ) )									\
     {																				\
-        zend_throw_exception(IntlException_ce_ptr, msg, 0 );				\
+        intl_errors_set_custom_msg( INTL_DATA_ERROR_P((obj)), msg, 0 );				\
         return FAILURE;																\
     }
 
@@ -122,14 +122,13 @@ typedef struct _intl_data {
 		RETURN_NULL();																	\
 	}
 
-#define INTL_CHECK_LOCALE_LEN_OR_FAILURE(locale_len, is_constructor) \
-	if((locale_len) > INTL_MAX_LOCALE_LEN) { \
+#define INTL_CHECK_LOCALE_LEN_OR_FAILURE(locale_len)									\
+	if((locale_len) > INTL_MAX_LOCALE_LEN) {											\
 		char *_msg; \
-		spprintf(&_msg, 0, "Locale string too long, should be no longer than %d characters", INTL_MAX_LOCALE_LEN); \
-		if (is_constructor) { zend_throw_exception(IntlException_ce_ptr, _msg, 0); } \
-		else { intl_error_set( NULL, U_ILLEGAL_ARGUMENT_ERROR,	_msg, 1); } \
+		spprintf(&_msg, 0, "Locale string too long, should be no longer than %d characters", INTL_MAX_LOCALE_LEN);			\
+		intl_error_set( NULL, U_ILLEGAL_ARGUMENT_ERROR,	_msg, 1); 								\
 		efree(_msg); \
-		return FAILURE; \
+		return FAILURE;																	\
 	}
 
 #endif // INTL_DATA_H
