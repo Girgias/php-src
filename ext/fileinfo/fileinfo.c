@@ -207,18 +207,16 @@ PHP_FUNCTION(finfo_open)
 		if (php_check_open_basedir(file)) {
 			if (object) {
 				zend_restore_error_handling(&zeh);
-				if (!EG(exception)) {
-					zend_throw_exception(NULL, "Constructor failed", 0);
-				}
+				// Overridden error handler must promote the open_basedir restriction E_WARNING
+				RETURN_THROWS();
 			}
 			RETURN_FALSE;
 		}
 		if (!expand_filepath_with_mode(file, resolved_path, NULL, 0, CWD_EXPAND)) {
 			if (object) {
 				zend_restore_error_handling(&zeh);
-				if (!EG(exception)) {
-					zend_throw_exception(NULL, "Constructor failed", 0);
-				}
+				zend_throw_exception(NULL, "Constructor failed", 0);
+				RETURN_THROWS();
 			}
 			RETURN_FALSE;
 		}
@@ -232,26 +230,24 @@ PHP_FUNCTION(finfo_open)
 
 	if (finfo->magic == NULL) {
 		efree(finfo);
-		php_error_docref(NULL, E_WARNING, "Invalid mode '" ZEND_LONG_FMT "'.", options);
 		if (object) {
 			zend_restore_error_handling(&zeh);
-			if (!EG(exception)) {
-				zend_throw_exception(NULL, "Constructor failed", 0);
-			}
+			zend_argument_value_error(1, "is not a valid mode");
+			RETURN_THROWS();
 		}
+		php_error_docref(NULL, E_WARNING, "Invalid mode '" ZEND_LONG_FMT "'.", options);
 		RETURN_FALSE;
 	}
 
 	if (magic_load(finfo->magic, file) == -1) {
-		php_error_docref(NULL, E_WARNING, "Failed to load magic database at \"%s\"", file);
 		magic_close(finfo->magic);
 		efree(finfo);
 		if (object) {
 			zend_restore_error_handling(&zeh);
-			if (!EG(exception)) {
-				zend_throw_exception(NULL, "Constructor failed", 0);
-			}
+			//zend_throw_exception_ex(NULL, 0, "Failed to load magic database at \"%s\"", file);
+			RETURN_THROWS();
 		}
+		php_error_docref(NULL, E_WARNING, "Failed to load magic database at \"%s\"", file);
 		RETURN_FALSE;
 	}
 
