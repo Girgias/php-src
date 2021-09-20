@@ -193,12 +193,8 @@ U_CFUNC PHP_FUNCTION(intlgregcal_create_instance)
 
 U_CFUNC PHP_METHOD(IntlGregorianCalendar, __construct)
 {
-	zend_error_handling error_handling;
-
-	zend_replace_error_handling(EH_THROW, IntlException_ce_ptr, &error_handling);
 	return_value = ZEND_THIS;
 	_php_intlgregcal_constructor_body(INTERNAL_FUNCTION_PARAM_PASSTHRU, 1);
-	zend_restore_error_handling(&error_handling);
 }
 
 U_CFUNC PHP_FUNCTION(intlgregcal_set_gregorian_change)

@@ -30,7 +30,7 @@ using icu::DateTimePatternGenerator;
 using icu::Locale;
 using icu::StringPiece;
 
-static zend_result dtpg_ctor(INTERNAL_FUNCTION_PARAMETERS)
+static zend_result dtpg_ctor(INTERNAL_FUNCTION_PARAMETERS, bool is_constructor)
 {
 	char *locale_str;
 	size_t locale_len = 0;
@@ -47,24 +47,28 @@ static zend_result dtpg_ctor(INTERNAL_FUNCTION_PARAMETERS)
 	DTPATTERNGEN_METHOD_FETCH_OBJECT_NO_CHECK;
 
 	if (dtpgo->dtpg != NULL) {
-		intl_errors_set(DTPATTERNGEN_ERROR_P(dtpgo), U_ILLEGAL_ARGUMENT_ERROR, "Cannot call constructor twice", 0);
+		if (is_constructor) {
+			zend_throw_exception(IntlException_ce_ptr, "Cannot call constructor twice", U_ILLEGAL_ARGUMENT_ERROR);
+		} else {
+			intl_errors_set(DTPATTERNGEN_ERROR_P(dtpgo), U_ILLEGAL_ARGUMENT_ERROR, "Cannot call constructor twice", 0);
+		}
 		return FAILURE;
 	}
 
-	INTL_CHECK_LOCALE_LEN_OR_FAILURE(locale_len);
+	INTL_CHECK_LOCALE_LEN_OR_FAILURE(locale_len, is_constructor);
 	if (locale_len == 0) {
 		locale_str = (char *) intl_locale_get_default();
 	}
 	Locale locale = Locale::createFromName(locale_str);
 
-	dtpgo->dtpg = DateTimePatternGenerator::createInstance(
-		locale,
-		DTPATTERNGEN_ERROR_CODE(dtpgo));
+	dtpgo->dtpg = DateTimePatternGenerator::createInstance(locale, DTPATTERNGEN_ERROR_CODE(dtpgo));
 
 	if (U_FAILURE(DTPATTERNGEN_ERROR_CODE(dtpgo))) {
-		intl_error_set(NULL, DTPATTERNGEN_ERROR_CODE(dtpgo),
-				"Error creating DateTimePatternGenerator",
-				0);
+		if (is_constructor) {
+			zend_throw_exception(IntlException_ce_ptr, "Error creating DateTimePatternGenerator", 0);
+		} else {
+			intl_error_set(NULL, DTPATTERNGEN_ERROR_CODE(dtpgo), "Error creating DateTimePatternGenerator", 0);
+		}
 		return FAILURE;
 	}
 
@@ -74,7 +78,7 @@ static zend_result dtpg_ctor(INTERNAL_FUNCTION_PARAMETERS)
 U_CFUNC PHP_METHOD( IntlDatePatternGenerator, create )
 {
     object_init_ex( return_value, IntlDatePatternGenerator_ce_ptr );
-    if (dtpg_ctor(INTERNAL_FUNCTION_PARAM_PASSTHRU) == FAILURE) {
+    if (dtpg_ctor(INTERNAL_FUNCTION_PARAM_PASSTHRU, false) == FAILURE) {
 		zval_ptr_dtor(return_value);
 		RETURN_NULL();
 	}
@@ -82,20 +86,12 @@ U_CFUNC PHP_METHOD( IntlDatePatternGenerator, create )
 
 U_CFUNC PHP_METHOD( IntlDatePatternGenerator, __construct )
 {
-	zend_error_handling error_handling;
-
-	zend_replace_error_handling(EH_THROW, IntlException_ce_ptr, &error_handling);
 	/* return_value param is being changed, therefore we will always return
 	 * NULL here */
 	return_value = ZEND_THIS;
-	if (dtpg_ctor(INTERNAL_FUNCTION_PARAM_PASSTHRU) == FAILURE) {
-		if (!EG(exception)) {
-			zend_string *err = intl_error_get_message(NULL);
-			zend_throw_exception(IntlException_ce_ptr, ZSTR_VAL(err), intl_error_get_code(NULL));
-			zend_string_release_ex(err, 0);
-		}
+	if (dtpg_ctor(INTERNAL_FUNCTION_PARAM_PASSTHRU, true) == FAILURE) {
+		ZEND_ASSERT(EG(exception));
 	}
-	zend_restore_error_handling(&error_handling);
 }
 
 

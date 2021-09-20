@@ -26,18 +26,17 @@ PHP_METHOD(Spoofchecker, __construct)
 #if U_ICU_VERSION_MAJOR_NUM < 58
 	int checks;
 #endif
-	zend_error_handling error_handling;
 	SPOOFCHECKER_METHOD_INIT_VARS;
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		RETURN_THROWS();
 	}
 
-	zend_replace_error_handling(EH_THROW, IntlException_ce_ptr, &error_handling);
-
 	SPOOFCHECKER_METHOD_FETCH_OBJECT_NO_CHECK;
 
 	co->uspoof = uspoof_open(SPOOFCHECKER_ERROR_CODE_P(co));
+
+	// FIXME This can RETURN_FALSE;
 	INTL_METHOD_CHECK_STATUS(co, "spoofchecker: unable to open ICU Spoof Checker");
 
 #if U_ICU_VERSION_MAJOR_NUM >= 58
@@ -57,6 +56,5 @@ PHP_METHOD(Spoofchecker, __construct)
 	checks = uspoof_getChecks(co->uspoof, SPOOFCHECKER_ERROR_CODE_P(co));
 	uspoof_setChecks(co->uspoof, checks & ~USPOOF_SINGLE_SCRIPT, SPOOFCHECKER_ERROR_CODE_P(co));
 #endif
-	zend_restore_error_handling(&error_handling);
 }
 /* }}} */

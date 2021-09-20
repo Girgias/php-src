@@ -199,9 +199,6 @@ U_CFUNC PHP_FUNCTION( datefmt_create )
 /* {{{ IntlDateFormatter object constructor. */
 U_CFUNC PHP_METHOD( IntlDateFormatter, __construct )
 {
-	zend_error_handling error_handling;
-
-	zend_replace_error_handling(EH_THROW, IntlException_ce_ptr, &error_handling);
 	/* return_value param is being changed, therefore we will always return
 	 * NULL here */
 	return_value = ZEND_THIS;
@@ -212,6 +209,5 @@ U_CFUNC PHP_METHOD( IntlDateFormatter, __construct )
 			zend_string_release_ex(err, 0);
 		}
 	}
-	zend_restore_error_handling(&error_handling);
 }
 /* }}} */

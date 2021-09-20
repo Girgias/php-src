@@ -84,16 +84,12 @@ PHP_FUNCTION( numfmt_create )
 /* {{{ NumberFormatter object constructor. */
 PHP_METHOD( NumberFormatter, __construct )
 {
-	zend_error_handling error_handling;
-
-	zend_replace_error_handling(EH_THROW, IntlException_ce_ptr, &error_handling);
 	return_value = ZEND_THIS;
 	if (numfmt_ctor(INTERNAL_FUNCTION_PARAM_PASSTHRU) == FAILURE) {
 		if (!EG(exception)) {
 			zend_throw_exception(IntlException_ce_ptr, "Constructor failed", 0);
 		}
 	}
-	zend_restore_error_handling(&error_handling);
 }
 /* }}} */
 
