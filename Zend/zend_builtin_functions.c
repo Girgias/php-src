@@ -523,6 +523,7 @@ register_constant:
 
 /* {{{ Check whether a constant exists
    Warning: This function is special-cased by zend_compile.c and so is usually bypassed */
+   // TODO Update this and compiler
 ZEND_FUNCTION(defined)
 {
 	zend_string *name;
