@@ -46,8 +46,8 @@ DBA_CLOSE_FUNC(flatfile)
 {
 	flatfile *dba = info->dbf;
 
-	if (dba->nextkey.dptr) {
-		efree(dba->nextkey.dptr);
+	if (dba->next_key) {
+		zend_string_release_ex(dba->next_key, /* persistent */ false);
 	}
 	pefree(dba, info->flags&DBA_PERSISTENT);
 }
@@ -55,33 +55,15 @@ DBA_CLOSE_FUNC(flatfile)
 DBA_FETCH_FUNC(flatfile)
 {
 	flatfile *dba = info->dbf;
-	datum gval;
-	datum gkey;
-	zend_string *fetched_val = NULL;
 
-	gkey.dptr = ZSTR_VAL(key);
-	gkey.dsize = ZSTR_LEN(key);
-
-	gval = flatfile_fetch(dba, gkey);
-	if (gval.dptr) {
-		fetched_val = zend_string_init(gval.dptr, gval.dsize, /* persistent */ false);
-		efree(gval.dptr);
-	}
-	return fetched_val;
+	return flatfile_fetch(dba, key);
 }
 
 DBA_UPDATE_FUNC(flatfile)
 {
 	flatfile *dba = info->dbf;
-	datum gval;
-	datum gkey;
 
-	gkey.dptr = ZSTR_VAL(key);
-	gkey.dsize = ZSTR_LEN(key);
-	gval.dptr = ZSTR_VAL(val);
-	gval.dsize = ZSTR_LEN(val);
-
-	switch(flatfile_store(dba, gkey, gval, mode==1 ? FLATFILE_INSERT : FLATFILE_REPLACE)) {
+	switch(flatfile_store(dba, key, val, mode==1 ? FLATFILE_INSERT : FLATFILE_REPLACE)) {
 		case 0:
 			return SUCCESS;
 		case 1:
@@ -100,14 +82,10 @@ DBA_UPDATE_FUNC(flatfile)
 DBA_EXISTS_FUNC(flatfile)
 {
 	flatfile *dba = info->dbf;
-	datum gval;
-	datum gkey;
-
-	gkey.dptr = ZSTR_VAL(key);
-	gkey.dsize = ZSTR_LEN(key);
-	gval = flatfile_fetch(dba, gkey);
-	if (gval.dptr) {
-		efree(gval.dptr);
+	zend_string *value;
+	value = flatfile_fetch(dba, key);
+	if (value) {
+		zend_string_release_ex(value, /* persistent */ false);
 		return SUCCESS;
 	}
 	return FAILURE;
@@ -116,43 +94,34 @@ DBA_EXISTS_FUNC(flatfile)
 DBA_DELETE_FUNC(flatfile)
 {
 	flatfile *dba = info->dbf;
-	datum gkey;
 
-	gkey.dptr = ZSTR_VAL(key);
-	gkey.dsize = ZSTR_LEN(key);
-	return(flatfile_delete(dba, gkey) == -1 ? FAILURE : SUCCESS);
+	return flatfile_delete(dba, key);
 }
 
 DBA_FIRSTKEY_FUNC(flatfile)
 {
 	flatfile *dba = info->dbf;
 
-	if (dba->nextkey.dptr) {
-		efree(dba->nextkey.dptr);
+	if (dba->next_key) {
+		zend_string_release_ex(dba->next_key, /* persistent */ false);
 	}
-	dba->nextkey = flatfile_firstkey(dba);
-	if (dba->nextkey.dptr) {
-		return zend_string_init(dba->nextkey.dptr, dba->nextkey.dsize, /* persistent */ false);
-	}
-	return NULL;
+	dba->next_key = flatfile_firstkey(dba);
+	return dba->next_key;
 }
 
 DBA_NEXTKEY_FUNC(flatfile)
 {
 	flatfile *dba = info->dbf;
 
-	if (!dba->nextkey.dptr) {
+	if (!dba->next_key) {
 		return NULL;
 	}
 
-	if (dba->nextkey.dptr) {
-		efree(dba->nextkey.dptr);
+	if (dba->next_key) {
+		zend_string_release_ex(dba->next_key, /* persistent */ false);
 	}
-	dba->nextkey = flatfile_nextkey(dba);
-	if (dba->nextkey.dptr) {
-		return zend_string_init(dba->nextkey.dptr, dba->nextkey.dsize, /* persistent */ false);
-	}
-	return NULL;
+	dba->next_key = flatfile_nextkey(dba);
+	return dba->next_key;
 }
 
 DBA_OPTIMIZE_FUNC(flatfile)

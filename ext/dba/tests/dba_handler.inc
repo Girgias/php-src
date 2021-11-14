@@ -61,16 +61,23 @@ do {
             echo dba_fetch("key2", $db_writer)."\n";
             echo dba_fetch("key number 6", $db_writer)."\n";
             dba_close($db_writer); // when the writer is open at least db3 would fail because of buffered io.
+            echo "closed\n";
         } else {
             die("Error reopening database\n");
         }
     }
+    echo "openned\n";
     if (($db_file = dba_open($db_filename, 'r'.$lock_flag, $handler))!==FALSE) {
         $key = dba_firstkey($db_file);
+        echo "first key\n";
         $res = array();
         while($key) {
+            echo "pre fetch\n";
+            var_dump($key);
             $res[$key] = dba_fetch($key, $db_file);
+            echo "fetch\n";
             $key = dba_nextkey($db_file);
+            echo "next key\n";
         }
         ksort($res);
         var_dump($res);

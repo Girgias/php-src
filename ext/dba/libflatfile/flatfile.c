@@ -44,31 +44,31 @@
  */
 
 /* {{{ flatfile_store */
-int flatfile_store(flatfile *dba, datum key_datum, datum value_datum, int mode) {
+int flatfile_store(flatfile *dba, const zend_string *key, const zend_string *value, int mode) {
 	if (mode == FLATFILE_INSERT) {
-		if (flatfile_findkey(dba, key_datum)) {
+		if (flatfile_findkey(dba, key)) {
 			return 1;
 		}
 		php_stream_seek(dba->fp, 0L, SEEK_END);
-		php_stream_printf(dba->fp, "%zu\n", key_datum.dsize);
+		php_stream_printf(dba->fp, "%zu\n", ZSTR_LEN(key));
 		php_stream_flush(dba->fp);
-		if (php_stream_write(dba->fp, key_datum.dptr, key_datum.dsize) < key_datum.dsize) {
+		if (php_stream_write(dba->fp, ZSTR_VAL(key), ZSTR_LEN(key)) < ZSTR_LEN(key)) {
 			return -1;
 		}
-		php_stream_printf(dba->fp, "%zu\n", value_datum.dsize);
+		php_stream_printf(dba->fp, "%zu\n", ZSTR_LEN(value));
 		php_stream_flush(dba->fp);
-		if (php_stream_write(dba->fp, value_datum.dptr, value_datum.dsize) < value_datum.dsize) {
+		if (php_stream_write(dba->fp, ZSTR_VAL(value), ZSTR_LEN(value)) < ZSTR_LEN(value)) {
 			return -1;
 		}
 	} else { /* FLATFILE_REPLACE */
-		flatfile_delete(dba, key_datum);
-		php_stream_printf(dba->fp, "%zu\n", key_datum.dsize);
+		flatfile_delete(dba, key);
+		php_stream_printf(dba->fp, "%zu\n", ZSTR_LEN(key));
 		php_stream_flush(dba->fp);
-		if (php_stream_write(dba->fp, key_datum.dptr, key_datum.dsize) < key_datum.dsize) {
+		if (php_stream_write(dba->fp, ZSTR_VAL(key), ZSTR_LEN(key)) < ZSTR_LEN(key)) {
 			return -1;
 		}
-		php_stream_printf(dba->fp, "%zu\n", value_datum.dsize);
-		if (php_stream_write(dba->fp, value_datum.dptr, value_datum.dsize) < value_datum.dsize) {
+		php_stream_printf(dba->fp, "%zu\n", ZSTR_LEN(value));
+		if (php_stream_write(dba->fp, ZSTR_VAL(value), ZSTR_LEN(value)) < ZSTR_LEN(value)) {
 			return -1;
 		}
 	}
@@ -79,28 +79,41 @@ int flatfile_store(flatfile *dba, datum key_datum, datum value_datum, int mode) 
 /* }}} */
 
 /* {{{ flatfile_fetch */
-datum flatfile_fetch(flatfile *dba, datum key_datum) {
-	datum value_datum = {NULL, 0};
-	char buf[16];
+zend_string *flatfile_fetch(flatfile *dba, /* const */ zend_string *key) {
+	zend_string *value = NULL;
+	char buf[sizeof(size_t)];
 
-	if (flatfile_findkey(dba, key_datum)) {
+	if (flatfile_findkey(dba, key)) {
 		if (php_stream_gets(dba->fp, buf, sizeof(buf))) {
-			value_datum.dsize = atoi(buf);
-			value_datum.dptr = safe_emalloc(value_datum.dsize, 1, 1);
-			value_datum.dsize = php_stream_read(dba->fp, value_datum.dptr, value_datum.dsize);
-		} else {
-			value_datum.dptr = NULL;
-			value_datum.dsize = 0;
+			size_t val_len = atoi(buf);
+
+			// TODO Adjust so the assertion below works
+			value = zend_string_safe_alloc(val_len, 1, 1, /* persistent */ false);
+			val_len = php_stream_read(dba->fp, ZSTR_VAL(value), val_len);
+			ZSTR_LEN(value) = val_len;
+			ZSTR_VAL(value)[val_len] = 0;
+			//ZEND_ASSERT(val_len == ZSTR_LEN(value));
 		}
 	}
-	return value_datum;
+	return value;
 }
 /* }}} */
 
+static void flatfile_skip_value(php_stream *stream)
+{
+	char buf[sizeof(size_t)];
+	if (php_stream_eof(stream)) { return; }
+	if (!php_stream_gets(stream, buf, sizeof(buf))) {
+		ZEND_ASSERT(0 && "Value length should be here");
+	}
+	size_t val_len = atoi(buf);
+	/* Skip over value */
+	php_stream_seek(stream, val_len, SEEK_CUR);
+}
+
 /* {{{ flatfile_delete */
-int flatfile_delete(flatfile *dba, datum key_datum) {
-	char *key = key_datum.dptr;
-	size_t size = key_datum.dsize;
+/* zend_string_equals discards const qualifier */
+zend_result flatfile_delete(flatfile *dba, /* const */ zend_string *key) {
 	size_t buf_size = FLATFILE_BLOCK_SIZE;
 	char *buf = emalloc(buf_size);
 	size_t num;
@@ -122,26 +135,19 @@ int flatfile_delete(flatfile *dba, datum key_datum) {
 		/* read in the key name */
 		num = php_stream_read(dba->fp, buf, num);
 
-		if (size == num && !memcmp(buf, key, size)) {
+		zend_string *lookup_key = php_stream_read_to_str(dba->fp, num);
+		if (zend_string_equals(lookup_key, key)) {
 			php_stream_seek(dba->fp, pos, SEEK_SET);
 			php_stream_putc(dba->fp, 0);
 			php_stream_flush(dba->fp);
 			php_stream_seek(dba->fp, 0L, SEEK_END);
 			efree(buf);
+			zend_string_release_ex(lookup_key, false);
 			return SUCCESS;
 		}
+		zend_string_release_ex(lookup_key, false);
 
-		/* read in the length of the value */
-		if (!php_stream_gets(dba->fp, buf, 15)) {
-			break;
-		}
-		num = atoi(buf);
-		if (num >= buf_size) {
-			buf_size = num + FLATFILE_BLOCK_SIZE;
-			buf = erealloc(buf, buf_size);
-		}
-		/* read in the value */
-		num = php_stream_read(dba->fp, buf, num);
+		flatfile_skip_value(dba->fp);
 	}
 	efree(buf);
 	return FAILURE;
@@ -149,50 +155,35 @@ int flatfile_delete(flatfile *dba, datum key_datum) {
 /* }}} */
 
 /* {{{ flatfile_findkey */
-int flatfile_findkey(flatfile *dba, datum key_datum) {
+/* zend_string_equals discards const qualifier */
+bool flatfile_findkey(flatfile *dba, /* const */ zend_string *key) {
 	size_t buf_size = FLATFILE_BLOCK_SIZE;
-	char *buf = emalloc(buf_size);
-	size_t num;
-	int ret=0;
-	void *key = key_datum.dptr;
-	size_t size = key_datum.dsize;
 
 	php_stream_rewind(dba->fp);
 	while (!php_stream_eof(dba->fp)) {
-		if (!php_stream_gets(dba->fp, buf, 15)) {
+		char buf[sizeof(size_t)];
+		if (!php_stream_gets(dba->fp, buf, sizeof(buf))) {
 			break;
 		}
-		num = atoi(buf);
-		if (num >= buf_size) {
-			buf_size = num + FLATFILE_BLOCK_SIZE;
-			buf = erealloc(buf, buf_size);
-		}
-		num = php_stream_read(dba->fp, buf, num);
+		/* Find key length */
+		size_t num = atoi(buf);
+		/* Read key into buffer variable */
+		zend_string *lookup_key = php_stream_read_to_str(dba->fp, num);
 
-		if (size == num) {
-			if (!memcmp(buf, key, size)) {
-				ret = 1;
-				break;
-			}
-		}
-		if (!php_stream_gets(dba->fp, buf, 15)) {
+		if (zend_string_equals(lookup_key, key)) {
+			zend_string_release_ex(lookup_key, false);
+			return true;
 			break;
 		}
-		num = atoi(buf);
-		if (num >= buf_size) {
-			buf_size = num + FLATFILE_BLOCK_SIZE;
-			buf = erealloc(buf, buf_size);
-		}
-		num = php_stream_read(dba->fp, buf, num);
+		zend_string_release_ex(lookup_key, false);
+		flatfile_skip_value(dba->fp);
 	}
-	efree(buf);
-	return ret;
+	return false;
 }
 /* }}} */
 
 /* {{{ flatfile_firstkey */
-datum flatfile_firstkey(flatfile *dba) {
-	datum res;
+zend_string *flatfile_firstkey(flatfile *dba) {
 	size_t num;
 	size_t buf_size = FLATFILE_BLOCK_SIZE;
 	char *buf = emalloc(buf_size);
@@ -211,30 +202,70 @@ datum flatfile_firstkey(flatfile *dba) {
 
 		if (*(buf) != 0) {
 			dba->CurrentFlatFilePos = php_stream_tell(dba->fp);
-			res.dptr = buf;
-			res.dsize = num;
-			return res;
+			zend_string *key = zend_string_init(buf, num, /* persistent */ false);
+			efree(buf);
+			return key;
 		}
-		if (!php_stream_gets(dba->fp, buf, 15)) {
-			break;
-		}
-		num = atoi(buf);
-		if (num >= buf_size) {
-			buf_size = num + FLATFILE_BLOCK_SIZE;
-			buf = erealloc(buf, buf_size);
-		}
-		num = php_stream_read(dba->fp, buf, num);
+		flatfile_skip_value(dba->fp);
 	}
 	efree(buf);
-	res.dptr = NULL;
-	res.dsize = 0;
-	return res;
+	return NULL;
+
+	// TODO First key can be deleted and data is 0 out
+
+/*
+	php_stream_rewind(dba->fp);
+	// No entries
+	while (!php_stream_eof(dba->fp)) {
+		char buf[sizeof(size_t)];
+
+		if (!php_stream_gets(dba->fp, buf, sizeof(buf))) {
+			break;
+		}
+
+		size_t key_len = atoi(buf);
+		zend_string *key = php_stream_read_to_str(dba->fp, key_len);
+		if (ZSTR_VAL(key)[0] != 0) {
+			ZEND_ASSERT(ZSTR_VAL(key)[key_len] == 0);
+			ZEND_ASSERT(key_len == ZSTR_LEN(key));
+			dba->CurrentFlatFilePos = php_stream_tell(dba->fp);
+			return key;
+		}
+		zend_string_release_ex(key, /* persistent / false);
+		flatfile_skip_value(dba->fp);
+	}
+
+	return NULL;
+	*/
 }
 /* }}} */
 
 /* {{{ flatfile_nextkey */
-datum flatfile_nextkey(flatfile *dba) {
-	datum res;
+zend_string *flatfile_nextkey(flatfile *dba) {
+	/*
+	php_stream_seek(dba->fp, dba->CurrentFlatFilePos, SEEK_SET);
+	while (!php_stream_eof(dba->fp)) {
+		char buf[sizeof(size_t)];
+
+		if (!php_stream_gets(dba->fp, buf, sizeof(buf))) {
+			continue;
+		}
+
+		size_t key_len = atoi(buf);
+		zend_string *key = php_stream_read_to_str(dba->fp, key_len);
+		if (ZSTR_VAL(key)[key_len] != 0) {
+			ZEND_ASSERT(ZSTR_VAL(key)[key_len] == 0);
+			ZEND_ASSERT(key_len == ZSTR_LEN(key));
+			dba->CurrentFlatFilePos = php_stream_tell(dba->fp);
+			return key;
+		}
+		zend_string_release_ex(key, /* persistent / false);
+		flatfile_skip_value(dba->fp);
+	}
+
+	return NULL;
+	*/
+
 	size_t num;
 	size_t buf_size = FLATFILE_BLOCK_SIZE;
 	char *buf = emalloc(buf_size);
@@ -263,15 +294,13 @@ datum flatfile_nextkey(flatfile *dba) {
 
 		if (*(buf)!=0) {
 			dba->CurrentFlatFilePos = php_stream_tell(dba->fp);
-			res.dptr = buf;
-			res.dsize = num;
-			return res;
+			zend_string *key = zend_string_init(buf, num, /* persistent */ false);
+			efree(buf);
+			return key;
 		}
 	}
 	efree(buf);
-	res.dptr = NULL;
-	res.dsize = 0;
-	return res;
+	return NULL;
 }
 /* }}} */
 

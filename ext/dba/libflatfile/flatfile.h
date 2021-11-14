@@ -17,28 +17,25 @@
 #ifndef PHP_LIB_FLATFILE_H
 #define PHP_LIB_FLATFILE_H
 
-typedef struct {
-	char *dptr;
-	size_t dsize;
-} datum;
+#include "zend_types.h"
 
 typedef struct {
 	char *lockfn;
 	int lockfd;
 	php_stream *fp;
 	size_t CurrentFlatFilePos;
-	datum nextkey;
+	zend_string *next_key;
 } flatfile;
 
 #define FLATFILE_INSERT 1
 #define FLATFILE_REPLACE 0
 
-int flatfile_store(flatfile *dba, datum key_datum, datum value_datum, int mode);
-datum flatfile_fetch(flatfile *dba, datum key_datum);
-int flatfile_delete(flatfile *dba, datum key_datum);
-int flatfile_findkey(flatfile *dba, datum key_datum);
-datum flatfile_firstkey(flatfile *dba);
-datum flatfile_nextkey(flatfile *dba);
+int flatfile_store(flatfile *dba, const zend_string *key, const zend_string *value, int mode);
+zend_string *flatfile_fetch(flatfile *dba, /* const */ zend_string *key);
+zend_result flatfile_delete(flatfile *dba, /* const */ zend_string *key);
+bool flatfile_findkey(flatfile *dba, /* const */ zend_string *key);
+zend_string *flatfile_firstkey(flatfile *dba);
+zend_string *flatfile_nextkey(flatfile *dba);
 char *flatfile_version(void);
 
 #endif
