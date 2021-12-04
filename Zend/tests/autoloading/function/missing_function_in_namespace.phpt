@@ -3,8 +3,6 @@ Missing function in namespace
 --FILE--
 <?php
 
-declare(strict_types=1);
-
 namespace zoq {
 	quux();
 }
