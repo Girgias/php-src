@@ -1056,6 +1056,17 @@ static const uint32_t valid_chars[8] = {
 	0xffffffff,
 };
 
+/* TODO Check first byte is not a digit? */
+ZEND_API bool zend_is_valid_symbol_name(zend_string *name) {
+	for (size_t i = 0; i < ZSTR_LEN(name); i++) {
+		unsigned char c = ZSTR_VAL(name)[i];
+		if (!ZEND_BIT_TEST(valid_chars, c)) {
+			return 0;
+		}
+	}
+	return 1;
+}
+
 ZEND_API zend_function *zend_lookup_function_ex(zend_string *name, zend_string *lc_key, bool use_autoload)
 {
 	zend_function *fbc = NULL;
@@ -1098,12 +1109,10 @@ ZEND_API zend_function *zend_lookup_function_ex(zend_string *name, zend_string *
 	}
 
 	/* Verify function name before passing it to the autoloader. */
-	/*
-	if (!lc_key && !ZSTR_HAS_CE_CACHE(name) && !zend_is_valid_class_name(name)) {
+	if (!lc_key && !zend_is_valid_symbol_name(name)) {
 		zend_string_release_ex(lc_name, 0);
 		return NULL;
 	}
-	*/
 
 	if (EG(in_autoload) == NULL) {
 		ALLOC_HASHTABLE(EG(in_autoload));
@@ -1136,16 +1145,6 @@ ZEND_API zend_function *zend_lookup_function_ex(zend_string *name, zend_string *
 ZEND_API zend_function *zend_lookup_function(zend_string *name) /* {{{ */
 {
 	return zend_lookup_function_ex(name, NULL, true);
-}
-
-ZEND_API bool zend_is_valid_class_name(zend_string *name) {
-	for (size_t i = 0; i < ZSTR_LEN(name); i++) {
-		unsigned char c = ZSTR_VAL(name)[i];
-		if (!ZEND_BIT_TEST(valid_chars, c)) {
-			return 0;
-		}
-	}
-	return 1;
 }
 
 ZEND_API zend_class_entry *zend_lookup_class_ex(zend_string *name, zend_string *key, uint32_t flags) /* {{{ */
@@ -1223,7 +1222,7 @@ ZEND_API zend_class_entry *zend_lookup_class_ex(zend_string *name, zend_string *
 	}
 
 	/* Verify class name before passing it to the autoloader. */
-	if (!key && !ZSTR_HAS_CE_CACHE(name) && !zend_is_valid_class_name(name)) {
+	if (!key && !ZSTR_HAS_CE_CACHE(name) && !zend_is_valid_symbol_name(name)) {
 		zend_string_release_ex(lc_name, 0);
 		return NULL;
 	}
