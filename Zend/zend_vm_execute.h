@@ -3573,6 +3573,7 @@ static ZEND_VM_HOT ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_INIT_FCALL_BY_NAME
 	zend_function *fbc;
 	zend_execute_data *call;
 
+	SAVE_OPLINE();
 	fbc = CACHED_PTR(opline->result.num);
 	if (UNEXPECTED(fbc == NULL)) {
 		zval *function_name = (zval*)RT_CONSTANT(opline, opline->op2);

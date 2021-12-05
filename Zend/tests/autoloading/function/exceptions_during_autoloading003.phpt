@@ -44,7 +44,7 @@ autoload_first
 
 Fatal error: Uncaught Exception: first in %s:%d
 Stack trace:
-#0 [internal function]: autoload_first('ThisClassDoesNo...')
-#1 %s(%d): function_exists('ThisClassDoesNo...')
+#0 [internal function]: autoload_first('foo')
+#1 %s(%d): function_exists('foo')
 #2 {main}
   thrown in %s on line %d
