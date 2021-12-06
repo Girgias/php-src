@@ -3894,6 +3894,7 @@ ZEND_VM_HOT_HANDLER(69, ZEND_INIT_NS_FCALL_BY_NAME, ANY, CONST, NUM|CACHE_SLOT)
 	zend_function *fbc;
 	zend_execute_data *call;
 
+	SAVE_OPLINE();
 	fbc = CACHED_PTR(opline->result.num);
 	if (UNEXPECTED(fbc == NULL)) {
 		zval *function_name = (zval *)RT_CONSTANT(opline, opline->op2);
