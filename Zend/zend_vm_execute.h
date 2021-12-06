@@ -3667,8 +3667,8 @@ static ZEND_VM_HOT ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_INIT_NS_FCALL_BY_N
 			if (UNEXPECTED(EG(exception))) {
 				HANDLE_EXCEPTION();
 			}
-			/* Fallback onto global namespace, by fetching the unqualified name stored in the second literal slot */
-			fbc = zend_lookup_function(Z_STR_P(function_name+2));
+			/* Fallback onto global namespace, by fetching the unqualified lowercase name stored in the second literal slot */
+			fbc = zend_lookup_function_ex(Z_STR_P(function_name+2), Z_STR_P(function_name+2), /* use_autoload */ true);
 			if (fbc == NULL) {
 				if (UNEXPECTED(EG(exception))) {
 					HANDLE_EXCEPTION();
