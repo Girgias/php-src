@@ -334,6 +334,8 @@ PHPAPI ZEND_COLD void php_error_docref2(const char *docref, const char *param1, 
 PHPAPI ZEND_COLD void php_win32_docref1_from_error(DWORD error, const char *param1);
 PHPAPI ZEND_COLD void php_win32_docref2_from_error(DWORD error, const char *param1, const char *param2);
 #endif
+PHPAPI ZEND_COLD void php_exception_or_warning_docref(const char *docref, zend_class_entry *exception_ce, const char *format, ...)
+	PHP_ATTRIBUTE_FORMAT(printf, 3, 4);
 END_EXTERN_C()
 
 #define zenderror phperror

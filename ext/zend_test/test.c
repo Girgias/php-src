@@ -238,6 +238,14 @@ static ZEND_FUNCTION(zend_test_compile_string)
 	return;
 }
 
+/* Tests php_exception_or_warning_docref */
+ZEND_FUNCTION(zend_throw_on_error_declare_exception_or_warning)
+{
+	zend_parse_parameters_none();
+	php_exception_or_warning_docref(NULL, NULL, "Context dependent");
+}
+/* }}} */
+
 /* Tests Z_PARAM_OBJ_OF_CLASS_OR_STR_OR_NULL */
 static ZEND_FUNCTION(zend_string_or_stdclass_or_null)
 {

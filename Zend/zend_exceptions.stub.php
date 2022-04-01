@@ -168,3 +168,6 @@ class DivisionByZeroError extends ArithmeticError
 class UnhandledMatchError extends Error
 {
 }
+
+interface IO extends Throwable {}
+

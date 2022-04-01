@@ -1158,6 +1158,35 @@ PHPAPI ZEND_COLD void php_win32_docref2_from_error(DWORD error, const char *para
 }
 #endif
 
+
+/* {{{ php_exception_or_warning_docref */
+/* Throw an Exception corresponding to exception_ce class if throw_on_error declare statement is present
+ * otherwise fallback to a traditional docref warning. */
+PHPAPI ZEND_COLD void php_exception_or_warning_docref(const char *docref,
+	zend_class_entry *exception_ce, const char *format, ...)
+{
+	va_list args;
+	zend_execute_data *ex = EG(current_execute_data);
+
+	va_start(args, format);
+
+	/* Find first non internal execute_data */
+	while (ex && (!ex->func || !ZEND_USER_CODE(ex->func->type))) {
+		ex = ex->prev_execute_data;
+	}
+	if ((ex->func->common.fn_flags & ZEND_ACC_THROW_WARNING) != 0) {
+		char *message = NULL;
+
+		zend_vspprintf(&message, 0, format, args);
+		zend_throw_exception(exception_ce, message, E_WARNING);
+		efree(message);
+	} else {
+		php_verror(docref, "", E_WARNING, format, args);
+	}
+	va_end(args);
+}
+/* }}} */
+
 /* {{{ php_html_puts */
 PHPAPI void php_html_puts(const char *str, size_t size)
 {
