@@ -2142,6 +2142,8 @@ PHP_METHOD(SplFileObject, rewind)
 		RETURN_THROWS();
 	}
 
+	CHECK_SPL_FILE_OBJECT_IS_INITIALIZED(intern);
+
 	spl_filesystem_file_rewind(ZEND_THIS, intern);
 } /* }}} */
 
@@ -2167,6 +2169,8 @@ PHP_METHOD(SplFileObject, valid)
 	if (zend_parse_parameters_none() == FAILURE) {
 		RETURN_THROWS();
 	}
+
+	CHECK_SPL_FILE_OBJECT_IS_INITIALIZED(intern);
 
 	if (SPL_HAS_FLAG(intern->flags, SPL_FILE_OBJECT_READ_AHEAD)) {
 		RETURN_BOOL(intern->u.file.current_line || !Z_ISUNDEF(intern->u.file.current_zval));
@@ -2226,6 +2230,8 @@ PHP_METHOD(SplFileObject, key)
 		RETURN_THROWS();
 	}
 
+	CHECK_SPL_FILE_OBJECT_IS_INITIALIZED(intern);
+
 	/* Do not read the next line to support correct counting with fgetc()
 	if (!intern->u.file.current_line) {
 		spl_filesystem_file_read_line(ZEND_THIS, intern, 1);
@@ -2242,6 +2248,8 @@ PHP_METHOD(SplFileObject, next)
 		RETURN_THROWS();
 	}
 
+	CHECK_SPL_FILE_OBJECT_IS_INITIALIZED(intern);
+
 	spl_filesystem_file_free_line(intern);
 	if (SPL_HAS_FLAG(intern->flags, SPL_FILE_OBJECT_READ_AHEAD)) {
 		spl_filesystem_file_read_line(ZEND_THIS, intern, 1);
@@ -2257,6 +2265,8 @@ PHP_METHOD(SplFileObject, setFlags)
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &intern->flags) == FAILURE) {
 		RETURN_THROWS();
 	}
+
+	CHECK_SPL_FILE_OBJECT_IS_INITIALIZED(intern);
 } /* }}} */
 
 /* {{{ Get file handling flags */
@@ -2267,6 +2277,8 @@ PHP_METHOD(SplFileObject, getFlags)
 	if (zend_parse_parameters_none() == FAILURE) {
 		RETURN_THROWS();
 	}
+
+	CHECK_SPL_FILE_OBJECT_IS_INITIALIZED(intern);
 
 	RETURN_LONG(intern->flags & SPL_FILE_OBJECT_MASK);
 } /* }}} */
@@ -2281,6 +2293,8 @@ PHP_METHOD(SplFileObject, setMaxLineLen)
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &max_len) == FAILURE) {
 		RETURN_THROWS();
 	}
+
+	CHECK_SPL_FILE_OBJECT_IS_INITIALIZED(intern);
 
 	if (max_len < 0) {
 		zend_argument_value_error(1, "must be greater than or equal to 0");
@@ -2299,6 +2313,8 @@ PHP_METHOD(SplFileObject, getMaxLineLen)
 		RETURN_THROWS();
 	}
 
+	CHECK_SPL_FILE_OBJECT_IS_INITIALIZED(intern);
+
 	RETURN_LONG((zend_long)intern->u.file.max_line_len);
 } /* }}} */
 
@@ -2309,6 +2325,8 @@ PHP_METHOD(SplFileObject, hasChildren)
 		RETURN_THROWS();
 	}
 
+	CHECK_SPL_FILE_OBJECT_IS_INITIALIZED(Z_SPLFILESYSTEM_P(ZEND_THIS));
+
 	RETURN_FALSE;
 } /* }}} */
 
@@ -2318,6 +2336,8 @@ PHP_METHOD(SplFileObject, getChildren)
 	if (zend_parse_parameters_none() == FAILURE) {
 		RETURN_THROWS();
 	}
+
+	CHECK_SPL_FILE_OBJECT_IS_INITIALIZED(Z_SPLFILESYSTEM_P(ZEND_THIS));
 	/* return NULL */
 } /* }}} */
 
@@ -2384,6 +2404,8 @@ PHP_METHOD(SplFileObject, fputcsv)
 		RETURN_THROWS();
 	}
 
+	CHECK_SPL_FILE_OBJECT_IS_INITIALIZED(intern);
+
 	if (delim) {
 		if (d_len != 1) {
 			zend_argument_value_error(2, "must be a single character");
@@ -2431,6 +2453,8 @@ PHP_METHOD(SplFileObject, setCsvControl)
 		RETURN_THROWS();
 	}
 
+	CHECK_SPL_FILE_OBJECT_IS_INITIALIZED(intern);
+
 	if (delim) {
 		if (d_len != 1) {
 			zend_argument_value_error(1, "must be a single character");
@@ -2472,6 +2496,8 @@ PHP_METHOD(SplFileObject, getCsvControl)
 	if (zend_parse_parameters_none() == FAILURE) {
 		RETURN_THROWS();
 	}
+
+	CHECK_SPL_FILE_OBJECT_IS_INITIALIZED(intern);
 
 	array_init(return_value);
 
@@ -2792,7 +2818,6 @@ PHP_MINIT_FUNCTION(spl_directory)
 
 	memcpy(&spl_filesystem_object_check_handlers, &spl_filesystem_object_handlers, sizeof(zend_object_handlers));
 	spl_filesystem_object_check_handlers.clone_obj = NULL;
-	spl_filesystem_object_check_handlers.get_method = spl_filesystem_object_get_method_check;
 
 #ifdef HAVE_GLOB
 	spl_ce_GlobIterator = register_class_GlobIterator(spl_ce_FilesystemIterator, zend_ce_countable);
