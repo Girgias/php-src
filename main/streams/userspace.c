@@ -77,8 +77,9 @@ static void stream_wrapper_dtor(zend_resource *rsrc)
 PHP_MINIT_FUNCTION(user_streams)
 {
 	le_protocols = zend_register_list_destructors_ex(stream_wrapper_dtor, NULL, "stream factory", 0);
-	if (le_protocols == FAILURE)
+	if (le_protocols == FAILURE) {
 		return FAILURE;
+	}
 
 	REGISTER_LONG_CONSTANT("STREAM_USE_PATH", 			USE_PATH, CONST_CS|CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("STREAM_IGNORE_URL", 		IGNORE_URL, CONST_CS|CONST_PERSISTENT);

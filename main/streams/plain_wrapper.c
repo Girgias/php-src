@@ -67,7 +67,7 @@ extern int php_get_gid_by_name(const char *name, gid_t *gid);
 #endif
 
 /* parse standard "fopen" modes into open() flags */
-PHPAPI int php_stream_parse_fopen_modes(const char *mode, int *open_flags)
+PHPAPI zend_result php_stream_parse_fopen_modes(const char *mode, int *open_flags)
 {
 	int flags;
 
@@ -596,7 +596,7 @@ static int php_stdiop_seek(php_stream *stream, zend_off_t offset, int whence, ze
 	}
 }
 
-static int php_stdiop_cast(php_stream *stream, int castas, void **ret)
+static zend_result php_stdiop_cast(php_stream *stream, int castas, void **ret)
 {
 	php_socket_t fd;
 	php_stdio_stream_data *data = (php_stdio_stream_data*) stream->abstract;

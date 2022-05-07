@@ -25,7 +25,8 @@ PHPAPI HashTable *php_stream_xport_get_hash(void)
 	return &xport_hash;
 }
 
-PHPAPI int php_stream_xport_register(const char *protocol, php_stream_transport_factory factory)
+/* TODO Voidify */
+PHPAPI zend_result php_stream_xport_register(const char *protocol, php_stream_transport_factory factory)
 {
 	zend_string *str = zend_string_init_interned(protocol, strlen(protocol), 1);
 
@@ -34,7 +35,7 @@ PHPAPI int php_stream_xport_register(const char *protocol, php_stream_transport_
 	return SUCCESS;
 }
 
-PHPAPI int php_stream_xport_unregister(const char *protocol)
+PHPAPI zend_result php_stream_xport_unregister(const char *protocol)
 {
 	return zend_hash_str_del(&xport_hash, protocol, strlen(protocol));
 }
@@ -86,6 +87,7 @@ PHPAPI php_stream *_php_stream_xport_create(const char *name, size_t namelen, in
 
 				/* fall through */
 
+// TODO REfactor
 			case PHP_STREAM_PERSISTENT_FAILURE:
 			default:
 				/* failed; get a new one */

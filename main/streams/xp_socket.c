@@ -460,7 +460,7 @@ static int php_sockop_set_option(php_stream *stream, int option, int value, void
 	return PHP_STREAM_OPTION_RETURN_NOTIMPL;
 }
 
-static int php_sockop_cast(php_stream *stream, int castas, void **ret)
+static zend_result php_sockop_cast(php_stream *stream, int castas, void **ret)
 {
 	php_netstream_data_t *sock = (php_netstream_data_t*)stream->abstract;
 
@@ -551,7 +551,7 @@ const php_stream_ops php_stream_unixdg_socket_ops = {
 /* network socket operations */
 
 #ifdef AF_UNIX
-static inline int parse_unix_address(php_stream_xport_param *xparam, struct sockaddr_un *unix_addr)
+static inline void parse_unix_address(php_stream_xport_param *xparam, struct sockaddr_un *unix_addr)
 {
 	memset(unix_addr, 0, sizeof(*unix_addr));
 	unix_addr->sun_family = AF_UNIX;
@@ -571,8 +571,6 @@ static inline int parse_unix_address(php_stream_xport_param *xparam, struct sock
 	}
 
 	memcpy(unix_addr->sun_path, xparam->inputs.name, xparam->inputs.namelen);
-
-	return 1;
 }
 #endif
 
