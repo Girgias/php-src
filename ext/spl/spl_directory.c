@@ -1914,7 +1914,13 @@ static zend_result spl_filesystem_file_read_ex(spl_filesystem_object *intern, bo
 	}
 
 	if (!buf) {
-		return FAILURE;
+		if (SPL_HAS_FLAG(intern->flags, SPL_FILE_OBJECT_READ_CSV)) {
+			return FAILURE;
+		}
+		// EOF
+		intern->u.file.current_line = estrdup("");
+		intern->u.file.current_line_len = 0;
+		return SUCCESS;
 	}
 
 	if (SPL_HAS_FLAG(intern->flags, SPL_FILE_OBJECT_DROP_NEW_LINE)) {
@@ -2170,6 +2176,17 @@ PHP_METHOD(SplFileObject, rewind)
 	spl_filesystem_file_rewind(ZEND_THIS, intern);
 } /* }}} */
 
+static bool spl_filesystem_eof(const spl_filesystem_object *intern)
+{
+	if (SPL_HAS_FLAG(intern->flags, SPL_FILE_OBJECT_READ_AHEAD)) {
+		return !(intern->u.file.current_line || !Z_ISUNDEF(intern->u.file.current_zval));
+	}
+	if (!intern->u.file.stream) {
+		return true;
+	}
+	return php_stream_eof(intern->u.file.stream);
+}
+
 /* {{{ Return whether end of file is reached */
 PHP_METHOD(SplFileObject, eof)
 {
@@ -2181,7 +2198,7 @@ PHP_METHOD(SplFileObject, eof)
 
 	CHECK_SPL_FILE_OBJECT_IS_INITIALIZED(intern);
 
-	RETURN_BOOL(php_stream_eof(intern->u.file.stream));
+	RETURN_BOOL(spl_filesystem_eof(intern));
 } /* }}} */
 
 /* {{{ Return !eof() */
@@ -2193,13 +2210,9 @@ PHP_METHOD(SplFileObject, valid)
 		RETURN_THROWS();
 	}
 
-	if (SPL_HAS_FLAG(intern->flags, SPL_FILE_OBJECT_READ_AHEAD)) {
-		RETURN_BOOL(intern->u.file.current_line || !Z_ISUNDEF(intern->u.file.current_zval));
-	}
-	if (!intern->u.file.stream) {
-		RETURN_FALSE;
-	}
-	RETURN_BOOL(!php_stream_eof(intern->u.file.stream));
+	CHECK_SPL_FILE_OBJECT_IS_INITIALIZED(intern);
+
+	RETURN_BOOL(!spl_filesystem_eof(intern));
 } /* }}} */
 
 /* {{{ Return next line from file */

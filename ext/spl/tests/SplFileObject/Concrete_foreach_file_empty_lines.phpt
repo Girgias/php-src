@@ -3,13 +3,7 @@ Iterate over SplFileObject with empty lines with CSV flags
 --FILE--
 <?php
 
-$file = new SplTempFileObject();
-
-$file->fwrite("foo,bar\n");
-$file->fwrite("\n");
-$file->fwrite("baz,qux");
-
-$file->rewind();
+$file = new SplFileObject(__DIR__ . '/test_data.txt');
 
 $file->setFlags(SplFileObject::READ_CSV | SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY /* | SplFileObject::DROP_NEW_LINE */);
 
