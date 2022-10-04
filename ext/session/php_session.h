@@ -160,7 +160,8 @@ typedef struct _php_ps_globals {
 	int module_number;
 	zend_long cache_expire;
 	struct {
-		zval ps_open;
+		zend_fcall_info open_fci;
+		zend_fcall_info_cache open_fcc;
 		zval ps_close;
 		zval ps_read;
 		zval ps_write;

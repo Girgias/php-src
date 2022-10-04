@@ -1950,6 +1950,24 @@ static inline void set_user_save_handler_ini(void) {
 	zend_string_release_ex(ini_name, 0);
 }
 
+/* Taken from Zend/basic_functions.c, maybe these should be an actual Zend API? */
+static void internal_closure_addref(zend_fcall_info *fci, zend_fcall_info_cache *fci_cache)
+{
+	Z_TRY_ADDREF(fci->function_name);
+	if (fci_cache->object) {
+		GC_ADDREF(fci_cache->object);
+	}
+}
+
+static void internal_closure_release(zend_fcall_info *fci, zend_fcall_info_cache *fci_cache)
+{
+	zval_ptr_dtor(&fci->function_name);
+	if (fci_cache->object) {
+		zend_object_release(fci_cache->object);
+	}
+	zend_release_fcall_info_cache(fci_cache);
+}
+
 #define SESSION_RELEASE_USER_HANDLER_OO(struct_name) \
 	if (!Z_ISUNDEF(PS(mod_user_names).struct_name)) { \
 		zval_ptr_dtor(&PS(mod_user_names).struct_name); \
@@ -2003,16 +2021,26 @@ PHP_FUNCTION(session_set_save_handler)
 		}
 		PS(mod_user_class_name) = zend_string_copy(Z_OBJCE_P(obj)->name);
 
+		/* Elements of object_methods HashTable are zend_function *method */
+		HashTable *object_methods = &Z_OBJCE_P(obj)->function_table;
+
 		/* Define mandatory handlers */
-		SESSION_SET_USER_HANDLER_OO_MANDATORY(ps_open, "open");
+
+		/* Release old handlers */
+		internal_closure_release(&PS(mod_user_names).open_fci, &PS(mod_user_names).open_fcc);
+		PS(mod_user_names).open_fci.size = sizeof(PS(mod_user_names).open_fci);
+		PS(mod_user_names).open_fci.object = Z_OBJ_P(obj);
+		ZVAL_UNDEF(&PS(mod_user_names).open_fci.function_name); /* Unused */
+		PS(mod_user_names).open_fcc.function_handler = zend_hash_str_find_ptr(object_methods, "open", strlen("open"));
+		PS(mod_user_names).open_fcc.object = Z_OBJ_P(obj);
+		PS(mod_user_names).open_fcc.called_scope = Z_OBJCE_P(obj);
+		internal_closure_addref(&PS(mod_user_names).open_fci, &PS(mod_user_names).open_fcc);
+		//SESSION_SET_USER_HANDLER_OO_MANDATORY(ps_open, "open");
 		SESSION_SET_USER_HANDLER_OO_MANDATORY(ps_close, "close");
 		SESSION_SET_USER_HANDLER_OO_MANDATORY(ps_read, "read");
 		SESSION_SET_USER_HANDLER_OO_MANDATORY(ps_write, "write");
 		SESSION_SET_USER_HANDLER_OO_MANDATORY(ps_destroy, "destroy");
 		SESSION_SET_USER_HANDLER_OO_MANDATORY(ps_gc, "gc");
-
-		/* Elements of object_methods HashTable are zend_function *method */
-		HashTable *object_methods = &Z_OBJCE_P(obj)->function_table;
 
 		/* Find implemented methods - SessionIdInterface (optional) */
 		/* First release old handlers */
@@ -2083,8 +2111,8 @@ PHP_FUNCTION(session_set_save_handler)
 	}
 
 	/* Procedural version */
-	zend_fcall_info open_fci = {0};
-	zend_fcall_info_cache open_fcc;
+	//zend_fcall_info open_fci = {0};
+	//zend_fcall_info_cache open_fcc;
 	zend_fcall_info close_fci = {0};
 	zend_fcall_info_cache close_fcc;
 	zend_fcall_info read_fci = {0};
@@ -2102,9 +2130,11 @@ PHP_FUNCTION(session_set_save_handler)
 	zend_fcall_info update_timestamp_fci = {0};
 	zend_fcall_info_cache update_timestamp_fcc;
 
+	internal_closure_release(&PS(mod_user_names).open_fci, &PS(mod_user_names).open_fcc);
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS(),
 		"ffffff|f!f!f!",
-		&open_fci, &open_fcc,
+		&PS(mod_user_names).open_fci, &PS(mod_user_names).open_fcc,
 		&close_fci, &close_fcc,
 		&read_fci, &read_fcc,
 		&write_fci, &write_fcc,
@@ -2134,7 +2164,8 @@ PHP_FUNCTION(session_set_save_handler)
 	}
 
 	/* Define mandatory handlers */
-	SESSION_SET_USER_HANDLER_PROCEDURAL(ps_open, open_fci);
+	//SESSION_SET_USER_HANDLER_PROCEDURAL(ps_open, open_fci);
+	internal_closure_addref(&PS(mod_user_names).open_fci, &PS(mod_user_names).open_fcc);
 	SESSION_SET_USER_HANDLER_PROCEDURAL(ps_close, close_fci);
 	SESSION_SET_USER_HANDLER_PROCEDURAL(ps_read, read_fci);
 	SESSION_SET_USER_HANDLER_PROCEDURAL(ps_write, write_fci);
@@ -2793,7 +2824,14 @@ static PHP_RSHUTDOWN_FUNCTION(session) /* {{{ */
 
 	/* this should NOT be done in php_rshutdown_session_globals() */
 	/* Free user defined handlers */
-	SESSION_FREE_USER_HANDLER(ps_open);
+	/*
+	if (PS(mod_user_names).open_fcc.object) {
+		GC_DELREF(PS(mod_user_names).open_fcc.object);
+	}
+	*/
+	//zend_release_fcall_info_cache(&PS(mod_user_names).open_fcc);
+	internal_closure_release(&PS(mod_user_names).open_fci, &PS(mod_user_names).open_fcc);
+	//SESSION_FREE_USER_HANDLER(ps_open);
 	SESSION_FREE_USER_HANDLER(ps_close);
 	SESSION_FREE_USER_HANDLER(ps_read);
 	SESSION_FREE_USER_HANDLER(ps_write);
@@ -2827,7 +2865,6 @@ static PHP_GINIT_FUNCTION(ps) /* {{{ */
 	ps_globals->session_vars = NULL;
 	ps_globals->set_handler = 0;
 	/* Unset user defined handlers */
-	ZVAL_UNDEF(&ps_globals->mod_user_names.ps_open);
 	ZVAL_UNDEF(&ps_globals->mod_user_names.ps_close);
 	ZVAL_UNDEF(&ps_globals->mod_user_names.ps_read);
 	ZVAL_UNDEF(&ps_globals->mod_user_names.ps_write);

@@ -47,16 +47,6 @@ class MySessionHandler extends SessionHandler implements SessionUpdateTimestampH
 
 ob_start();
 
-$handler = new MySessionHandler();
-session_set_save_handler($handler);
-
-session_start();
-$_SESSION['foo'] = 'bar';
-session_write_close();
-
-session_start();
-session_write_close();
-
 session_set_save_handler(
     fn() => true,
     fn() => true,
@@ -76,12 +66,22 @@ session_write_close();
 session_start();
 session_write_close();
 
+$handler = new MySessionHandler();
+session_set_save_handler($handler);
+
+session_start();
+$_SESSION['foo'] = 'bar';
+session_write_close();
+
+session_start();
+session_write_close();
+
 ?>
 --EXPECTF--
-Warning: session_write_close(): Failed to write session data using user defined save handler. (session.save_path: , handler: MySessionHandler::write) in %s on line %d
-
-Warning: session_write_close(): Failed to write session data using user defined save handler. (session.save_path: , handler: MySessionHandler::updateTimestamp) in %s on line %d
-
 Warning: session_write_close(): Failed to write session data using user defined save handler. (session.save_path: , handler: write) in %s on line %d
 
 Warning: session_write_close(): Failed to write session data using user defined save handler. (session.save_path: , handler: update_timestamp) in %s on line %d
+
+Warning: session_write_close(): Failed to write session data using user defined save handler. (session.save_path: , handler: MySessionHandler::write) in %s on line %d
+
+Warning: session_write_close(): Failed to write session data using user defined save handler. (session.save_path: , handler: MySessionHandler::updateTimestamp) in %s on line %d

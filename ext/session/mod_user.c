@@ -85,13 +85,26 @@ PS_OPEN_FUNC(user)
 	zval retval;
 	zend_result ret = FAILURE;
 
-	ZEND_ASSERT(!Z_ISUNDEF(PSF(open)));
+	//ZEND_ASSERT(!Z_ISUNDEF(PSF(open)));
 
 	ZVAL_STRING(&args[0], (char*)save_path);
 	ZVAL_STRING(&args[1], (char*)session_name);
+	PS(mod_user_names).open_fci.params = args;
+	PS(mod_user_names).open_fci.param_count = 2;
+	PS(mod_user_names).open_fci.named_params = NULL;
+	PS(mod_user_names).open_fci.retval = &retval;
 
 	zend_try {
-		ps_call_handler(&PSF(open), 2, args, &retval);
+		zend_call_function(&PS(mod_user_names).open_fci, &PS(mod_user_names).open_fcc);
+		/*
+		zend_call_known_function(
+			PS(mod_user_names).open_fcc.function_handler,
+			PS(mod_user_names).open_fcc.object,
+			PS(mod_user_names).open_fcc.called_scope,
+			&retval, 2, args, NULL
+		);
+		*/
+		//ps_call_handler(&PSF(open), 2, args, &retval);
 	} zend_catch {
 		PS(session_status) = php_session_none;
 		if (!Z_ISUNDEF(retval)) {
@@ -99,6 +112,8 @@ PS_OPEN_FUNC(user)
 		}
 		zend_bailout();
 	} zend_end_try();
+	zval_ptr_dtor(&args[0]);
+	zval_ptr_dtor(&args[1]);
 
 	PS(mod_user_implemented) = 1;
 
