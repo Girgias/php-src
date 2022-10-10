@@ -89,21 +89,17 @@ PS_OPEN_FUNC(user)
 
 	ZVAL_STRING(&args[0], (char*)save_path);
 	ZVAL_STRING(&args[1], (char*)session_name);
-	PS(mod_user_names).open_fci.params = args;
-	PS(mod_user_names).open_fci.param_count = 2;
-	PS(mod_user_names).open_fci.named_params = NULL;
-	PS(mod_user_names).open_fci.retval = &retval;
 
 	zend_try {
-		zend_call_function(&PS(mod_user_names).open_fci, &PS(mod_user_names).open_fcc);
-		/*
 		zend_call_known_function(
 			PS(mod_user_names).open_fcc.function_handler,
 			PS(mod_user_names).open_fcc.object,
 			PS(mod_user_names).open_fcc.called_scope,
-			&retval, 2, args, NULL
+			&retval,
+			/* param_count */ 2,
+			args,
+			/* *named_params */ NULL
 		);
-		*/
 		//ps_call_handler(&PSF(open), 2, args, &retval);
 	} zend_catch {
 		PS(session_status) = php_session_none;

@@ -2028,8 +2028,6 @@ PHP_FUNCTION(session_set_save_handler)
 
 		/* Release old handlers */
 		internal_closure_release(&PS(mod_user_names).open_fci, &PS(mod_user_names).open_fcc);
-		PS(mod_user_names).open_fci.size = sizeof(PS(mod_user_names).open_fci);
-		PS(mod_user_names).open_fci.object = Z_OBJ_P(obj);
 		ZVAL_UNDEF(&PS(mod_user_names).open_fci.function_name); /* Unused */
 		PS(mod_user_names).open_fcc.function_handler = zend_hash_str_find_ptr(object_methods, "open", strlen("open"));
 		PS(mod_user_names).open_fcc.object = Z_OBJ_P(obj);
