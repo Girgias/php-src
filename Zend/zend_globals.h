@@ -185,6 +185,11 @@ struct _zend_executor_globals {
 	uint32_t persistent_classes_count;
 
 	HashTable *in_autoload;
+	struct {
+		HashTable class_autoload_functions;
+		HashTable function_autoload_functions;
+	} autoloaders;
+
 	bool full_tables_cleanup;
 
 	/* for extended information support */
