@@ -169,6 +169,23 @@ ZEND_API void zend_register_class_autoloader(zend_fcall_info *fci, zend_fcall_in
 }
 
 // TODO USERLAND FUNCTIONS, maybe namespace them?
+static void autoload_list(INTERNAL_FUNCTION_PARAMETERS, HashTable *symbol_table)
+{
+	zend_fcall_info_cache *func_info;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	array_init(return_value);
+
+	ZEND_HASH_FOREACH_PTR(symbol_table, func_info) {
+		zval tmp;
+		zend_get_callable_zval_from_fcc(func_info, &tmp);
+		add_next_index_zval(return_value, &tmp);
+	} ZEND_HASH_FOREACH_END();
+}
+
 /* Register given function as a class autoloader */
 ZEND_FUNCTION(autoload_register_class)
 {
@@ -239,19 +256,7 @@ ZEND_FUNCTION(autoload_call_class)
 /* Return all registered class autoloader functions */
 ZEND_FUNCTION(autoload_list_class)
 {
-	zend_fcall_info_cache *func_info;
-
-	if (zend_parse_parameters_none() == FAILURE) {
-		RETURN_THROWS();
-	}
-
-	array_init(return_value);
-
-	ZEND_HASH_FOREACH_PTR(&EG(autoloaders).class_autoload_functions, func_info) {
-		zval tmp;
-		zend_get_callable_zval_from_fcc(func_info, &tmp);
-		add_next_index_zval(return_value, &tmp);
-	} ZEND_HASH_FOREACH_END();
+	autoload_list(INTERNAL_FUNCTION_PARAM_PASSTHRU, &EG(autoloaders).class_autoload_functions);
 }
 
 /* Register given function as a function autoloader */
@@ -344,19 +349,7 @@ ZEND_FUNCTION(autoload_call_function)
 /* Return all registered function autoloader functions */
 ZEND_FUNCTION(autoload_list_function)
 {
-	zend_fcall_info_cache *func_info;
-
-	if (zend_parse_parameters_none() == FAILURE) {
-		RETURN_THROWS();
-	}
-
-	array_init(return_value);
-
-	ZEND_HASH_FOREACH_PTR(&EG(autoloaders).function_autoload_functions, func_info) {
-		zval tmp;
-		zend_get_callable_zval_from_fcc(func_info, &tmp);
-		add_next_index_zval(return_value, &tmp);
-	} ZEND_HASH_FOREACH_END();
+	autoload_list(INTERNAL_FUNCTION_PARAM_PASSTHRU, &EG(autoloaders).function_autoload_functions);
 }
 
 void zend_autoload_shutdown(void)
