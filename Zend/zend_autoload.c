@@ -100,6 +100,39 @@ ZEND_API zend_class_entry *zend_perform_class_autoload(zend_string *class_name, 
 	return NULL;
 }
 
+ZEND_API zend_function *zend_perform_function_autoload(zend_string *function_name, zend_string *lc_name)
+{
+	zval zname;
+
+	ZEND_ASSERT(&EG(autoloaders).function_autoload_functions);
+
+	ZVAL_STR(&zname, function_name);
+
+	HashTable *function_autoload_functions = &EG(autoloaders).function_autoload_functions;
+
+	/* Cannot use ZEND_HASH_MAP_FOREACH_PTR here as autoloaders may be
+	 * added/removed during autoloading. */
+	HashPosition pos;
+	zend_hash_internal_pointer_reset_ex(function_autoload_functions, &pos);
+	while (1) {
+		zend_fcall_info_cache *func_info = zend_hash_get_current_data_ptr_ex(function_autoload_functions, &pos);
+		if (!func_info) {
+			break;
+		}
+		zend_call_known_fcc(func_info, /* retval */ NULL, /* param_count */ 1, /* params */ &zname, /* named_params */ NULL);
+
+		if (EG(exception)) {
+			return NULL;
+		}
+		if (zend_hash_exists(EG(function_table), lc_name)) {
+			return (zend_function*) zend_hash_find_ptr(EG(function_table), lc_name);
+		}
+
+		zend_hash_move_forward_ex(function_autoload_functions, &pos);
+	}
+	return NULL;
+}
+
 /* Needed for compatibility with spl_register_autoload() */
 ZEND_API void zend_register_class_autoloader(zend_fcall_info *fci, zend_fcall_info_cache *fcc, bool prepend)
 {
@@ -203,7 +236,6 @@ ZEND_FUNCTION(autoload_call_class)
 	zend_perform_class_autoload(class_name, lc_name);
 	zend_string_release(lc_name);
 }
-
 /* Return all registered class autoloader functions */
 ZEND_FUNCTION(autoload_list_class)
 {
@@ -216,6 +248,111 @@ ZEND_FUNCTION(autoload_list_class)
 	array_init(return_value);
 
 	ZEND_HASH_FOREACH_PTR(&EG(autoloaders).class_autoload_functions, func_info) {
+		zval tmp;
+		zend_get_callable_zval_from_fcc(func_info, &tmp);
+		add_next_index_zval(return_value, &tmp);
+	} ZEND_HASH_FOREACH_END();
+}
+
+/* Register given function as a function autoloader */
+ZEND_FUNCTION(autoload_register_function)
+{
+	bool prepend = false;
+	zend_fcall_info fci;
+	zend_fcall_info_cache fcc;
+
+	ZEND_PARSE_PARAMETERS_START(1, 2)
+		Z_PARAM_FUNC(fci, fcc)
+		Z_PARAM_OPTIONAL
+		Z_PARAM_BOOL(prepend)
+	ZEND_PARSE_PARAMETERS_END();
+
+	ZEND_ASSERT(&EG(autoloaders).function_autoload_functions);
+
+	if (!ZEND_FCC_INITIALIZED(fcc)) {
+		/* Call trampoline has been cleared by zpp. Refetch it, because we want to deal
+		 * with it ourselves. It is important that it is not refetched on every call,
+		 * because calls may occur from different scopes. */
+		zend_is_callable_ex(&fci.function_name, NULL, 0, NULL, &fcc, NULL);
+	}
+
+	if (fcc.function_handler->type == ZEND_INTERNAL_FUNCTION &&
+		fcc.function_handler->internal_function.handler == zif_autoload_call_function) {
+		zend_argument_value_error(1, "must not be the autoload_call_function() function");
+		return;
+	}
+
+	/* If function is already registered, don't do anything */
+	if (autoload_find_registered_function(&EG(autoloaders).function_autoload_functions, &fcc)) {
+		/* Release call trampoline */
+		zend_release_fcall_info_cache(&fcc);
+		return;
+	}
+
+	zend_fcall_info_cache *entry = emalloc(sizeof(zend_fcall_info_cache));
+	zend_fcc_dup(entry, &fcc);
+	zend_hash_next_index_insert_ptr(&EG(autoloaders).function_autoload_functions, entry);
+	if (prepend && zend_hash_num_elements(&EG(autoloaders).function_autoload_functions) > 1) {
+		/* Move the newly created element to the head of the hashtable */
+		HT_MOVE_TAIL_TO_HEAD(&EG(autoloaders).function_autoload_functions);
+	}
+}
+
+ZEND_FUNCTION(autoload_unregister_function)
+{
+	zend_fcall_info fci;
+	zend_fcall_info_cache fcc;
+
+	ZEND_PARSE_PARAMETERS_START(1, 1)
+		Z_PARAM_FUNC(fci, fcc)
+	ZEND_PARSE_PARAMETERS_END();
+
+	ZEND_ASSERT(&EG(autoloaders).function_autoload_functions);
+
+	if (!ZEND_FCC_INITIALIZED(fcc)) {
+		/* Call trampoline has been cleared by zpp. Refetch it, because we want to deal
+		 * with it ourselves. It is important that it is not refetched on every call,
+		 * because calls may occur from different scopes. */
+		zend_is_callable_ex(&fci.function_name, NULL, 0, NULL, &fcc, NULL);
+	}
+	Bucket *p = autoload_find_registered_function(&EG(autoloaders).function_autoload_functions, &fcc);
+	/* Release trampoline */
+	zend_release_fcall_info_cache(&fcc);
+
+	if (p) {
+		zend_hash_del_bucket(&EG(autoloaders).function_autoload_functions, p);
+		RETURN_TRUE;
+	}
+
+	RETURN_FALSE;
+}
+
+/* Try all registered function autoloader functions to load the requested function */
+ZEND_FUNCTION(autoload_call_function)
+{
+	zend_string *function_name;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "S", &function_name) == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	zend_string *lc_name = zend_string_tolower(function_name);
+	zend_perform_function_autoload(function_name, lc_name);
+	zend_string_release(lc_name);
+}
+
+/* Return all registered function autoloader functions */
+ZEND_FUNCTION(autoload_list_function)
+{
+	zend_fcall_info_cache *func_info;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	array_init(return_value);
+
+	ZEND_HASH_FOREACH_PTR(&EG(autoloaders).function_autoload_functions, func_info) {
 		zval tmp;
 		zend_get_callable_zval_from_fcc(func_info, &tmp);
 		add_next_index_zval(return_value, &tmp);
