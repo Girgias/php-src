@@ -3777,8 +3777,11 @@ static ZEND_VM_HOT ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_INIT_NS_FCALL_BY_N
 				}
 				ZEND_VM_TAIL_CALL(zend_undefined_function_helper_SPEC(ZEND_OPCODE_HANDLER_ARGS_PASSTHRU));
 			}
+			/* We bind the unqualified name to the global function */
 			else {
-				do_bind_function(fbc, function_name);
+				zval tmp;
+				ZVAL_STR(&tmp, Z_STR_P(function_name+1));
+				do_bind_function(fbc, &tmp);
 			}
 		}
 		if (EXPECTED(fbc->type == ZEND_USER_FUNCTION) && UNEXPECTED(!RUN_TIME_CACHE(&fbc->op_array))) {
