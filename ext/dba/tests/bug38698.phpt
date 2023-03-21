@@ -30,5 +30,11 @@ if (($db_make=dba_open($db_file, "n", 'cdb_make'))!==FALSE) {
     echo "Error creating database\n";
 }
 ?>
+--CLEAN--
+<?php
+require_once __DIR__ . '/setup/setup_dba_tests.inc';
+$db_name = __DIR__ .'/129php.cdb';
+cleanup_standard_db($db_name);
+?>
 --EXPECT--
 string(32) "1f34b74bde3744265acfc21e0f30af95"
