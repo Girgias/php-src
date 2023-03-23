@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 22d7938e2402143250c99e110b2ab06ae8270a0b */
+ * Stub hash: 010f7f9ca5214b15d30603880f0cfa3ef0bdc4be */
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_set_time_limit, 0, 1, _IS_BOOL, 0)
 	ZEND_ARG_TYPE_INFO(0, seconds, IS_LONG, 0)
@@ -2067,6 +2067,8 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_is_scalar arginfo_boolval
 
+#define arginfo_is_literal arginfo_boolval
+
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_is_callable, 0, 1, _IS_BOOL, 0)
 	ZEND_ARG_TYPE_INFO(0, value, IS_MIXED, 0)
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, syntax_only, _IS_BOOL, 0, "false")
@@ -2773,6 +2775,7 @@ ZEND_FUNCTION(is_string);
 ZEND_FUNCTION(is_array);
 ZEND_FUNCTION(is_object);
 ZEND_FUNCTION(is_scalar);
+ZEND_FUNCTION(is_literal);
 ZEND_FUNCTION(is_callable);
 ZEND_FUNCTION(is_iterable);
 ZEND_FUNCTION(is_countable);
@@ -3421,6 +3424,7 @@ static const zend_function_entry ext_functions[] = {
 	ZEND_FE(is_array, arginfo_is_array)
 	ZEND_FE(is_object, arginfo_is_object)
 	ZEND_FE(is_scalar, arginfo_is_scalar)
+	ZEND_FE(is_literal, arginfo_is_literal)
 	ZEND_FE(is_callable, arginfo_is_callable)
 	ZEND_FE(is_iterable, arginfo_is_iterable)
 	ZEND_FE(is_countable, arginfo_is_countable)

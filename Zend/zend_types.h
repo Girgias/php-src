@@ -664,6 +664,9 @@ static zend_always_inline uint8_t zval_get_type(const zval* pz) {
 #define Z_PROTECT_RECURSION_P(zv)   Z_PROTECT_RECURSION(*(zv))
 #define Z_UNPROTECT_RECURSION_P(zv) Z_UNPROTECT_RECURSION(*(zv))
 
+#define Z_IS_LITERAL(zval)          (Z_TYPE(zval) == IS_STRING && ZSTR_IS_LITERAL(Z_STR(zval)))
+#define Z_IS_LITERAL_P(zv)          Z_IS_LITERAL(*(zv))
+
 /* All data types < IS_STRING have their constructor/destructors skipped */
 #define Z_CONSTANT(zval)			(Z_TYPE(zval) == IS_CONSTANT_AST)
 #define Z_CONSTANT_P(zval_p)		Z_CONSTANT(*(zval_p))

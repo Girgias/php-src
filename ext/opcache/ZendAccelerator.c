@@ -496,7 +496,8 @@ static zend_always_inline zend_string *accel_find_interned_string(zend_string *s
 	if (EXPECTED(pos != STRTAB_INVALID_POS)) {
 		do {
 			s = STRTAB_POS_TO_STR(&ZCSG(interned_strings), pos);
-			if (EXPECTED(ZSTR_H(s) == h) && zend_string_equal_content(s, str)) {
+			if (EXPECTED(ZSTR_H(s) == h) &&
+				(ZSTR_IS_LITERAL(s) == ZSTR_IS_LITERAL(str)) && zend_string_equal_content(s, str)) {
 				return s;
 			}
 			pos = STRTAB_COLLISION(s);
@@ -529,7 +530,11 @@ zend_string* ZEND_FASTCALL accel_new_interned_string(zend_string *str)
 	if (EXPECTED(pos != STRTAB_INVALID_POS)) {
 		do {
 			s = STRTAB_POS_TO_STR(&ZCSG(interned_strings), pos);
-			if (EXPECTED(ZSTR_H(s) == h) && zend_string_equal_content(s, str)) {
+			if (
+				EXPECTED(ZSTR_H(s) == h)
+				&& (ZSTR_IS_LITERAL(s) == ZSTR_IS_LITERAL(str))
+				&& zend_string_equal_content(s, str)
+			) {
 				goto finish;
 			}
 			pos = STRTAB_COLLISION(s);
@@ -549,7 +554,8 @@ zend_string* ZEND_FASTCALL accel_new_interned_string(zend_string *str)
 	STRTAB_COLLISION(s) = *hash_slot;
 	*hash_slot = STRTAB_STR_TO_POS(&ZCSG(interned_strings), s);
 	GC_SET_REFCOUNT(s, 2);
-	GC_TYPE_INFO(s) = GC_STRING | ((IS_STR_INTERNED | IS_STR_PERMANENT) << GC_FLAGS_SHIFT)| (ZSTR_IS_VALID_UTF8(str) ? IS_STR_VALID_UTF8 : 0);
+	GC_TYPE_INFO(s) = GC_STRING | ((IS_STR_INTERNED | IS_STR_PERMANENT) << GC_FLAGS_SHIFT)
+		| (ZSTR_IS_VALID_UTF8(str) ? IS_STR_VALID_UTF8 : 0) | (ZSTR_IS_LITERAL(str) ? IS_STR_LITERAL : 0);
 	ZSTR_H(s) = h;
 	ZSTR_LEN(s) = ZSTR_LEN(str);
 	memcpy(ZSTR_VAL(s), ZSTR_VAL(str), ZSTR_LEN(s) + 1);
@@ -1459,6 +1465,9 @@ static zend_string* accel_new_interned_key(zend_string *key)
 			ZSTR_H(new_key) = ZSTR_H(key);
 			ZSTR_LEN(new_key) = ZSTR_LEN(key);
 			memcpy(ZSTR_VAL(new_key), ZSTR_VAL(key), ZSTR_LEN(new_key) + 1);
+			if (ZSTR_IS_LITERAL(key)) {
+				GC_ADD_FLAGS(new_key, IS_STR_LITERAL);
+			}
 		}
 	}
 	return new_key;

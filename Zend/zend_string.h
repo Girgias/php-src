@@ -30,6 +30,7 @@
 #define IS_STR_PERSISTENT			GC_PERSISTENT /* allocated using malloc */
 #define IS_STR_PERMANENT        	(1<<8)        /* relives request boundary */
 #define IS_STR_VALID_UTF8           (1<<9)        /* valid UTF-8 according to PCRE */
+#define IS_STR_LITERAL              (1<<10)       /* Is string a literal string */
 
 typedef struct _zend_string zend_string;
 
@@ -78,6 +79,9 @@ ZEND_API extern zend_string  *zend_empty_string;
 ZEND_API extern zend_string  *zend_one_char_string[256];
 ZEND_API extern zend_string **zend_known_strings;
 
+ZEND_API extern zend_string  *zend_one_char_literal[256];
+ZEND_API extern zend_string  *zend_empty_literal;
+
 END_EXTERN_C()
 
 /* Shortcuts */
@@ -98,13 +102,15 @@ END_EXTERN_C()
 
 /*---*/
 
-#define ZSTR_IS_INTERNED(s)					(GC_FLAGS(s) & IS_STR_INTERNED)
-#define ZSTR_IS_VALID_UTF8(s)				(GC_FLAGS(s) & IS_STR_VALID_UTF8)
+#define ZSTR_IS_INTERNED(s)     (GC_FLAGS(s) & IS_STR_INTERNED)
+#define ZSTR_IS_VALID_UTF8(s)   (GC_FLAGS(s) & IS_STR_VALID_UTF8)
+#define ZSTR_IS_LITERAL(s)      (GC_TYPE_INFO(s) & IS_STR_LITERAL)
+#define ZSTR_IS_LITERAL_CHAR(s) (ZSTR_IS_LITERAL(s) && (ZSTR_LEN(s) <= 1))
 
 /* These are properties, encoded as flags, that will hold on the resulting string
  * after concatenating two strings that have these property.
  * Example: concatenating two UTF-8 strings yields another UTF-8 string. */
-#define ZSTR_COPYABLE_CONCAT_PROPERTIES		(IS_STR_VALID_UTF8)
+#define ZSTR_COPYABLE_CONCAT_PROPERTIES		(IS_STR_VALID_UTF8|IS_STR_LITERAL)
 
 #define ZSTR_GET_COPYABLE_CONCAT_PROPERTIES(s) 				(GC_FLAGS(s) & ZSTR_COPYABLE_CONCAT_PROPERTIES)
 /* This macro returns the copyable concat properties which hold on both strings. */
@@ -123,7 +129,9 @@ END_EXTERN_C()
 } while (0)
 
 #define ZSTR_EMPTY_ALLOC() zend_empty_string
+#define ZSTR_EMPTY_LITERAL_ALLOC() zend_empty_literal
 #define ZSTR_CHAR(c) zend_one_char_string[c]
+#define ZSTR_LITERAL_CHAR(c) zend_one_char_literal[c]
 #define ZSTR_KNOWN(idx) zend_known_strings[idx]
 
 #define _ZSTR_HEADER_SIZE XtOffsetOf(zend_string, val)
@@ -161,7 +169,7 @@ static zend_always_inline zend_ulong zend_string_hash_val(zend_string *s)
 static zend_always_inline void zend_string_forget_hash_val(zend_string *s)
 {
 	ZSTR_H(s) = 0;
-	GC_DEL_FLAGS(s, IS_STR_VALID_UTF8);
+	GC_DEL_FLAGS(s, IS_STR_VALID_UTF8 | IS_STR_LITERAL);
 }
 
 static zend_always_inline uint32_t zend_string_refcount(const zend_string *s)
@@ -381,6 +389,50 @@ static zend_always_inline void zend_string_release_ex(zend_string *s, bool persi
 		}
 	}
 }
+
+static zend_always_inline zend_string* zend_string_set_literal(zend_string *s) {
+	if (UNEXPECTED(ZSTR_IS_LITERAL(s))) {
+		return s;
+	}
+
+	if (EXPECTED(GC_REFCOUNT(s) == 1 && !ZSTR_IS_INTERNED(s))) {
+		GC_ADD_FLAGS(s, IS_STR_LITERAL);
+		return s;
+	}
+
+	zend_string *literal = zend_string_separate(s, 0);
+
+	GC_ADD_FLAGS(literal, IS_STR_LITERAL);
+
+	return literal;
+}
+
+static zend_always_inline zend_string* zend_string_unset_literal(zend_string *s) {
+	if (UNEXPECTED(!ZSTR_IS_LITERAL(s))) {
+		return s;
+	}
+
+	if (EXPECTED(GC_REFCOUNT(s) == 1 && !ZSTR_IS_INTERNED(s))) {
+		GC_DEL_FLAGS(s, IS_STR_LITERAL);
+		return s;
+	}
+
+	zend_string *literal = zend_string_separate(s, 0);
+
+	GC_DEL_FLAGS(literal, IS_STR_LITERAL);
+
+	return literal;
+}
+
+static zend_always_inline void zend_string_set_literal_fast(zend_string *s) {
+	ZEND_ASSERT(GC_REFCOUNT(s) == 1 && !ZSTR_IS_INTERNED(s));
+
+	GC_ADD_FLAGS(s, IS_STR_LITERAL);
+}
+
+#define ZSTR_SET_LITERAL(s)    *(s) = zend_string_set_literal(*(s))
+#define ZSTR_SET_LITERAL_FAST  zend_string_set_literal_fast
+#define ZSTR_UNSET_LITERAL(s)  *(s) = zend_string_unset_literal(*(s))
 
 static zend_always_inline bool zend_string_equals_cstr(const zend_string *s1, const char *s2, size_t s2_length)
 {

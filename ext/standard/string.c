@@ -967,6 +967,9 @@ PHPAPI void php_implode(const zend_string *glue, HashTable *pieces, zval *return
 		} else if (UNEXPECTED(Z_TYPE_P(tmp) == IS_LONG)) {
 			zend_long val = Z_LVAL_P(tmp);
 
+			/* Remove literal flag */
+			flags &= ~IS_STR_LITERAL;
+
 			ptr->str = NULL;
 			ptr->lval = val;
 			ptr++;
@@ -1039,7 +1042,8 @@ PHP_FUNCTION(implode)
 			RETURN_THROWS();
 		}
 
-		arg1_str = ZSTR_EMPTY_ALLOC();
+		/* Default glue should be considered like a literal */
+		arg1_str = ZSTR_EMPTY_LITERAL_ALLOC();
 		pieces = arg1_array;
 	} else {
 		if (arg1_str == NULL) {
@@ -5308,6 +5312,7 @@ PHP_FUNCTION(str_pad)
 {
 	/* Input arguments */
 	zend_string *input;				/* Input string */
+	zend_string *pad_string = NULL;
 	zend_long pad_length;			/* Length to pad to */
 
 	/* Helper variables */
@@ -5317,12 +5322,13 @@ PHP_FUNCTION(str_pad)
 	zend_long   pad_type_val = PHP_STR_PAD_RIGHT; /* The padding type value */
 	size_t	   i, left_pad=0, right_pad=0;
 	zend_string *result = NULL;	/* Resulting string */
+	bool literal = false;
 
 	ZEND_PARSE_PARAMETERS_START(2, 4)
 		Z_PARAM_STR(input)
 		Z_PARAM_LONG(pad_length)
 		Z_PARAM_OPTIONAL
-		Z_PARAM_STRING(pad_str, pad_str_len)
+		Z_PARAM_STR(pad_string)
 		Z_PARAM_LONG(pad_type_val)
 	ZEND_PARSE_PARAMETERS_END();
 
@@ -5330,6 +5336,15 @@ PHP_FUNCTION(str_pad)
 	   we simply copy the input and return. */
 	if (pad_length < 0  || (size_t)pad_length <= ZSTR_LEN(input)) {
 		RETURN_STR_COPY(input);
+	}
+
+	if (pad_string) {
+		pad_str_len = ZSTR_LEN(pad_string);
+		pad_str = ZSTR_VAL(pad_string);
+
+		literal = ZSTR_IS_LITERAL(pad_string) && ZSTR_IS_LITERAL(input);
+	} else {
+		literal = ZSTR_IS_LITERAL(input);
 	}
 
 	if (pad_str_len == 0) {
@@ -5377,6 +5392,10 @@ PHP_FUNCTION(str_pad)
 		ZSTR_VAL(result)[ZSTR_LEN(result)++] = pad_str[i % pad_str_len];
 
 	ZSTR_VAL(result)[ZSTR_LEN(result)] = '\0';
+
+	if (UNEXPECTED(literal)) {
+		ZSTR_SET_LITERAL_FAST(result);
+	}
 
 	RETURN_NEW_STR(result);
 }
