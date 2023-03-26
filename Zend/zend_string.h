@@ -104,7 +104,7 @@ END_EXTERN_C()
 
 #define ZSTR_IS_INTERNED(s)     (GC_FLAGS(s) & IS_STR_INTERNED)
 #define ZSTR_IS_VALID_UTF8(s)   (GC_FLAGS(s) & IS_STR_VALID_UTF8)
-#define ZSTR_IS_LITERAL(s)      (GC_TYPE_INFO(s) & IS_STR_LITERAL)
+#define ZSTR_IS_LITERAL(s)      (GC_FLAGS(s) & IS_STR_LITERAL)
 #define ZSTR_IS_LITERAL_CHAR(s) (ZSTR_IS_LITERAL(s) && (ZSTR_LEN(s) <= 1))
 
 /* These are properties, encoded as flags, that will hold on the resulting string

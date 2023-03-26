@@ -24,10 +24,10 @@
 #include <stdint.h>
 
 #define GC_TYPE_MASK				0x0000000f
-#define GC_FLAGS_MASK				0x000003f0
-#define GC_INFO_MASK				0xfffffc00
+#define GC_FLAGS_MASK				0x000007f0
+#define GC_INFO_MASK				0xfffff800
 #define GC_FLAGS_SHIFT				0
-#define GC_INFO_SHIFT				10
+#define GC_INFO_SHIFT				11
 
 /* zval_gc_flags(zval.value->gc.u.type_info) (common flags) */
 #define GC_NOT_COLLECTABLE			(1<<4)
