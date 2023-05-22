@@ -4051,6 +4051,14 @@ ZEND_VM_HOT_HANDLER(130, ZEND_DO_UCALL, ANY, ANY, SPEC(RETVAL,OBSERVER))
 	SAVE_OPLINE();
 	EX(call) = call->prev_execute_data;
 
+	if (UNEXPECTED((fbc->common.fn_flags & ZEND_ACC_DEPRECATED) != 0)) {
+		zend_deprecated_function(fbc);
+		if (UNEXPECTED(EG(exception) != NULL)) {
+			zend_rethrow_exception(execute_data);
+			HANDLE_EXCEPTION();
+		}
+	}
+
 	ret = NULL;
 	if (RETURN_VALUE_USED(opline)) {
 		ret = EX_VAR(opline->result.var);
@@ -4080,6 +4088,13 @@ ZEND_VM_HOT_HANDLER(131, ZEND_DO_FCALL_BY_NAME, ANY, ANY, SPEC(RETVAL,OBSERVER))
 		ret = NULL;
 		if (RETURN_VALUE_USED(opline)) {
 			ret = EX_VAR(opline->result.var);
+		}
+
+		if (UNEXPECTED((fbc->common.fn_flags & ZEND_ACC_DEPRECATED) != 0)) {
+			zend_deprecated_function(fbc);
+			if (UNEXPECTED(EG(exception) != NULL)) {
+				ZEND_VM_C_GOTO(out);
+			}
 		}
 
 		call->prev_execute_data = execute_data;
@@ -4156,6 +4171,7 @@ ZEND_VM_C_LABEL(fcall_by_name_end):
 		}
 	}
 
+ZEND_VM_C_LABEL(out):
 	if (UNEXPECTED(EG(exception) != NULL)) {
 		zend_rethrow_exception(execute_data);
 		HANDLE_EXCEPTION();
@@ -4178,6 +4194,13 @@ ZEND_VM_HOT_HANDLER(60, ZEND_DO_FCALL, ANY, ANY, SPEC(RETVAL,OBSERVER))
 		ret = NULL;
 		if (RETURN_VALUE_USED(opline)) {
 			ret = EX_VAR(opline->result.var);
+		}
+
+		if (UNEXPECTED((fbc->common.fn_flags & ZEND_ACC_DEPRECATED) != 0)) {
+			zend_deprecated_function(fbc);
+			if (UNEXPECTED(EG(exception) != NULL)) {
+				ZEND_VM_C_GOTO(out);
+			}
 		}
 
 		call->prev_execute_data = execute_data;
@@ -4261,8 +4284,12 @@ ZEND_VM_C_LABEL(fcall_end):
 		}
 	}
 
+ZEND_VM_C_LABEL(out):
 	if (UNEXPECTED(ZEND_CALL_INFO(call) & ZEND_CALL_RELEASE_THIS)) {
 		OBJ_RELEASE(Z_OBJ(call->This));
+	}
+	else if (UNEXPECTED(ZEND_CALL_INFO(call) & ZEND_CALL_CLOSURE)) {
+		OBJ_RELEASE(ZEND_CLOSURE_OBJECT(call->func));
 	}
 
 	zend_vm_stack_free_call_frame(call);
@@ -6011,7 +6038,7 @@ ZEND_VM_HANDLER(181, ZEND_FETCH_CLASS_CONSTANT, VAR|CONST|UNUSED|CLASS_FETCH, CO
 
 			bool is_constant_deprecated = ZEND_CLASS_CONST_FLAGS(c) & ZEND_ACC_DEPRECATED;
 			if (UNEXPECTED(is_constant_deprecated)) {
-				zend_error(E_DEPRECATED, "Constant %s::%s is deprecated", ZSTR_VAL(ce->name), ZSTR_VAL(constant_name));
+				zend_deprecated_class_constant(c, constant_name);
 
 				if (EG(exception)) {
 					ZVAL_UNDEF(EX_VAR(opline->result.var));

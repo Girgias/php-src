@@ -1461,6 +1461,14 @@ static ZEND_VM_HOT ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_DO_UCALL_SPEC_RETV
 	SAVE_OPLINE();
 	EX(call) = call->prev_execute_data;
 
+	if (UNEXPECTED((fbc->common.fn_flags & ZEND_ACC_DEPRECATED) != 0)) {
+		zend_deprecated_function(fbc);
+		if (UNEXPECTED(EG(exception) != NULL)) {
+			zend_rethrow_exception(execute_data);
+			HANDLE_EXCEPTION();
+		}
+	}
+
 	ret = NULL;
 	if (0) {
 		ret = EX_VAR(opline->result.var);
@@ -1485,6 +1493,14 @@ static ZEND_VM_HOT ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_DO_UCALL_SPEC_RETV
 	SAVE_OPLINE();
 	EX(call) = call->prev_execute_data;
 
+	if (UNEXPECTED((fbc->common.fn_flags & ZEND_ACC_DEPRECATED) != 0)) {
+		zend_deprecated_function(fbc);
+		if (UNEXPECTED(EG(exception) != NULL)) {
+			zend_rethrow_exception(execute_data);
+			HANDLE_EXCEPTION();
+		}
+	}
+
 	ret = NULL;
 	if (1) {
 		ret = EX_VAR(opline->result.var);
@@ -1508,6 +1524,14 @@ static ZEND_VM_COLD ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_DO_UCALL_SPEC_OBS
 
 	SAVE_OPLINE();
 	EX(call) = call->prev_execute_data;
+
+	if (UNEXPECTED((fbc->common.fn_flags & ZEND_ACC_DEPRECATED) != 0)) {
+		zend_deprecated_function(fbc);
+		if (UNEXPECTED(EG(exception) != NULL)) {
+			zend_rethrow_exception(execute_data);
+			HANDLE_EXCEPTION();
+		}
+	}
 
 	ret = NULL;
 	if (RETURN_VALUE_USED(opline)) {
@@ -1538,6 +1562,13 @@ static ZEND_VM_HOT ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_DO_FCALL_BY_NAME_S
 		ret = NULL;
 		if (0) {
 			ret = EX_VAR(opline->result.var);
+		}
+
+		if (UNEXPECTED((fbc->common.fn_flags & ZEND_ACC_DEPRECATED) != 0)) {
+			zend_deprecated_function(fbc);
+			if (UNEXPECTED(EG(exception) != NULL)) {
+				goto out;
+			}
 		}
 
 		call->prev_execute_data = execute_data;
@@ -1611,6 +1642,7 @@ fcall_by_name_end:
 		}
 	}
 
+out:
 	if (UNEXPECTED(EG(exception) != NULL)) {
 		zend_rethrow_exception(execute_data);
 		HANDLE_EXCEPTION();
@@ -1633,6 +1665,13 @@ static ZEND_VM_HOT ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_DO_FCALL_BY_NAME_S
 		ret = NULL;
 		if (1) {
 			ret = EX_VAR(opline->result.var);
+		}
+
+		if (UNEXPECTED((fbc->common.fn_flags & ZEND_ACC_DEPRECATED) != 0)) {
+			zend_deprecated_function(fbc);
+			if (UNEXPECTED(EG(exception) != NULL)) {
+				goto out;
+			}
 		}
 
 		call->prev_execute_data = execute_data;
@@ -1706,6 +1745,7 @@ fcall_by_name_end:
 		}
 	}
 
+out:
 	if (UNEXPECTED(EG(exception) != NULL)) {
 		zend_rethrow_exception(execute_data);
 		HANDLE_EXCEPTION();
@@ -1728,6 +1768,13 @@ static ZEND_VM_COLD ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_DO_FCALL_BY_NAME_
 		ret = NULL;
 		if (RETURN_VALUE_USED(opline)) {
 			ret = EX_VAR(opline->result.var);
+		}
+
+		if (UNEXPECTED((fbc->common.fn_flags & ZEND_ACC_DEPRECATED) != 0)) {
+			zend_deprecated_function(fbc);
+			if (UNEXPECTED(EG(exception) != NULL)) {
+				goto out;
+			}
 		}
 
 		call->prev_execute_data = execute_data;
@@ -1804,6 +1851,7 @@ fcall_by_name_end:
 		}
 	}
 
+out:
 	if (UNEXPECTED(EG(exception) != NULL)) {
 		zend_rethrow_exception(execute_data);
 		HANDLE_EXCEPTION();
@@ -1826,6 +1874,13 @@ static ZEND_VM_HOT ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_DO_FCALL_SPEC_RETV
 		ret = NULL;
 		if (0) {
 			ret = EX_VAR(opline->result.var);
+		}
+
+		if (UNEXPECTED((fbc->common.fn_flags & ZEND_ACC_DEPRECATED) != 0)) {
+			zend_deprecated_function(fbc);
+			if (UNEXPECTED(EG(exception) != NULL)) {
+				goto out;
+			}
 		}
 
 		call->prev_execute_data = execute_data;
@@ -1907,8 +1962,12 @@ fcall_end:
 		}
 	}
 
+out:
 	if (UNEXPECTED(ZEND_CALL_INFO(call) & ZEND_CALL_RELEASE_THIS)) {
 		OBJ_RELEASE(Z_OBJ(call->This));
+	}
+	else if (UNEXPECTED(ZEND_CALL_INFO(call) & ZEND_CALL_CLOSURE)) {
+		OBJ_RELEASE(ZEND_CLOSURE_OBJECT(call->func));
 	}
 
 	zend_vm_stack_free_call_frame(call);
@@ -1935,6 +1994,13 @@ static ZEND_VM_HOT ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_DO_FCALL_SPEC_RETV
 		ret = NULL;
 		if (1) {
 			ret = EX_VAR(opline->result.var);
+		}
+
+		if (UNEXPECTED((fbc->common.fn_flags & ZEND_ACC_DEPRECATED) != 0)) {
+			zend_deprecated_function(fbc);
+			if (UNEXPECTED(EG(exception) != NULL)) {
+				goto out;
+			}
 		}
 
 		call->prev_execute_data = execute_data;
@@ -2016,8 +2082,12 @@ fcall_end:
 		}
 	}
 
+out:
 	if (UNEXPECTED(ZEND_CALL_INFO(call) & ZEND_CALL_RELEASE_THIS)) {
 		OBJ_RELEASE(Z_OBJ(call->This));
+	}
+	else if (UNEXPECTED(ZEND_CALL_INFO(call) & ZEND_CALL_CLOSURE)) {
+		OBJ_RELEASE(ZEND_CLOSURE_OBJECT(call->func));
 	}
 
 	zend_vm_stack_free_call_frame(call);
@@ -2044,6 +2114,13 @@ static ZEND_VM_COLD ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_DO_FCALL_SPEC_OBS
 		ret = NULL;
 		if (RETURN_VALUE_USED(opline)) {
 			ret = EX_VAR(opline->result.var);
+		}
+
+		if (UNEXPECTED((fbc->common.fn_flags & ZEND_ACC_DEPRECATED) != 0)) {
+			zend_deprecated_function(fbc);
+			if (UNEXPECTED(EG(exception) != NULL)) {
+				goto out;
+			}
 		}
 
 		call->prev_execute_data = execute_data;
@@ -2127,8 +2204,12 @@ fcall_end:
 		}
 	}
 
+out:
 	if (UNEXPECTED(ZEND_CALL_INFO(call) & ZEND_CALL_RELEASE_THIS)) {
 		OBJ_RELEASE(Z_OBJ(call->This));
+	}
+	else if (UNEXPECTED(ZEND_CALL_INFO(call) & ZEND_CALL_CLOSURE)) {
+		OBJ_RELEASE(ZEND_CLOSURE_OBJECT(call->func));
 	}
 
 	zend_vm_stack_free_call_frame(call);
@@ -7394,7 +7475,7 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_FETCH_CLASS_CONSTANT_SPEC_CONS
 
 			bool is_constant_deprecated = ZEND_CLASS_CONST_FLAGS(c) & ZEND_ACC_DEPRECATED;
 			if (UNEXPECTED(is_constant_deprecated)) {
-				zend_error(E_DEPRECATED, "Constant %s::%s is deprecated", ZSTR_VAL(ce->name), ZSTR_VAL(constant_name));
+				zend_deprecated_class_constant(c, constant_name);
 
 				if (EG(exception)) {
 					ZVAL_UNDEF(EX_VAR(opline->result.var));
@@ -8559,7 +8640,7 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_FETCH_CLASS_CONSTANT_SPEC_CONS
 
 			bool is_constant_deprecated = ZEND_CLASS_CONST_FLAGS(c) & ZEND_ACC_DEPRECATED;
 			if (UNEXPECTED(is_constant_deprecated)) {
-				zend_error(E_DEPRECATED, "Constant %s::%s is deprecated", ZSTR_VAL(ce->name), ZSTR_VAL(constant_name));
+				zend_deprecated_class_constant(c, constant_name);
 
 				if (EG(exception)) {
 					ZVAL_UNDEF(EX_VAR(opline->result.var));
@@ -25275,7 +25356,7 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_FETCH_CLASS_CONSTANT_SPEC_VAR_
 
 			bool is_constant_deprecated = ZEND_CLASS_CONST_FLAGS(c) & ZEND_ACC_DEPRECATED;
 			if (UNEXPECTED(is_constant_deprecated)) {
-				zend_error(E_DEPRECATED, "Constant %s::%s is deprecated", ZSTR_VAL(ce->name), ZSTR_VAL(constant_name));
+				zend_deprecated_class_constant(c, constant_name);
 
 				if (EG(exception)) {
 					ZVAL_UNDEF(EX_VAR(opline->result.var));
@@ -25848,7 +25929,7 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_FETCH_CLASS_CONSTANT_SPEC_VAR_
 
 			bool is_constant_deprecated = ZEND_CLASS_CONST_FLAGS(c) & ZEND_ACC_DEPRECATED;
 			if (UNEXPECTED(is_constant_deprecated)) {
-				zend_error(E_DEPRECATED, "Constant %s::%s is deprecated", ZSTR_VAL(ce->name), ZSTR_VAL(constant_name));
+				zend_deprecated_class_constant(c, constant_name);
 
 				if (EG(exception)) {
 					ZVAL_UNDEF(EX_VAR(opline->result.var));
@@ -34443,7 +34524,7 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_FETCH_CLASS_CONSTANT_SPEC_UNUS
 
 			bool is_constant_deprecated = ZEND_CLASS_CONST_FLAGS(c) & ZEND_ACC_DEPRECATED;
 			if (UNEXPECTED(is_constant_deprecated)) {
-				zend_error(E_DEPRECATED, "Constant %s::%s is deprecated", ZSTR_VAL(ce->name), ZSTR_VAL(constant_name));
+				zend_deprecated_class_constant(c, constant_name);
 
 				if (EG(exception)) {
 					ZVAL_UNDEF(EX_VAR(opline->result.var));
@@ -34806,7 +34887,7 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_FETCH_CLASS_CONSTANT_SPEC_UNUS
 
 			bool is_constant_deprecated = ZEND_CLASS_CONST_FLAGS(c) & ZEND_ACC_DEPRECATED;
 			if (UNEXPECTED(is_constant_deprecated)) {
-				zend_error(E_DEPRECATED, "Constant %s::%s is deprecated", ZSTR_VAL(ce->name), ZSTR_VAL(constant_name));
+				zend_deprecated_class_constant(c, constant_name);
 
 				if (EG(exception)) {
 					ZVAL_UNDEF(EX_VAR(opline->result.var));

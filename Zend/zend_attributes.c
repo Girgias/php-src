@@ -30,6 +30,7 @@ ZEND_API zend_class_entry *zend_ce_allow_dynamic_properties;
 ZEND_API zend_class_entry *zend_ce_sensitive_parameter;
 ZEND_API zend_class_entry *zend_ce_sensitive_parameter_value;
 ZEND_API zend_class_entry *zend_ce_override;
+ZEND_API zend_class_entry *zend_ce_deprecated;
 
 static zend_object_handlers attributes_object_handlers_sensitive_parameter_value;
 
@@ -144,6 +145,42 @@ static HashTable *attributes_sensitive_parameter_value_get_properties_for(zend_o
 ZEND_METHOD(Override, __construct)
 {
 	ZEND_PARSE_PARAMETERS_NONE();
+}
+
+ZEND_METHOD(Deprecated, __construct)
+{
+	zend_string *message = NULL;
+	zend_string *since = NULL;
+	zend_string *property_name;
+	zval value;
+
+	ZEND_PARSE_PARAMETERS_START(0, 2)
+		Z_PARAM_OPTIONAL
+		Z_PARAM_STR_OR_NULL(message)
+		Z_PARAM_STR_OR_NULL(since)
+	ZEND_PARSE_PARAMETERS_END();
+
+	property_name = ZSTR_KNOWN(ZEND_STR_MESSAGE);
+	if (message) {
+		ZVAL_STR(&value, message);
+	} else {
+		ZVAL_NULL(&value);
+	}
+	zend_update_property_ex(zend_ce_deprecated, Z_OBJ_P(ZEND_THIS), property_name, &value);
+	zend_string_release(property_name);
+
+	if (EG(exception)) {
+		return;
+	}
+
+	property_name = ZSTR_INIT_LITERAL("since", 0);
+	if (since) {
+		ZVAL_STR(&value, since);
+	} else {
+		ZVAL_NULL(&value);
+	}
+	zend_update_property_ex(zend_ce_deprecated, Z_OBJ_P(ZEND_THIS), property_name, &value);
+	zend_string_release(property_name);
 }
 
 static zend_attribute *get_attribute(HashTable *attributes, zend_string *lcname, uint32_t offset)
@@ -281,6 +318,7 @@ static void attribute_ctor_cleanup(zval *obj, zval *args, uint32_t argc, HashTab
 {
 	if (obj) {
 		zval_ptr_dtor(obj);
+		ZVAL_UNDEF(obj);
 	}
 
 	if (args) {
@@ -514,6 +552,9 @@ void zend_register_attribute_ce(void)
 
 	zend_ce_override = register_class_Override();
 	zend_mark_internal_attribute(zend_ce_override);
+
+	zend_ce_deprecated = register_class_Deprecated();
+	attr = zend_mark_internal_attribute(zend_ce_deprecated);
 }
 
 void zend_attributes_shutdown(void)
