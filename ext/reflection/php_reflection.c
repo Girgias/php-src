@@ -102,9 +102,9 @@ PHPAPI zend_class_entry *reflection_fiber_ptr;
 #define _DO_THROW(msg) \
 	zend_throw_exception(reflection_exception_ptr, msg, 0);
 
-#define GET_REFLECTION_OBJECT() do { \
-	intern = Z_REFLECTION_P(ZEND_THIS); \
-	if (intern->ptr == NULL) { \
+#define GET_REFLECTION_OBJECT(reflection_object_var) do { \
+	(reflection_object_var) = Z_REFLECTION_P(ZEND_THIS); \
+	if ((reflection_object_var)->ptr == NULL) { \
 		if (EG(exception) && EG(exception)->ce == reflection_exception_ptr) { \
 			RETURN_THROWS(); \
 		} \
@@ -114,7 +114,7 @@ PHPAPI zend_class_entry *reflection_fiber_ptr;
 } while (0)
 
 #define GET_REFLECTION_OBJECT_PTR(target) do { \
-	GET_REFLECTION_OBJECT(); \
+	GET_REFLECTION_OBJECT(intern); \
 	target = intern->ptr; \
 } while (0)
 
@@ -1679,7 +1679,7 @@ ZEND_METHOD(ReflectionFunctionAbstract, getClosureThis)
 	if (zend_parse_parameters_none() == FAILURE) {
 		RETURN_THROWS();
 	}
-	GET_REFLECTION_OBJECT();
+	GET_REFLECTION_OBJECT(intern);
 	if (!Z_ISUNDEF(intern->obj)) {
 		closure_this = zend_get_closure_this_ptr(&intern->obj);
 		if (!Z_ISUNDEF_P(closure_this)) {
@@ -1698,7 +1698,7 @@ ZEND_METHOD(ReflectionFunctionAbstract, getClosureScopeClass)
 	if (zend_parse_parameters_none() == FAILURE) {
 		RETURN_THROWS();
 	}
-	GET_REFLECTION_OBJECT();
+	GET_REFLECTION_OBJECT(intern);
 	if (!Z_ISUNDEF(intern->obj)) {
 		closure_func = zend_get_closure_method_def(Z_OBJ(intern->obj));
 		if (closure_func && closure_func->common.scope) {
@@ -1716,7 +1716,7 @@ ZEND_METHOD(ReflectionFunctionAbstract, getClosureCalledClass)
 	if (zend_parse_parameters_none() == FAILURE) {
 		RETURN_THROWS();
 	}
-	GET_REFLECTION_OBJECT();
+	GET_REFLECTION_OBJECT(intern);
 	if (!Z_ISUNDEF(intern->obj)) {
 		zend_class_entry *called_scope;
 		zend_function *closure_func;
@@ -1739,7 +1739,7 @@ ZEND_METHOD(ReflectionFunctionAbstract, getClosureUsedVariables)
 	if (zend_parse_parameters_none() == FAILURE) {
 		RETURN_THROWS();
 	}
-	GET_REFLECTION_OBJECT();
+	GET_REFLECTION_OBJECT(intern);
 
 	array_init(return_value);
 	if (!Z_ISUNDEF(intern->obj)) {
