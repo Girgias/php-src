@@ -2778,6 +2778,65 @@ static zend_always_inline void zend_normalize_internal_type(zend_type *type) {
 	} ZEND_TYPE_FOREACH_END();
 }
 
+static void zend_parse_c_string_type_list_to_zend_type(
+	zend_type *const type_address,
+	const char *str_type,
+	int separator
+) {
+	size_t num_types = 1;
+	const char *p = str_type;
+
+	while ((p = strchr(p, separator))) {
+		num_types++;
+		p++;
+	}
+	ZEND_ASSERT(num_types > 1 && "C string type marked as union when only one type exists");
+
+	zend_type_list *list = malloc(ZEND_TYPE_LIST_SIZE(num_types));
+	list->num_types = num_types;
+	ZEND_TYPE_SET_LIST(*type_address, list);
+
+	const char *start_type_str = str_type;
+	unsigned int type_index = 0;
+	while (true) {
+		const char *end_type_str = strchr(start_type_str, separator);
+		zend_string *type_str = zend_string_init_interned(
+			start_type_str,
+			end_type_str ? end_type_str - start_type_str : strlen(start_type_str),
+			/* persistent */ true
+		);
+		zend_alloc_ce_cache(type_str);
+		list->types[type_index] = (zend_type) ZEND_TYPE_INIT_CLASS(type_str, 0, 0);
+		if (!end_type_str) {
+			break;
+		}
+		start_type_str = end_type_str + 1;
+		++type_index;
+	}
+}
+
+static void zend_parse_c_string_to_zend_type(zend_type *const type_address)
+{
+	const char *str_type = ZEND_TYPE_LITERAL_NAME(*type_address);
+	type_address->type_mask &= ~_ZEND_TYPE_LITERAL_NAME_BIT;
+
+	if (ZEND_TYPE_IS_UNION(*type_address)) {
+		ZEND_ASSERT(strchr(str_type, '(') == NULL);
+		zend_parse_c_string_type_list_to_zend_type(type_address, str_type, '|');
+	} else if (ZEND_TYPE_IS_INTERSECTION(*type_address)) {
+		ZEND_ASSERT(strchr(str_type, '|') == NULL);
+		zend_parse_c_string_type_list_to_zend_type(type_address, str_type, '&');
+	} else {
+		ZEND_ASSERT(strchr(str_type, '|') == NULL);
+		ZEND_ASSERT(strchr(str_type, '&') == NULL);
+		/* Must be a single class */
+		zend_string *class_name = zend_string_init_interned(str_type, strlen(str_type), /* persistent */ true);
+		zend_alloc_ce_cache(class_name);
+		ZEND_TYPE_SET_PTR(*type_address, class_name);
+		type_address->type_mask |= _ZEND_TYPE_NAME_BIT;
+	}
+}
+
 /* registers all functions in *library_functions in the function hash */
 ZEND_API zend_result zend_register_functions(zend_class_entry *scope, const zend_function_entry *functions, HashTable *function_table, int type) /* {{{ */
 {
@@ -2958,45 +3017,7 @@ ZEND_API zend_result zend_register_functions(zend_class_entry *scope, const zend
 			for (i = 0; i < num_args; i++) {
 				if (ZEND_TYPE_HAS_LITERAL_NAME(new_arg_info[i].type)) {
 					// gen_stubs.php does not support codegen for DNF types in arg infos.
-					// As a temporary workaround, we split the type name on `|` characters,
-					// converting it to an union type if necessary.
-					const char *class_name = ZEND_TYPE_LITERAL_NAME(new_arg_info[i].type);
-					new_arg_info[i].type.type_mask &= ~_ZEND_TYPE_LITERAL_NAME_BIT;
-
-					size_t num_types = 1;
-					const char *p = class_name;
-					while ((p = strchr(p, '|'))) {
-						num_types++;
-						p++;
-					}
-
-					if (num_types == 1) {
-						/* Simple class type */
-						zend_string *str = zend_string_init_interned(class_name, strlen(class_name), 1);
-						zend_alloc_ce_cache(str);
-						ZEND_TYPE_SET_PTR(new_arg_info[i].type, str);
-						new_arg_info[i].type.type_mask |= _ZEND_TYPE_NAME_BIT;
-					} else {
-						/* Union type */
-						zend_type_list *list = malloc(ZEND_TYPE_LIST_SIZE(num_types));
-						list->num_types = num_types;
-						ZEND_TYPE_SET_LIST(new_arg_info[i].type, list);
-						ZEND_TYPE_FULL_MASK(new_arg_info[i].type) |= _ZEND_TYPE_UNION_BIT;
-
-						const char *start = class_name;
-						uint32_t j = 0;
-						while (true) {
-							const char *end = strchr(start, '|');
-							zend_string *str = zend_string_init_interned(start, end ? end - start : strlen(start), 1);
-							zend_alloc_ce_cache(str);
-							list->types[j] = (zend_type) ZEND_TYPE_INIT_CLASS(str, 0, 0);
-							if (!end) {
-								break;
-							}
-							start = end + 1;
-							j++;
-						}
-					}
+					zend_parse_c_string_to_zend_type(&new_arg_info[i].type);
 				}
 				if (ZEND_TYPE_IS_ITERABLE_FALLBACK(new_arg_info[i].type)) {
 					/* Warning generated an extension load warning which is emitted for every test
