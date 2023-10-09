@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 487cee0751d47b18bf0a8fbdb050313783f1b369 */
+ * Stub hash: b2f5273909afe0235d18a79e2550ecf7f7a232ab */
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_set_time_limit, 0, 1, _IS_BOOL, 0)
 	ZEND_ARG_TYPE_INFO(0, seconds, IS_LONG, 0)
@@ -156,6 +156,12 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_array_search, 0, 2, MAY_BE_LONG|
 	ZEND_ARG_TYPE_INFO(0, needle, IS_MIXED, 0)
 	ZEND_ARG_TYPE_INFO(0, haystack, IS_ARRAY, 0)
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, strict, _IS_BOOL, 0, "false")
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_array_user_search, 0, 3, MAY_BE_LONG|MAY_BE_STRING|MAY_BE_NULL)
+	ZEND_ARG_TYPE_INFO(0, needle, IS_MIXED, 0)
+	ZEND_ARG_TYPE_INFO(0, haystack, IS_ARRAY, 0)
+	ZEND_ARG_TYPE_INFO(0, callback, IS_CALLABLE, 0)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_extract, 0, 1, IS_LONG, 0)
@@ -2249,6 +2255,7 @@ ZEND_FUNCTION(array_walk);
 ZEND_FUNCTION(array_walk_recursive);
 ZEND_FUNCTION(in_array);
 ZEND_FUNCTION(array_search);
+ZEND_FUNCTION(array_user_search);
 ZEND_FUNCTION(extract);
 ZEND_FUNCTION(compact);
 ZEND_FUNCTION(array_fill);
@@ -2875,6 +2882,7 @@ static const zend_function_entry ext_functions[] = {
 	ZEND_FE(array_walk_recursive, arginfo_array_walk_recursive)
 	ZEND_SUPPORTS_COMPILE_TIME_EVAL_FE(in_array, arginfo_in_array)
 	ZEND_SUPPORTS_COMPILE_TIME_EVAL_FE(array_search, arginfo_array_search)
+	ZEND_FE(array_user_search, arginfo_array_user_search)
 	ZEND_FE(extract, arginfo_extract)
 	ZEND_FE(compact, arginfo_compact)
 	ZEND_FE(array_fill, arginfo_array_fill)

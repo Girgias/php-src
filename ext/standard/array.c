@@ -1678,6 +1678,51 @@ PHP_FUNCTION(array_search)
 }
 /* }}} */
 
+PHP_FUNCTION(array_user_search)
+{
+	zval *value; /* value to check for */
+	HashTable *array; /* array to check in */
+	zval *entry; /* pointer to array entry */
+	zend_ulong num_idx;
+	zend_string *str_idx;
+	zend_fcall_info fci = {0};
+	zend_fcall_info_cache fcc = {0};
+
+	ZEND_PARSE_PARAMETERS_START(3, 3)
+		Z_PARAM_ZVAL(value)
+		Z_PARAM_ARRAY_HT(array)
+		Z_PARAM_FUNC(fci, fcc)
+	ZEND_PARSE_PARAMETERS_END();
+
+	ZEND_HASH_FOREACH_KEY_VAL(array, num_idx, str_idx, entry) {
+		ZVAL_DEREF(entry);
+
+		zval params[2] = {*value, *entry};
+		zval retval;
+		//params[0] = *value;
+		//params[1] = *entry;
+
+		fci.param_count = 2;
+		fci.params = params;
+		fci.retval = &retval;
+
+		zend_call_function(&fci, &fcc);
+		if (Z_TYPE(retval) == IS_UNDEF) {
+			RETURN_THROWS();
+		}
+
+		if (Z_TYPE(retval) == IS_TRUE) {
+			if (str_idx) {
+				RETURN_STR_COPY(str_idx);
+			} else {
+				RETURN_LONG(num_idx);
+			}
+		}
+	} ZEND_HASH_FOREACH_END();
+
+	// Implicit RETURN_NULL();
+}
+
 static zend_always_inline int php_valid_var_name(const char *var_name, size_t var_name_len) /* {{{ */
 {
 #if 1

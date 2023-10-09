@@ -1632,6 +1632,8 @@ function in_array(mixed $needle, array $haystack, bool $strict = false): bool {}
  */
 function array_search(mixed $needle, array $haystack, bool $strict = false): int|string|false {}
 
+function array_user_search(mixed $needle, array $haystack, callable $callback): int|string|null {}
+
 /** @prefer-ref $array */
 function extract(array &$array, int $flags = EXTR_OVERWRITE, string $prefix = ""): int {}
 
