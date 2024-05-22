@@ -65,7 +65,6 @@ const FILEINFO_EXTENSION = UNKNOWN;
 /** @not-serializable */
 class finfo
 {
-    /** @alias finfo_open */
     public function __construct(int $flags = FILEINFO_NONE, ?string $magic_database = null) {}
 
     /**

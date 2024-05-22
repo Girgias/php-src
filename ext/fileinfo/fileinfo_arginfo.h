@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 96d78126bc5af37c5d94fa160e509623e947de48 */
+ * Stub hash: ff8ada16f9c6efbf1b55c6b33442b5704c14aab3 */
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_TYPE_MASK_EX(arginfo_finfo_open, 0, 0, finfo, MAY_BE_FALSE)
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, flags, IS_LONG, 0, "FILEINFO_NONE")
@@ -60,6 +60,7 @@ ZEND_FUNCTION(finfo_set_flags);
 ZEND_FUNCTION(finfo_file);
 ZEND_FUNCTION(finfo_buffer);
 ZEND_FUNCTION(mime_content_type);
+ZEND_METHOD(finfo, __construct);
 
 static const zend_function_entry ext_functions[] = {
 	ZEND_FE(finfo_open, arginfo_finfo_open)
@@ -72,7 +73,7 @@ static const zend_function_entry ext_functions[] = {
 };
 
 static const zend_function_entry class_finfo_methods[] = {
-	ZEND_RAW_FENTRY("__construct", zif_finfo_open, arginfo_class_finfo___construct, ZEND_ACC_PUBLIC, NULL, NULL)
+	ZEND_ME(finfo, __construct, arginfo_class_finfo___construct, ZEND_ACC_PUBLIC)
 	ZEND_RAW_FENTRY("file", zif_finfo_file, arginfo_class_finfo_file, ZEND_ACC_PUBLIC, NULL, NULL)
 	ZEND_RAW_FENTRY("buffer", zif_finfo_buffer, arginfo_class_finfo_buffer, ZEND_ACC_PUBLIC, NULL, NULL)
 	ZEND_RAW_FENTRY("set_flags", zif_finfo_set_flags, arginfo_class_finfo_set_flags, ZEND_ACC_PUBLIC, NULL, NULL)

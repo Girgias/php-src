@@ -155,72 +155,99 @@ PHP_MINFO_FUNCTION(fileinfo)
 }
 /* }}} */
 
-/* {{{ Construct a new fileinfo object. */
-PHP_FUNCTION(finfo_open)
+PHP_METHOD(finfo, __construct)
 {
 	zend_long options = MAGIC_NONE;
 	char *file = NULL;
 	size_t file_len = 0;
-	php_fileinfo *finfo;
-	zval *object = getThis();
 	char resolved_path[MAXPATHLEN];
-	zend_error_handling zeh;
+	zval *object = ZEND_THIS;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|lp!", &options, &file, &file_len) == FAILURE) {
 		RETURN_THROWS();
 	}
 
-	if (object) {
-		finfo_object *finfo_obj = Z_FINFO_P(object);
-
-		zend_replace_error_handling(EH_THROW, NULL, &zeh);
-
-		if (finfo_obj->ptr) {
-			magic_close(finfo_obj->ptr->magic);
-			efree(finfo_obj->ptr);
-			finfo_obj->ptr = NULL;
-		}
+	finfo_object *finfo_obj = Z_FINFO_P(object);
+	/* Free previous magic database */
+	if (finfo_obj->ptr) {
+		magic_close(finfo_obj->ptr->magic);
+		efree(finfo_obj->ptr);
+		finfo_obj->ptr = NULL;
 	}
 
 	if (file_len == 0) {
 		file = NULL;
 	} else if (file && *file) { /* user specified file, perform open_basedir checks */
-
-		if (php_check_open_basedir(file)) {
-			if (object) {
-				zend_restore_error_handling(&zeh);
-				if (!EG(exception)) {
-					zend_throw_exception(NULL, "Constructor failed", 0);
-				}
-			}
-			RETURN_FALSE;
+		zend_error_handling zeh;
+		zend_replace_error_handling(EH_THROW, NULL, &zeh);
+		/* php_check_open_basedir() emits a warning on error */
+		if (php_check_open_basedir(file) != 0) {
+			zend_restore_error_handling(&zeh);
+			RETURN_THROWS();
 		}
+
 		if (!expand_filepath_with_mode(file, resolved_path, NULL, 0, CWD_EXPAND)) {
-			if (object) {
-				zend_restore_error_handling(&zeh);
-				if (!EG(exception)) {
-					zend_throw_exception(NULL, "Constructor failed", 0);
-				}
-			}
-			RETURN_FALSE;
+			/* TODO More descriptive failure? */
+			zend_throw_exception(NULL, "Constructor failed", 0);
+			RETURN_THROWS();
 		}
 		file = resolved_path;
 	}
 
-	finfo = emalloc(sizeof(php_fileinfo));
+	php_fileinfo *finfo = emalloc(sizeof(php_fileinfo));
 
 	finfo->options = options;
 	finfo->magic = magic_open(options);
 
 	if (finfo->magic == NULL) {
 		efree(finfo);
-		php_error_docref(NULL, E_WARNING, "Invalid mode '" ZEND_LONG_FMT "'.", options);
-		if (object) {
-			zend_restore_error_handling(&zeh);
-			if (!EG(exception)) {
-				zend_throw_exception(NULL, "Constructor failed", 0);
-			}
+		zend_argument_value_error(1, "Invalid mode \"" ZEND_LONG_FMT "\"", options);
+		RETURN_THROWS();
+	}
+
+	if (magic_load(finfo->magic, file) == -1) {
+		magic_close(finfo->magic);
+		efree(finfo);
+		zend_throw_exception_ex(NULL, 0, "Failed to load magic database at \"%s\"", file);
+		RETURN_THROWS();
+	}
+
+	finfo_object *obj = Z_FINFO_P(object);
+	obj->ptr = finfo;
+}
+
+/* {{{ Construct a new fileinfo object. */
+PHP_FUNCTION(finfo_open)
+{
+	zend_long options = MAGIC_NONE;
+	char *file = NULL;
+	size_t file_len = 0;
+	char resolved_path[MAXPATHLEN];
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|lp!", &options, &file, &file_len) == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	if (file_len == 0) {
+		file = NULL;
+	} else if (file && *file) { /* user specified file, perform open_basedir checks */
+		if (php_check_open_basedir(file)) {
+			RETURN_FALSE;
 		}
+		if (!expand_filepath_with_mode(file, resolved_path, NULL, 0, CWD_EXPAND)) {
+			RETURN_FALSE;
+		}
+		file = resolved_path;
+	}
+
+	php_fileinfo *finfo = emalloc(sizeof(php_fileinfo));
+
+	finfo->options = options;
+	finfo->magic = magic_open(options);
+
+	if (finfo->magic == NULL) {
+		efree(finfo);
+		php_error_docref(NULL, E_WARNING, "Invalid mode \"" ZEND_LONG_FMT "\"", options);
 		RETURN_FALSE;
 	}
 
@@ -228,26 +255,13 @@ PHP_FUNCTION(finfo_open)
 		php_error_docref(NULL, E_WARNING, "Failed to load magic database at \"%s\"", file);
 		magic_close(finfo->magic);
 		efree(finfo);
-		if (object) {
-			zend_restore_error_handling(&zeh);
-			if (!EG(exception)) {
-				zend_throw_exception(NULL, "Constructor failed", 0);
-			}
-		}
 		RETURN_FALSE;
 	}
 
-	if (object) {
-		finfo_object *obj;
-		zend_restore_error_handling(&zeh);
-		obj = Z_FINFO_P(object);
-		obj->ptr = finfo;
-	} else {
-		zend_object *zobj = finfo_objects_new(finfo_class_entry);
-		finfo_object *obj = php_finfo_fetch_object(zobj);
-		obj->ptr = finfo;
-		RETURN_OBJ(zobj);
-	}
+	zend_object *zobj = finfo_objects_new(finfo_class_entry);
+	finfo_object *obj = php_finfo_fetch_object(zobj);
+	obj->ptr = finfo;
+	RETURN_OBJ(zobj);
 }
 /* }}} */
 

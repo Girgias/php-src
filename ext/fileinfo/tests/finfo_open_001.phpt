@@ -68,6 +68,6 @@ object(finfo)#%d (%d) {
 }
 object(finfo)#%d (%d) {
 }
-finfo::__construct(%s123): Failed to open stream: No such file or directory
-finfo::__construct(%s1): Failed to open stream: No such file or directory
-finfo::__construct(%sinexistent): Failed to open stream: No such file or directory
+Failed to load magic database at "%s123"
+Failed to load magic database at "%s1"
+Failed to load magic database at "%sinexistent"
