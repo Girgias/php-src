@@ -1597,6 +1597,7 @@ static zend_never_inline void zend_unset_object_dim(zend_object *obj, zval *offs
 	ZEND_ASSERT(offset && "Offset cannot be NULL for unset");
 	if (EXPECTED(obj->ce->dimension_handlers)) {
 		if (EXPECTED(obj->ce->dimension_handlers->unset_dimension)) {
+			ZVAL_DEREF(offset);
 			obj->ce->dimension_handlers->unset_dimension(obj, offset);
 		} else {
 			zend_invalid_use_of_object_as_array(obj, /* has_offset */ true, BP_VAR_UNSET);
@@ -1613,6 +1614,7 @@ static zend_never_inline void zend_assign_to_object_dim(zend_object *obj, zval *
 			offset
 			&& obj->ce->dimension_handlers->write_dimension
 		) {
+			ZVAL_DEREF(offset);
 			obj->ce->dimension_handlers->write_dimension(obj, offset, value);
 		} else if (
 			!offset
@@ -1718,6 +1720,8 @@ static zend_never_inline void zend_binary_assign_op_obj_dim(zend_object *obj, zv
 			&& obj->ce->dimension_handlers->write_dimension
 		) {
 			ZEND_ASSERT(zend_check_dimension_interfaces_implemented(obj, /* has_offset */ true, BP_VAR_RW));
+
+			ZVAL_DEREF(dim);
 			z = obj->ce->dimension_handlers->read_dimension(obj, dim, &rv);
 			if (UNEXPECTED(z == NULL)) {
 				ZEND_ASSERT(EG(exception) && "returned NULL without exception");
@@ -2884,6 +2888,8 @@ static zend_never_inline void zend_fetch_object_dimension_address(zval *result, 
 	if (EXPECTED(obj->ce->dimension_handlers)) {
 		if (EXPECTED(offset && obj->ce->dimension_handlers->fetch_dimension)) {
 			ZEND_ASSERT(zend_check_dimension_interfaces_implemented(obj, /* has_offset */ true, BP_VAR_FETCH));
+
+			ZVAL_DEREF(offset);
 			/* For null coalesce we first check if the offset exist,
 			 * if it does we call the fetch_dimension() handler,
 			 * otherwise just return an undef result */
@@ -3063,6 +3069,8 @@ static zend_never_inline void zend_fetch_object_dimension_address_read(zval *res
 	if (EXPECTED(obj->ce->dimension_handlers)) {
 		if (EXPECTED(obj->ce->dimension_handlers->read_dimension)) {
 			ZEND_ASSERT(zend_check_dimension_interfaces_implemented(obj, /* has_offset */ true, BP_VAR_R));
+
+			ZVAL_DEREF(offset);
 			if (UNEXPECTED(
 				is_bp_var_is
 				&& !obj->ce->dimension_handlers->has_dimension(obj, offset)
@@ -3248,6 +3256,8 @@ static zend_never_inline bool ZEND_FASTCALL zend_isset_dim_slow(zval *container,
 		if (EXPECTED(obj->ce->dimension_handlers)) {
 			if (EXPECTED(obj->ce->dimension_handlers->has_dimension)) {
 				ZEND_ASSERT(zend_check_dimension_interfaces_implemented(obj, /* has_offset */ true, BP_VAR_IS));
+
+				ZVAL_DEREF(offset);
 				return obj->ce->dimension_handlers->has_dimension(obj, offset);
 			} else {
 				zend_invalid_use_of_object_as_array(obj, /* has_offset */ true, BP_VAR_IS);
@@ -3296,6 +3306,8 @@ static zend_never_inline bool ZEND_FASTCALL zend_isempty_dim_slow(zval *containe
 		if (EXPECTED(obj->ce->dimension_handlers)) {
 			if (EXPECTED(obj->ce->dimension_handlers->has_dimension)) {
 				ZEND_ASSERT(zend_check_dimension_interfaces_implemented(obj, /* has_offset */ true, BP_VAR_IS));
+
+				ZVAL_DEREF(offset);
 				bool exists = obj->ce->dimension_handlers->has_dimension(obj, offset);
 				if (!exists) {
 					return true;
