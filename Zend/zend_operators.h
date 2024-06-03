@@ -169,7 +169,7 @@ zend_memnstr(const char *haystack, const char *needle, size_t needle_len, const 
 	ZEND_ASSERT(end >= p);
 
 	if (needle_len == 1) {
-		return (const char *)memchr(p, *needle, (end-p));
+		return (const char *)memchr(p, *needle, (size_t)(end-p));
 	} else if (UNEXPECTED(needle_len == 0)) {
 		return p;
 	}
@@ -185,7 +185,7 @@ zend_memnstr(const char *haystack, const char *needle, size_t needle_len, const 
 		end -= needle_len;
 
 		while (p <= end) {
-			if ((p = (const char *)memchr(p, *needle, (end-p+1)))) {
+			if ((p = (const char *)memchr(p, *needle, (size_t)(end-p+1)))) {
 				if (ne == p[needle_len-1] && !memcmp(needle+1, p+1, needle_len-2)) {
 					return p;
 				}
@@ -234,7 +234,7 @@ zend_memnrstr(const char *haystack, const char *needle, size_t needle_len, const
 	}
 
     if (needle_len == 1) {
-        return (const char *)zend_memrchr(haystack, *needle, (p - haystack));
+        return (const char *)zend_memrchr(haystack, *needle, (size_t)(p - haystack));
     }
 
     off_p = end - haystack;
@@ -249,7 +249,7 @@ zend_memnrstr(const char *haystack, const char *needle, size_t needle_len, const
 		p -= needle_len;
 
 		do {
-			p = (const char *)zend_memrchr(haystack, *needle, (p - haystack) + 1);
+			p = (const char *)zend_memrchr(haystack, *needle, (size_t)(p - haystack) + 1);
 			if (!p) {
 				return NULL;
 			}
@@ -895,7 +895,7 @@ static zend_always_inline char *zend_print_long_to_buf(char *buf, zend_long num)
 	    *--result = '-';
 		return result;
 	} else {
-	    return zend_print_ulong_to_buf(buf, num);
+	    return zend_print_ulong_to_buf(buf, (zend_ulong)num);
 	}
 }
 
