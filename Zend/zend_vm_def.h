@@ -6110,7 +6110,7 @@ ZEND_VM_C_LABEL(add_again):
 ZEND_VM_C_LABEL(str_index):
 			zend_hash_update(Z_ARRVAL_P(EX_VAR(opline->result.var)), str, expr_ptr);
 		} else if (EXPECTED(Z_TYPE_P(offset) == IS_LONG)) {
-			hval = Z_LVAL_P(offset);
+			hval = (zend_ulong) Z_LVAL_P(offset);
 ZEND_VM_C_LABEL(num_index):
 			zend_hash_index_update(Z_ARRVAL_P(EX_VAR(opline->result.var)), hval, expr_ptr);
 		} else if ((OP2_TYPE & (IS_VAR|IS_CV)) && EXPECTED(Z_TYPE_P(offset) == IS_REFERENCE)) {
@@ -6120,7 +6120,7 @@ ZEND_VM_C_LABEL(num_index):
 			str = ZSTR_EMPTY_ALLOC();
 			ZEND_VM_C_GOTO(str_index);
 		} else if (Z_TYPE_P(offset) == IS_DOUBLE) {
-			hval = zend_dval_to_lval_safe(Z_DVAL_P(offset));
+			hval = (zend_ulong) zend_dval_to_lval_safe(Z_DVAL_P(offset));
 			ZEND_VM_C_GOTO(num_index);
 		} else if (Z_TYPE_P(offset) == IS_FALSE) {
 			hval = 0;
@@ -6130,7 +6130,7 @@ ZEND_VM_C_LABEL(num_index):
 			ZEND_VM_C_GOTO(num_index);
 		} else if (Z_TYPE_P(offset) == IS_RESOURCE) {
 			zend_use_resource_as_offset(offset);
-			hval = Z_RES_HANDLE_P(offset);
+			hval = (zend_ulong) Z_RES_HANDLE_P(offset);
 			ZEND_VM_C_GOTO(num_index);
 		} else if (OP2_TYPE == IS_CV && Z_TYPE_P(offset) == IS_UNDEF) {
 			ZVAL_UNDEFINED_OP2();
@@ -6622,14 +6622,14 @@ ZEND_VM_C_LABEL(str_index_dim):
 				ZEND_ASSERT(ht != &EG(symbol_table));
 				zend_hash_del(ht, key);
 			} else if (EXPECTED(Z_TYPE_P(offset) == IS_LONG)) {
-				hval = Z_LVAL_P(offset);
+				hval = (zend_ulong) Z_LVAL_P(offset);
 ZEND_VM_C_LABEL(num_index_dim):
 				zend_hash_index_del(ht, hval);
 			} else if ((OP2_TYPE & (IS_VAR|IS_CV)) && EXPECTED(Z_TYPE_P(offset) == IS_REFERENCE)) {
 				offset = Z_REFVAL_P(offset);
 				ZEND_VM_C_GOTO(offset_again);
 			} else if (Z_TYPE_P(offset) == IS_DOUBLE) {
-				hval = zend_dval_to_lval_safe(Z_DVAL_P(offset));
+				hval = (zend_ulong) zend_dval_to_lval_safe(Z_DVAL_P(offset));
 				ZEND_VM_C_GOTO(num_index_dim);
 			} else if (Z_TYPE_P(offset) == IS_NULL) {
 				key = ZSTR_EMPTY_ALLOC();
@@ -6642,7 +6642,7 @@ ZEND_VM_C_LABEL(num_index_dim):
 				ZEND_VM_C_GOTO(num_index_dim);
 			} else if (Z_TYPE_P(offset) == IS_RESOURCE) {
 				zend_use_resource_as_offset(offset);
-				hval = Z_RES_HANDLE_P(offset);
+				hval = (zend_ulong) Z_RES_HANDLE_P(offset);
 				ZEND_VM_C_GOTO(num_index_dim);
 			} else if (OP2_TYPE == IS_CV && Z_TYPE_P(offset) == IS_UNDEF) {
 				ZVAL_UNDEFINED_OP2();
@@ -7404,7 +7404,7 @@ ZEND_VM_C_LABEL(isset_again):
 			}
 			value = zend_hash_find_ex(ht, str, OP2_TYPE == IS_CONST);
 		} else if (EXPECTED(Z_TYPE_P(offset) == IS_LONG)) {
-			hval = Z_LVAL_P(offset);
+			hval = (zend_ulong) Z_LVAL_P(offset);
 ZEND_VM_C_LABEL(num_index_prop):
 			value = zend_hash_index_find(ht, hval);
 		} else if ((OP2_TYPE & (IS_VAR|IS_CV)) && EXPECTED(Z_ISREF_P(offset))) {

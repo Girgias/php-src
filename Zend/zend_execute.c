@@ -2482,7 +2482,7 @@ static zend_always_inline zval *zend_fetch_dimension_address_inner(HashTable *ht
 
 try_again:
 	if (EXPECTED(Z_TYPE_P(dim) == IS_LONG)) {
-		hval = Z_LVAL_P(dim);
+		hval = (zend_ulong) Z_LVAL_P(dim);
 num_index:
 		if (type != BP_VAR_W) {
 			ZEND_HASH_INDEX_FIND(ht, hval, retval, num_undef);
@@ -2546,7 +2546,7 @@ str_index:
 			offset_key = val.str;
 			goto str_index;
 		} else if (t == IS_LONG) {
-			hval = val.lval;
+			hval = (zend_ulong) val.lval;
 			goto num_index;
 		} else {
 			retval = (type == BP_VAR_W || type == BP_VAR_RW) ?
@@ -2908,7 +2908,7 @@ static zend_never_inline zval* ZEND_FASTCALL zend_find_array_dim_slow(HashTable 
 	zend_ulong hval;
 
 	if (Z_TYPE_P(offset) == IS_DOUBLE) {
-		hval = zend_dval_to_lval_safe(Z_DVAL_P(offset));
+		hval = (zend_ulong) zend_dval_to_lval_safe(Z_DVAL_P(offset));
 num_idx:
 		return zend_hash_index_find(ht, hval);
 	} else if (Z_TYPE_P(offset) == IS_NULL) {
@@ -2922,7 +2922,7 @@ str_idx:
 		goto num_idx;
 	} else if (Z_TYPE_P(offset) == IS_RESOURCE) {
 		zend_use_resource_as_offset(offset);
-		hval = Z_RES_HANDLE_P(offset);
+		hval = (zend_ulong) Z_RES_HANDLE_P(offset);
 		goto num_idx;
 	} else if (/*OP2_TYPE == IS_CV &&*/ Z_TYPE_P(offset) == IS_UNDEF) {
 		ZVAL_UNDEFINED_OP2();
@@ -3025,14 +3025,14 @@ try_again:
 str_key:
 		return zend_hash_exists(ht, str);
 	} else if (EXPECTED(Z_TYPE_P(key) == IS_LONG)) {
-		hval = Z_LVAL_P(key);
+		hval = (zend_ulong) Z_LVAL_P(key);
 num_key:
 		return zend_hash_index_exists(ht, hval);
 	} else if (EXPECTED(Z_ISREF_P(key))) {
 		key = Z_REFVAL_P(key);
 		goto try_again;
 	} else if (Z_TYPE_P(key) == IS_DOUBLE) {
-		hval = zend_dval_to_lval_safe(Z_DVAL_P(key));
+		hval = (zend_ulong) zend_dval_to_lval_safe(Z_DVAL_P(key));
 		goto num_key;
 	} else if (Z_TYPE_P(key) == IS_FALSE) {
 		hval = 0;
@@ -3042,7 +3042,7 @@ num_key:
 		goto num_key;
 	} else if (Z_TYPE_P(key) == IS_RESOURCE) {
 		zend_use_resource_as_offset(key);
-		hval = Z_RES_HANDLE_P(key);
+		hval = (zend_ulong) Z_RES_HANDLE_P(key);
 		goto num_key;
 	} else if (Z_TYPE_P(key) <= IS_NULL) {
 		if (UNEXPECTED(Z_TYPE_P(key) == IS_UNDEF)) {
