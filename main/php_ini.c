@@ -432,7 +432,7 @@ int php_init_config(void)
 		php_ini_search_path = sapi_module.php_ini_path_override;
 		free_ini_search_path = 0;
 	} else if (!sapi_module.php_ini_ignore) {
-		int search_path_size;
+		size_t search_path_size;
 		char *default_location;
 		char *env_location;
 #ifdef PHP_WIN32
@@ -478,7 +478,7 @@ int php_init_config(void)
 		 * Prepare search path
 		 */
 
-		search_path_size = MAXPATHLEN * 4 + (int)strlen(env_location) + 3 + 1;
+		search_path_size = MAXPATHLEN * 4 + strlen(env_location) + 3 + 1;
 		php_ini_search_path = (char *) emalloc(search_path_size);
 		free_ini_search_path = 1;
 		php_ini_search_path[0] = 0;
