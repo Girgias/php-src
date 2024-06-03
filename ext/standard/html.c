@@ -667,11 +667,11 @@ static inline int numeric_entity_is_allowed(unsigned uni_cp, int document_type)
  * On input, *buf should point to the first character after # and on output, it's the last
  * byte read, no matter if there was success or insuccess.
  */
-static inline int process_numeric_entity(const char **buf, unsigned *code_point)
+static inline zend_result process_numeric_entity(const unsigned char **buf, unsigned *code_point)
 {
 	zend_long code_l;
 	int hexadecimal = (**buf == 'x' || **buf == 'X'); /* TODO: XML apparently disallows "X" */
-	char *endptr;
+	unsigned char *endptr;
 
 	if (hexadecimal)
 		(*buf)++;
@@ -683,7 +683,7 @@ static inline int process_numeric_entity(const char **buf, unsigned *code_point)
 		return FAILURE;
 	}
 
-	code_l = ZEND_STRTOL(*buf, &endptr, hexadecimal ? 16 : 10);
+	code_l = ZEND_STRTOL((const char*)*buf, (char**)&endptr, hexadecimal ? 16 : 10);
 	/* we're guaranteed there were valid digits, so *endptr > buf */
 	*buf = endptr;
 
@@ -703,7 +703,7 @@ static inline int process_numeric_entity(const char **buf, unsigned *code_point)
 /* }}} */
 
 /* {{{ process_named_entity */
-static inline int process_named_entity_html(const char **buf, const char **start, size_t *length)
+static inline zend_result process_named_entity_html(const unsigned char **buf, const unsigned char **start, size_t *length)
 {
 	*start = *buf;
 
@@ -718,21 +718,23 @@ static inline int process_named_entity_html(const char **buf, const char **start
 		(*buf)++;
 	}
 
-	if (**buf != ';')
+	if (**buf != ';') {
 		return FAILURE;
+	}
 
 	/* cast to size_t OK as the quantity is always non-negative */
 	*length = *buf - *start;
 
-	if (*length == 0)
+	if (*length == 0) {
 		return FAILURE;
+	}
 
 	return SUCCESS;
 }
 /* }}} */
 
 /* {{{ resolve_named_entity_html */
-static int resolve_named_entity_html(const char *start, size_t length, const entity_ht *ht, unsigned *uni_cp1, unsigned *uni_cp2)
+static zend_result resolve_named_entity_html(const unsigned char *start, size_t length, const entity_ht *ht, unsigned *uni_cp1, unsigned *uni_cp2)
 {
 	const entity_cp_map *s;
 	zend_ulong hash = zend_inline_hash_func(start, length);
@@ -827,7 +829,7 @@ static void traverse_for_entities(
 	int doctype = flags & ENT_HTML_DOC_TYPE_MASK;
 
 	lim = old + oldlen; /* terminator address */
-	assert(*lim == '\0');
+	ZEND_ASSERT(*lim == '\0');
 
 	for (p = old, q = ZSTR_VAL(ret); p < lim;) {
 		unsigned code, code2 = 0;
@@ -849,7 +851,7 @@ static void traverse_for_entities(
 		/* numerical entity */
 		if (p[1] == '#') {
 			next = &p[2];
-			if (process_numeric_entity(&next, &code) == FAILURE)
+			if (process_numeric_entity((const unsigned char**)&next, &code) == FAILURE)
 				goto invalid_code;
 
 			/* If we're in htmlspecialchars_decode, we're only decoding entities
@@ -866,13 +868,13 @@ static void traverse_for_entities(
 					(doctype == ENT_HTML_DOC_HTML5 && code == 0x0D))
 				goto invalid_code;
 		} else {
-			const char *start;
+			const unsigned char *start;
 			size_t ent_len;
 
 			next = &p[1];
-			start = next;
+			start = (const unsigned char*)next;
 
-			if (process_named_entity_html(&next, &start, &ent_len) == FAILURE)
+			if (process_named_entity_html((const unsigned char**)&next, &start, &ent_len) == FAILURE)
 				goto invalid_code;
 
 			if (resolve_named_entity_html(start, ent_len, inv_map, &code, &code2) == FAILURE) {
@@ -1259,18 +1261,18 @@ encode_amp:
 				if (old[cursor] == '#') { /* numeric entity */
 					unsigned code_point;
 					int valid;
-					char *pos = (char*)&old[cursor+1];
-					valid = process_numeric_entity((const char **)&pos, &code_point);
+					const unsigned char *pos = &old[cursor+1];
+					valid = process_numeric_entity(&pos, &code_point);
 					if (valid == FAILURE)
 						goto encode_amp;
 					if (flags & ENT_HTML_SUBSTITUTE_DISALLOWED_CHARS) {
 						if (!numeric_entity_is_allowed(code_point, doctype))
 							goto encode_amp;
 					}
-					ent_len = pos - (char*)&old[cursor];
+					ent_len = pos - &old[cursor];
 				} else { /* named entity */
 					/* check for vality of named entity */
-					const char *start = (const char *) &old[cursor],
+					const unsigned char *start = &old[cursor],
 							   *next = start;
 					unsigned   dummy1, dummy2;
 
