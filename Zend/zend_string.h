@@ -459,7 +459,7 @@ static zend_always_inline bool zend_string_starts_with_ci(const zend_string *str
  *                  -- Ralf S. Engelschall <rse@engelschall.com>
  */
 
-static zend_always_inline zend_ulong zend_inline_hash_func(const char *str, size_t len)
+static zend_always_inline zend_ulong zend_inline_hash_func(const unsigned char *str, size_t len)
 {
 	zend_ulong hash = Z_UL(5381);
 
