@@ -79,16 +79,16 @@ ZEND_API void zend_ptr_stack_destroy(zend_ptr_stack *stack)
 
 ZEND_API void zend_ptr_stack_apply(zend_ptr_stack *stack, void (*func)(void *))
 {
-	int i = stack->top;
+	size_t i = stack->top;
 
-	while (--i >= 0) {
-		func(stack->elements[i]);
+	while (i > 0) {
+		func(stack->elements[--i]);
 	}
 }
 
 ZEND_API void zend_ptr_stack_reverse_apply(zend_ptr_stack *stack, void (*func)(void *))
 {
-	int i = 0;
+	size_t i = 0;
 
 	while (i < stack->top) {
 		func(stack->elements[i++]);
@@ -100,10 +100,10 @@ ZEND_API void zend_ptr_stack_clean(zend_ptr_stack *stack, void (*func)(void *), 
 {
 	zend_ptr_stack_apply(stack, func);
 	if (free_elements) {
-		int i = stack->top;
+		size_t i = stack->top;
 
-		while (--i >= 0) {
-			pefree(stack->elements[i], stack->persistent);
+		while (i > 0) {
+			pefree(stack->elements[--i], stack->persistent);
 		}
 	}
 	stack->top = 0;
@@ -111,7 +111,7 @@ ZEND_API void zend_ptr_stack_clean(zend_ptr_stack *stack, void (*func)(void *), 
 }
 
 
-ZEND_API int zend_ptr_stack_num_elements(zend_ptr_stack *stack)
+ZEND_API size_t zend_ptr_stack_num_elements(zend_ptr_stack *stack)
 {
 	return stack->top;
 }
