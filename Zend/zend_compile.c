@@ -517,9 +517,9 @@ static zend_always_inline uint32_t get_temporary_variable(void) /* {{{ */
 }
 /* }}} */
 
-static int lookup_cv(zend_string *name) /* {{{ */{
+static uint32_t lookup_cv(zend_string *name) /* {{{ */{
 	zend_op_array *op_array = CG(active_op_array);
-	int i = 0;
+	uint32_t i = 0;
 	zend_ulong hash_value = zend_string_hash_val(name);
 
 	while (i < op_array->last_var) {
