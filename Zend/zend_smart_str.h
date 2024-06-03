@@ -144,7 +144,7 @@ static zend_always_inline void smart_str_append_smart_str_ex(smart_str *dest, co
 static zend_always_inline void smart_str_append_long_ex(smart_str *dest, zend_long num, bool persistent) {
 	char buf[32];
 	char *result = zend_print_long_to_buf(buf + sizeof(buf) - 1, num);
-	smart_str_appendl_ex(dest, result, buf + sizeof(buf) - 1 - result, persistent);
+	smart_str_appendl_ex(dest, result, (size_t)(buf + sizeof(buf) - 1 - result), persistent);
 }
 
 static zend_always_inline void smart_str_append_long(smart_str *dest, zend_long num)
@@ -155,7 +155,7 @@ static zend_always_inline void smart_str_append_long(smart_str *dest, zend_long 
 static zend_always_inline void smart_str_append_unsigned_ex(smart_str *dest, zend_ulong num, bool persistent) {
 	char buf[32];
 	char *result = zend_print_ulong_to_buf(buf + sizeof(buf) - 1, num);
-	smart_str_appendl_ex(dest, result, buf + sizeof(buf) - 1 - result, persistent);
+	smart_str_appendl_ex(dest, result, (size_t)(buf + sizeof(buf) - 1 - result), persistent);
 }
 
 static zend_always_inline void smart_str_append_unsigned(smart_str *dest, zend_ulong num)
