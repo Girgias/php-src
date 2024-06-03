@@ -926,7 +926,8 @@ PHP_FUNCTION(getopt)
 	char *options = NULL, **argv = NULL;
 	char opt[2] = { '\0' };
 	char *optname;
-	int argc = 0, o;
+	uint32_t argc = 0;
+	int o;
 	size_t options_len = 0, len;
 	char *php_optarg = NULL;
 	int php_optind = 1;
@@ -954,7 +955,7 @@ PHP_FUNCTION(getopt)
 		((args = zend_hash_find_ex_ind(Z_ARRVAL_P(&PG(http_globals)[TRACK_VARS_SERVER]), ZSTR_KNOWN(ZEND_STR_ARGV), 1)) != NULL ||
 		(args = zend_hash_find_ex_ind(&EG(symbol_table), ZSTR_KNOWN(ZEND_STR_ARGV), 1)) != NULL)
 	) {
-		int pos = 0;
+		size_t pos = 0;
 		zval *entry;
 
 		if (Z_TYPE_P(args) != IS_ARRAY) {
@@ -987,7 +988,7 @@ PHP_FUNCTION(getopt)
 	len = parse_opts(options, &opts);
 
 	if (p_longopts) {
-		int count;
+		uint32_t count;
 		zval *entry;
 
 		count = zend_hash_num_elements(Z_ARRVAL_P(p_longopts));
