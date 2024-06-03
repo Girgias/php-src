@@ -155,8 +155,9 @@ struct _zend_class_entry {
 	int refcount;
 	uint32_t ce_flags;
 
-	int default_properties_count;
-	int default_static_members_count;
+	// TODO Use size_t instead?
+	uint32_t default_properties_count;
+	uint32_t default_static_members_count;
 	zval *default_properties_table;
 	zval *default_static_members_table;
 	ZEND_MAP_PTR_DEF(zval *, static_members_table);
