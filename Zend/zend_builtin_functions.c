@@ -84,7 +84,7 @@ ZEND_FUNCTION(gc_mem_caches)
 {
 	ZEND_PARSE_PARAMETERS_NONE();
 
-	RETURN_LONG(zend_mm_gc(zend_mm_get_heap()));
+	RETURN_LONG((zend_long)zend_mm_gc(zend_mm_get_heap()));
 }
 /* }}} */
 
@@ -306,7 +306,7 @@ ZEND_FUNCTION(strlen)
 		Z_PARAM_STR(s)
 	ZEND_PARSE_PARAMETERS_END();
 
-	RETVAL_LONG(ZSTR_LEN(s));
+	RETVAL_LONG((zend_long) ZSTR_LEN(s));
 }
 /* }}} */
 
@@ -376,7 +376,7 @@ ZEND_FUNCTION(strncasecmp)
 		RETURN_THROWS();
 	}
 
-	RETURN_LONG(zend_binary_strncasecmp(ZSTR_VAL(s1), ZSTR_LEN(s1), ZSTR_VAL(s2), ZSTR_LEN(s2), len));
+	RETURN_LONG(zend_binary_strncasecmp(ZSTR_VAL(s1), ZSTR_LEN(s1), ZSTR_VAL(s2), ZSTR_LEN(s2), (size_t)len));
 }
 /* }}} */
 
@@ -428,7 +428,7 @@ ZEND_FUNCTION(error_reporting)
 }
 /* }}} */
 
-static bool validate_constant_array_argument(HashTable *ht, int argument_number) /* {{{ */
+static bool validate_constant_array_argument(HashTable *ht, uint32_t argument_number) /* {{{ */
 {
 	bool ret = 1;
 	zval *val;
@@ -1002,7 +1002,7 @@ flf_clean:;
 	Z_FLF_PARAM_FREE_STR(2, property_tmp)
 }
 
-static inline void _class_exists_impl(zval *return_value, zend_string *name, bool autoload, int flags, int skip_flags) /* {{{ */
+static inline void _class_exists_impl(zval *return_value, zend_string *name, bool autoload, unsigned int flags, unsigned int skip_flags) /* {{{ */
 {
 	zend_string *lcname;
 	zend_class_entry *ce;
@@ -1037,7 +1037,7 @@ static inline void _class_exists_impl(zval *return_value, zend_string *name, boo
 }
 /* {{{ */
 
-static inline void class_exists_impl(INTERNAL_FUNCTION_PARAMETERS, int flags, int skip_flags) /* {{{ */
+static inline void class_exists_impl(INTERNAL_FUNCTION_PARAMETERS, unsigned int flags, unsigned int skip_flags) /* {{{ */
 {
 	zend_string *name;
 	bool autoload = true;
@@ -1779,7 +1779,7 @@ ZEND_API void zend_fetch_debug_backtrace(zval *return_value, int skip_last, int 
 	zend_execute_data *call;
 	zend_object *object;
 	bool fake_frame = 0;
-	int lineno, frameno = 0;
+	uint32_t lineno, frameno = 0;
 	zend_function *func;
 	zend_string *filename;
 	zend_string *include_filename = NULL;
