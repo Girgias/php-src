@@ -112,7 +112,7 @@ static inline void php_json_encode_double(smart_str *buf, double d, int options)
 
 static zend_result php_json_encode_array(smart_str *buf, zval *val, int options, php_json_encoder *encoder) /* {{{ */
 {
-	int i, r, need_comma = 0;
+	int r, need_comma = 0;
 	HashTable *myht, *prop_ht;
 
 	if (Z_TYPE_P(val) == IS_ARRAY) {
@@ -219,7 +219,7 @@ static zend_result php_json_encode_array(smart_str *buf, zval *val, int options,
 
 	++encoder->depth;
 
-	i = myht ? zend_hash_num_elements(myht) : 0;
+	zend_ulong i = myht ? zend_hash_num_elements(myht) : 0;
 
 	if (i > 0) {
 		zend_string *key;
