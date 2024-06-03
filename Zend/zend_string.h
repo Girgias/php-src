@@ -117,7 +117,7 @@ END_EXTERN_C()
 #define ZSTR_MAX_LEN (SIZE_MAX - ZSTR_MAX_OVERHEAD)
 
 #define ZSTR_ALLOCA_ALLOC(str, _len, use_heap) do { \
-	(str) = (zend_string *)do_alloca(ZEND_MM_ALIGNED_SIZE_EX(_ZSTR_STRUCT_SIZE(_len), 8), (use_heap)); \
+	(str) = (zend_string *)do_alloca(ZEND_MM_ALIGNED_SIZE_EX(_ZSTR_STRUCT_SIZE(_len), 8u), (use_heap)); \
 	GC_SET_REFCOUNT(str, 1); \
 	GC_TYPE_INFO(str) = GC_STRING; \
 	ZSTR_H(str) = 0; \
@@ -473,16 +473,16 @@ static zend_always_inline zend_ulong zend_inline_hash_func(const unsigned char *
 
 		memcpy(&chunk, str, sizeof(chunk));
 		hash =
-			hash                        * 33 * 33 * 33 * 33 +
-			((chunk >> (8 * 0)) & 0xff) * 33 * 33 * 33 +
-			((chunk >> (8 * 1)) & 0xff) * 33 * 33 +
-			((chunk >> (8 * 2)) & 0xff) * 33 +
+			hash                        * 33u * 33u * 33u * 33u +
+			((chunk >> (8 * 0)) & 0xff) * 33u * 33u * 33u +
+			((chunk >> (8 * 1)) & 0xff) * 33u * 33u +
+			((chunk >> (8 * 2)) & 0xff) * 33u +
 			((chunk >> (8 * 3)) & 0xff);
 		hash =
-			hash                        * 33 * 33 * 33 * 33 +
-			((chunk >> (8 * 4)) & 0xff) * 33 * 33 * 33 +
-			((chunk >> (8 * 5)) & 0xff) * 33 * 33 +
-			((chunk >> (8 * 6)) & 0xff) * 33 +
+			hash                        * 33u * 33u * 33u * 33u +
+			((chunk >> (8 * 4)) & 0xff) * 33u * 33u * 33u +
+			((chunk >> (8 * 5)) & 0xff) * 33u * 33u +
+			((chunk >> (8 * 6)) & 0xff) * 33u +
 			((chunk >> (8 * 7)) & 0xff);
 # else
 		hash =
