@@ -59,7 +59,7 @@ ZEND_API zend_ulong ZEND_FASTCALL zend_string_hash_func(zend_string *str)
 
 ZEND_API zend_ulong ZEND_FASTCALL zend_hash_func(const char *str, size_t len)
 {
-	return zend_inline_hash_func(str, len);
+	return zend_inline_hash_func((const unsigned char*)str, len);
 }
 
 static void _str_dtor(zval *zv)
@@ -272,7 +272,7 @@ static zend_string* ZEND_FASTCALL zend_new_interned_string_request(zend_string *
 static zend_string* ZEND_FASTCALL zend_string_init_interned_permanent(const char *str, size_t size, bool permanent)
 {
 	zend_string *ret;
-	zend_ulong h = zend_inline_hash_func(str, size);
+	zend_ulong h = zend_inline_hash_func((const unsigned char*)str, size);
 
 	ret = zend_interned_string_ht_lookup_ex(h, str, size, &interned_strings_permanent);
 	if (ret) {
@@ -287,7 +287,7 @@ static zend_string* ZEND_FASTCALL zend_string_init_interned_permanent(const char
 
 static zend_string* ZEND_FASTCALL zend_string_init_existing_interned_permanent(const char *str, size_t size, bool permanent)
 {
-	zend_ulong h = zend_inline_hash_func(str, size);
+	zend_ulong h = zend_inline_hash_func((const unsigned char*)str, size);
 	zend_string *ret = zend_interned_string_ht_lookup_ex(h, str, size, &interned_strings_permanent);
 	if (ret) {
 		return ret;
@@ -302,7 +302,7 @@ static zend_string* ZEND_FASTCALL zend_string_init_existing_interned_permanent(c
 static zend_string* ZEND_FASTCALL zend_string_init_interned_request(const char *str, size_t size, bool permanent)
 {
 	zend_string *ret;
-	zend_ulong h = zend_inline_hash_func(str, size);
+	zend_ulong h = zend_inline_hash_func((const unsigned char*)str, size);
 
 	/* Check for permanent strings, the table is readonly at this point. */
 	ret = zend_interned_string_ht_lookup_ex(h, str, size, &interned_strings_permanent);
@@ -331,7 +331,7 @@ static zend_string* ZEND_FASTCALL zend_string_init_interned_request(const char *
 
 static zend_string* ZEND_FASTCALL zend_string_init_existing_interned_request(const char *str, size_t size, bool permanent)
 {
-	zend_ulong h = zend_inline_hash_func(str, size);
+	zend_ulong h = zend_inline_hash_func((const unsigned char*)str, size);
 	zend_string *ret = zend_interned_string_ht_lookup_ex(h, str, size, &interned_strings_permanent);
 	if (ret) {
 		return ret;
