@@ -948,7 +948,8 @@ PHPAPI PHP_FUNCTION(fgetc)
 /* {{{ Implements a mostly ANSI compatible fscanf() */
 PHP_FUNCTION(fscanf)
 {
-	int result, argc = 0;
+	int result;
+	uint32_t argc = 0;
 	size_t format_len;
 	zval *args = NULL;
 	zval *file_handle;

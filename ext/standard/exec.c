@@ -56,13 +56,15 @@ static size_t cmd_max_len;
 PHP_MINIT_FUNCTION(exec)
 {
 #ifdef _SC_ARG_MAX
-	cmd_max_len = sysconf(_SC_ARG_MAX);
-	if ((size_t)-1 == cmd_max_len) {
-#ifdef _POSIX_ARG_MAX
+	long sysconf_val = sysconf(_SC_ARG_MAX);
+	if (-1 == cmd_max_len) {
+# ifdef _POSIX_ARG_MAX
 		cmd_max_len = _POSIX_ARG_MAX;
-#else
+# else
 		cmd_max_len = 4096;
-#endif
+# endif
+	} else {
+		cmd_max_len = (size_t) sysconf_val;
 	}
 #elif defined(ARG_MAX)
 	cmd_max_len = ARG_MAX;

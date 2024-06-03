@@ -3778,7 +3778,7 @@ PHP_FUNCTION(array_splice)
 	zend_long offset,
 			length = 0;
 	bool length_is_null = 1;
-	int		num_in;				/* Number of elements in the input array */
+	uint32_t		num_in;		/* Number of elements in the input array */
 
 	ZEND_PARSE_PARAMETERS_START(2, 4)
 		Z_PARAM_ARRAY_EX(array, 0, 1)
@@ -3805,7 +3805,7 @@ PHP_FUNCTION(array_splice)
 		zend_long size = length;
 
 		/* Clamp the offset.. */
-		if (offset > num_in) {
+		if (offset > (zend_long)num_in) {
 			offset = num_in;
 		} else if (offset < 0 && (offset = (num_in + offset)) < 0) {
 			offset = 0;
@@ -3814,7 +3814,7 @@ PHP_FUNCTION(array_splice)
 		/* ..and the length */
 		if (length < 0) {
 			size = num_in - offset + length;
-		} else if (((zend_ulong) offset + (zend_ulong) length) > (uint32_t) num_in) {
+		} else if (((zend_ulong) offset + (zend_ulong) length) > num_in) {
 			size = num_in - offset;
 		}
 
@@ -4931,7 +4931,7 @@ PHP_FUNCTION(array_unique)
 
 	if (sort_type == PHP_SORT_STRING) {
 		HashTable seen;
-		zend_long num_key;
+		zend_ulong num_key;
 		zend_string *str_key;
 		zval *val;
 
@@ -5808,7 +5808,7 @@ PHP_FUNCTION(array_diff)
 	HashTable exclude;
 	zval *value;
 	zend_string *str, *tmp_str, *key;
-	zend_long idx;
+	zend_ulong idx;
 	zval dummy;
 
 	ZEND_PARSE_PARAMETERS_START(1, -1)
@@ -6741,11 +6741,11 @@ PHP_FUNCTION(array_all)
 PHP_FUNCTION(array_map)
 {
 	zval *arrays = NULL;
-	int n_arrays = 0;
+	uint32_t n_arrays = 0;
 	zval result;
 	zend_fcall_info fci = empty_fcall_info;
 	zend_fcall_info_cache fci_cache = empty_fcall_info_cache;
-	int i;
+	uint32_t i;
 	uint32_t k, maxlen = 0;
 
 	ZEND_PARSE_PARAMETERS_START(2, -1)
@@ -6960,7 +6960,7 @@ PHP_FUNCTION(array_key_exists)
 /* {{{ Split array into chunks */
 PHP_FUNCTION(array_chunk)
 {
-	int num_in;
+	uint32_t num_in;
 	zend_long size, current = 0;
 	zend_string *str_key;
 	zend_ulong num_key;
@@ -7035,7 +7035,7 @@ PHP_FUNCTION(array_combine)
 	HashTable *values, *keys;
 	uint32_t pos_values = 0;
 	zval *entry_keys, *entry_values;
-	int num_keys, num_values;
+	uint32_t num_keys, num_values;
 
 	ZEND_PARSE_PARAMETERS_START(2, 2)
 		Z_PARAM_ARRAY_HT(keys)

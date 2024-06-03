@@ -1415,7 +1415,6 @@ PHP_FUNCTION(stream_set_timeout)
 	zend_long seconds, microseconds = 0;
 	struct timeval t;
 	php_stream *stream;
-	int argc = ZEND_NUM_ARGS();
 
 	ZEND_PARSE_PARAMETERS_START(2, 3)
 		Z_PARAM_RESOURCE(socket)
@@ -1429,7 +1428,7 @@ PHP_FUNCTION(stream_set_timeout)
 #ifdef PHP_WIN32
 	t.tv_sec = (long)seconds;
 
-	if (argc == 3) {
+	if (microseconds != 0) {
 		t.tv_usec = (long)(microseconds % 1000000);
 		t.tv_sec +=(long)(microseconds / 1000000);
 	} else {
@@ -1438,7 +1437,7 @@ PHP_FUNCTION(stream_set_timeout)
 #else
 	t.tv_sec = seconds;
 
-	if (argc == 3) {
+	if (microseconds != 0) {
 		t.tv_usec = microseconds % 1000000;
 		t.tv_sec += microseconds / 1000000;
 	} else {

@@ -4969,7 +4969,7 @@ PHP_FUNCTION(setlocale)
 {
 	zend_long cat;
 	zval *args = NULL;
-	int num_args;
+	uint32_t num_args;
 
 	ZEND_PARSE_PARAMETERS_START(2, -1)
 		Z_PARAM_LONG(cat)
@@ -5829,7 +5829,8 @@ PHP_FUNCTION(sscanf)
 	zval *args = NULL;
 	char *str, *format;
 	size_t str_len, format_len;
-	int result, num_args = 0;
+	int result;
+	uint32_t num_args = 0;
 
 	ZEND_PARSE_PARAMETERS_START(2, -1)
 		Z_PARAM_STRING(str, str_len)

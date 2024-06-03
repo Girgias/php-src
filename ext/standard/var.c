@@ -218,8 +218,8 @@ again:
 PHP_FUNCTION(var_dump)
 {
 	zval *args;
-	int argc;
-	int	i;
+	uint32_t argc;
+	uint32_t i;
 
 	ZEND_PARSE_PARAMETERS_START(1, -1)
 		Z_PARAM_VARIADIC('+', args, argc)
@@ -410,8 +410,8 @@ PHPAPI void php_debug_zval_dump(zval *struc, int level) /* {{{ */
 PHP_FUNCTION(debug_zval_dump)
 {
 	zval *args;
-	int argc;
-	int	i;
+	uint32_t argc;
+	uint32_t i;
 
 	ZEND_PARSE_PARAMETERS_START(1, -1)
 		Z_PARAM_VARIADIC('+', args, argc)

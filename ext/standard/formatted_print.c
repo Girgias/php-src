@@ -419,7 +419,7 @@ int php_sprintf_get_argnum(char **format, size_t *format_len) {
  *  - 0 or more: ArgumentCountError is thrown
  */
 static zend_string *
-php_formatted_print(char *format, size_t format_len, zval *args, int argc, int nb_additional_parameters)
+php_formatted_print(char *format, size_t format_len, zval *args, uint32_t argc, int nb_additional_parameters)
 {
 	size_t size = 240, outpos = 0;
 	int alignment, currarg, adjusting, argnum, width, precision;
@@ -733,10 +733,10 @@ fail:
 /* }}} */
 
 /* php_formatted_print_get_array() {{{ */
-static zval *php_formatted_print_get_array(zend_array *array, int *argc)
+static zval *php_formatted_print_get_array(zend_array *array, uint32_t *argc)
 {
 	zval *args, *zv;
-	int n;
+	uint32_t n;
 
 	n = zend_hash_num_elements(array);
 	args = (zval *)safe_emalloc(n, sizeof(zval), 0);
@@ -758,7 +758,7 @@ PHP_FUNCTION(sprintf)
 	char *format;
 	size_t format_len;
 	zval *args;
-	int argc;
+	uint32_t argc;
 
 	ZEND_PARSE_PARAMETERS_START(1, -1)
 		Z_PARAM_STRING(format, format_len)
@@ -781,7 +781,7 @@ PHP_FUNCTION(vsprintf)
 	size_t format_len;
 	zval *args;
 	zend_array *array;
-	int argc;
+	uint32_t argc;
 
 	ZEND_PARSE_PARAMETERS_START(2, 2)
 		Z_PARAM_STRING(format, format_len)
@@ -807,7 +807,7 @@ PHP_FUNCTION(printf)
 	char *format;
 	size_t format_len;
 	zval *args;
-	int argc;
+	uint32_t argc;
 
 	ZEND_PARSE_PARAMETERS_START(1, -1)
 		Z_PARAM_STRING(format, format_len)
@@ -833,7 +833,7 @@ PHP_FUNCTION(vprintf)
 	size_t format_len;
 	zval *args;
 	zend_array *array;
-	int argc;
+	uint32_t argc;
 
 	ZEND_PARSE_PARAMETERS_START(2, 2)
 		Z_PARAM_STRING(format, format_len)
@@ -860,7 +860,7 @@ PHP_FUNCTION(fprintf)
 	char *format;
 	size_t format_len;
 	zval *arg1, *args;
-	int argc;
+	uint32_t argc;
 	zend_string *result;
 
 	ZEND_PARSE_PARAMETERS_START(2, -1)
@@ -891,7 +891,7 @@ PHP_FUNCTION(vfprintf)
 	size_t format_len;
 	zval *arg1, *args;
 	zend_array *array;
-	int argc;
+	uint32_t argc;
 	zend_string *result;
 
 	ZEND_PARSE_PARAMETERS_START(3, 3)

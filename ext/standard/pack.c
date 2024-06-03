@@ -230,9 +230,9 @@ static double php_pack_parse_double(int is_little_endian, void * src)
 PHP_FUNCTION(pack)
 {
 	zval *argv = NULL;
-	int num_args = 0;
+	uint32_t num_args = 0;
 	size_t i;
-	int currentarg;
+	uint32_t currentarg;
 	char *format;
 	size_t formatlen;
 	char *formatcodes;
