@@ -279,20 +279,20 @@ static HashTable *browscap_entry_to_array(browser_data *bdata, browscap_entry *e
 
 	ZVAL_STR(&tmp, browscap_convert_pattern(entry->pattern, 0));
 	zend_string *key = ZSTR_INIT_LITERAL("browser_name_regex", 0);
-	ZSTR_H(key) = zend_inline_hash_func("browser_name_regex", sizeof("browser_name_regex")-1);
+	ZSTR_H(key) = zend_inline_hash_func((unsigned char*)"browser_name_regex", sizeof("browser_name_regex")-1);
 	zend_hash_add_new(ht, key, &tmp);
 	zend_string_release_ex(key, false);
 
 	ZVAL_STR_COPY(&tmp, entry->pattern);
 	key = ZSTR_INIT_LITERAL("browser_name_pattern", 0);
-	ZSTR_H(key) = zend_inline_hash_func("browser_name_pattern", sizeof("browser_name_pattern")-1);
+	ZSTR_H(key) = zend_inline_hash_func((unsigned char*)"browser_name_pattern", sizeof("browser_name_pattern")-1);
 	zend_hash_add_new(ht, key, &tmp);
 	zend_string_release_ex(key, false);
 
 	if (entry->parent) {
 		ZVAL_STR_COPY(&tmp, entry->parent);
 		key = ZSTR_INIT_LITERAL("parent", 0);
-		ZSTR_H(key) = zend_inline_hash_func("parent", sizeof("parent")-1);
+		ZSTR_H(key) = zend_inline_hash_func((unsigned char*)"parent", sizeof("parent")-1);
 		zend_hash_add_new(ht, key, &tmp);
 		zend_string_release_ex(key, false);
 	}
