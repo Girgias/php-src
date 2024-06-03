@@ -2182,7 +2182,7 @@ static void zend_extension_fcall_end_handler(const zend_extension *extension, ze
 }
 
 
-static zend_always_inline HashTable *zend_get_target_symbol_table(int fetch_type EXECUTE_DATA_DC)
+static zend_always_inline HashTable *zend_get_target_symbol_table(uint32_t fetch_type EXECUTE_DATA_DC)
 {
 	HashTable *ht;
 
@@ -2490,7 +2490,7 @@ num_index:
 num_undef:
 			switch (type) {
 				case BP_VAR_R:
-					zend_undefined_offset(hval);
+					zend_undefined_offset((zend_long) hval);
 					ZEND_FALLTHROUGH;
 				case BP_VAR_UNSET:
 				case BP_VAR_IS:
@@ -3877,7 +3877,7 @@ ZEND_API void zend_clean_and_cache_symbol_table(zend_array *symbol_table) /* {{{
 static zend_always_inline void i_free_compiled_variables(zend_execute_data *execute_data) /* {{{ */
 {
 	zval *cv = EX_VAR_NUM(0);
-	int count = EX(func)->op_array.last_var;
+	uint32_t count = EX(func)->op_array.last_var;
 	while (EXPECTED(count != 0)) {
 		i_zval_ptr_dtor(cv);
 		cv++;
@@ -4160,7 +4160,7 @@ ZEND_API void zend_init_execute_data(zend_execute_data *execute_data, zend_op_ar
 zend_execute_data *zend_vm_stack_copy_call_frame(zend_execute_data *call, uint32_t passed_args, uint32_t additional_args) /* {{{ */
 {
 	zend_execute_data *new_call;
-	int used_stack = (EG(vm_stack_top) - (zval*)call) + additional_args;
+	uint32_t used_stack = (EG(vm_stack_top) - (zval*)call) + additional_args;
 
 	/* copy call frame into new stack segment */
 	new_call = zend_vm_stack_extend(used_stack * sizeof(zval));
@@ -4521,7 +4521,7 @@ static void cleanup_live_vars(zend_execute_data *execute_data, uint32_t op_num, 
 					if (last->opcode == ZEND_ROPE_INIT) {
 						zend_string_release_ex(*rope, 0);
 					} else {
-						int j = last->extended_value;
+						uint32_t j = last->extended_value;
 						do {
 							zend_string_release_ex(rope[j], 0);
 						} while (j--);
@@ -4874,7 +4874,7 @@ static zend_never_inline zend_execute_data *zend_init_dynamic_call_array(zend_ar
 
 #define ZEND_FAKE_OP_ARRAY ((zend_op_array*)(intptr_t)-1)
 
-static zend_never_inline zend_op_array* ZEND_FASTCALL zend_include_or_eval(zval *inc_filename_zv, int type) /* {{{ */
+static zend_never_inline zend_op_array* ZEND_FASTCALL zend_include_or_eval(zval *inc_filename_zv, uint32_t type) /* {{{ */
 {
 	zend_op_array *new_op_array = NULL;
 	zend_string *tmp_inc_filename;
