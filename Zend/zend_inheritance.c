@@ -1304,8 +1304,8 @@ static void do_inherit_property(zend_property_info *parent_info, zend_string *ke
 			if (UNEXPECTED((child_info->flags & ZEND_ACC_PPP_MASK) > (parent_info->flags & ZEND_ACC_PPP_MASK))) {
 				zend_error_noreturn(E_COMPILE_ERROR, "Access level to %s::$%s must be %s (as in class %s)%s", ZSTR_VAL(ce->name), ZSTR_VAL(key), zend_visibility_string(parent_info->flags), ZSTR_VAL(parent_info->ce->name), (parent_info->flags&ZEND_ACC_PUBLIC) ? "" : " or weaker");
 			} else if ((child_info->flags & ZEND_ACC_STATIC) == 0) {
-				int parent_num = OBJ_PROP_TO_NUM(parent_info->offset);
-				int child_num = OBJ_PROP_TO_NUM(child_info->offset);
+				size_t parent_num = OBJ_PROP_TO_NUM(parent_info->offset);
+				size_t child_num = OBJ_PROP_TO_NUM(child_info->offset);
 
 				/* Don't keep default properties in GC (they may be freed by opcache) */
 				zval_ptr_dtor_nogc(&(ce->default_properties_table[parent_num]));

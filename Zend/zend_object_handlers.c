@@ -132,7 +132,7 @@ ZEND_API HashTable *zend_std_get_properties(zend_object *zobj) /* {{{ */
 }
 /* }}} */
 
-ZEND_API HashTable *zend_std_get_gc(zend_object *zobj, zval **table, int *n) /* {{{ */
+ZEND_API HashTable *zend_std_get_gc(zend_object *zobj, zval **table, uint32_t *n) /* {{{ */
 {
 	if (zobj->handlers->get_properties != zend_std_get_properties) {
 		*table = NULL;
@@ -580,7 +580,7 @@ ZEND_API uint32_t *zend_get_property_guard(zend_object *zobj, zend_string *membe
 		ZEND_ASSERT(guards != NULL);
 		zv = zend_hash_find(guards, member);
 		if (zv != NULL) {
-			return (uint32_t*)(((uintptr_t)Z_PTR_P(zv)) & ~1);
+			return (uint32_t*)(((uintptr_t)Z_PTR_P(zv)) & ~1u);
 		}
 	} else {
 		ZEND_ASSERT(Z_TYPE_P(zv) == IS_UNDEF);
@@ -674,7 +674,7 @@ ZEND_API zval *zend_std_read_property(zend_object *zobj, zend_string *name, int 
 			retval = zend_hash_find(zobj->properties, name);
 			if (EXPECTED(retval)) {
 				if (cache_slot) {
-					uintptr_t idx = (char*)retval - (char*)zobj->properties->arData;
+					uintptr_t idx = (uintptr_t)((char*)retval - (char*)zobj->properties->arData);
 					CACHE_PTR_EX(cache_slot + 1, (void*)ZEND_ENCODE_DYN_PROP_OFFSET(idx));
 				}
 				goto exit;
