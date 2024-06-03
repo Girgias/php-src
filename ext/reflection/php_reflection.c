@@ -306,7 +306,7 @@ static void _zend_extension_string(smart_str *str, zend_extension *extension, ch
 /* {{{ _class_string */
 static void _class_string(smart_str *str, zend_class_entry *ce, zval *obj, char *indent)
 {
-	int count, count_static_props = 0, count_static_funcs = 0, count_shadow_props = 0;
+	uint32_t count, count_static_props = 0, count_static_funcs = 0, count_shadow_props = 0;
 	zend_string *sub_indent = strpprintf(0, "%s    ", indent);
 
 	/* TBD: Repair indenting of doc comment (or is this to be done in the parser?) */
@@ -1280,7 +1280,7 @@ static void _zend_extension_string(smart_str *str, zend_extension *extension, ch
 /* }}} */
 
 /* {{{ _function_check_flag */
-static void _function_check_flag(INTERNAL_FUNCTION_PARAMETERS, int mask)
+static void _function_check_flag(INTERNAL_FUNCTION_PARAMETERS, unsigned int mask)
 {
 	reflection_object *intern;
 	zend_function *mptr;
@@ -3295,7 +3295,7 @@ static void instantiate_reflection_method(INTERNAL_FUNCTION_PARAMETERS, bool is_
 			zend_argument_error(reflection_exception_ptr, 1, "must be a valid method name");
 			RETURN_THROWS();
 		}
-		tmp_len = tmp - name;
+		tmp_len = (size_t)(tmp - name);
 
 		class_name = zend_string_init(name, tmp_len, 0);
 		method_name = tmp + 2;
@@ -3929,7 +3929,7 @@ ZEND_METHOD(ReflectionClassConstant, hasType)
 	RETVAL_BOOL(ZEND_TYPE_IS_SET(ref->type));
 }
 
-static void _class_constant_check_flag(INTERNAL_FUNCTION_PARAMETERS, int mask) /* {{{ */
+static void _class_constant_check_flag(INTERNAL_FUNCTION_PARAMETERS, unsigned int mask) /* {{{ */
 {
 	reflection_object *intern;
 	zend_class_constant *ref;
@@ -4678,7 +4678,7 @@ ZEND_METHOD(ReflectionClass, getProperty)
 	}
 	str_name = ZSTR_VAL(name);
 	if ((tmp = strstr(ZSTR_VAL(name), "::")) != NULL) {
-		classname_len = tmp - ZSTR_VAL(name);
+		classname_len = (size_t)(tmp - ZSTR_VAL(name));
 		classname = zend_string_alloc(classname_len, 0);
 		zend_str_tolower_copy(ZSTR_VAL(classname), ZSTR_VAL(name), classname_len);
 		ZSTR_VAL(classname)[classname_len] = '\0';
@@ -4919,7 +4919,7 @@ ZEND_METHOD(ReflectionClass, getReflectionConstant)
 /* }}} */
 
 /* {{{ _class_check_flag */
-static void _class_check_flag(INTERNAL_FUNCTION_PARAMETERS, int mask)
+static void _class_check_flag(INTERNAL_FUNCTION_PARAMETERS, unsigned int mask)
 {
 	reflection_object *intern;
 	zend_class_entry *ce;
@@ -5083,7 +5083,7 @@ ZEND_METHOD(ReflectionClass, newInstance)
 	/* Run the constructor if there is one */
 	if (constructor) {
 		zval *params;
-		int num_args;
+		uint32_t num_args;
 		HashTable *named_params;
 
 		if (!(constructor->common.fn_flags & ZEND_ACC_PUBLIC)) {
@@ -5136,7 +5136,7 @@ ZEND_METHOD(ReflectionClass, newInstanceArgs)
 {
 	reflection_object *intern;
 	zend_class_entry *ce, *old_scope;
-	int argc = 0;
+	uint32_t argc = 0;
 	HashTable *args = NULL;
 	zend_function *constructor;
 
@@ -5648,7 +5648,7 @@ ZEND_METHOD(ReflectionProperty, getName)
 }
 /* }}} */
 
-static void _property_check_flag(INTERNAL_FUNCTION_PARAMETERS, int mask) /* {{{ */
+static void _property_check_flag(INTERNAL_FUNCTION_PARAMETERS, unsigned int mask) /* {{{ */
 {
 	reflection_object *intern;
 	property_reference *ref;
@@ -6542,7 +6542,7 @@ ZEND_METHOD(ReflectionReference, fromArrayElement)
 	if (string_key) {
 		item = zend_hash_find(ht, string_key);
 	} else {
-		item = zend_hash_index_find(ht, int_key);
+		item = zend_hash_index_find(ht, (zend_ulong)int_key);
 	}
 
 	if (!item) {
