@@ -31,7 +31,7 @@
 #define CALLBACK2(FOR)                                               \
 do {                                                                 \
   if (settings->on_##FOR) {                                          \
-    if (0 != settings->on_##FOR(parser)) return (p - data);          \
+    if (0 != settings->on_##FOR(parser)) return (size_t)(p - data);  \
   }                                                                  \
 } while (0)
 
@@ -47,9 +47,9 @@ do {                                                                 \
     if (settings->on_##FOR) {                                        \
       if (0 != settings->on_##FOR(parser,                            \
                                  FOR##_mark,                         \
-                                 p - FOR##_mark))                    \
+                                 (size_t)(p - FOR##_mark)))          \
       {                                                              \
-        return (p - data);                                           \
+        return (size_t)(p - data);                                   \
       }                                                              \
     }                                                                \
   }                                                                  \
