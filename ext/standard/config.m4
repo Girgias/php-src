@@ -431,7 +431,7 @@ PHP_NEW_EXTENSION(standard, array.c base64.c basic_functions.c browscap.c crc32.
                             var_unserializer.c ftok.c sha1.c user_filters.c uuencode.c \
                             filters.c proc_open.c streamsfuncs.c http.c password.c \
                             net.c hrtime.c crc32_x86.c libavifinfo/avifinfo.c,,,
-			    -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
+			    "-Wno-sign-conversion -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1")
 
 PHP_ADD_BUILD_DIR($ext_builddir/libavifinfo)
 
