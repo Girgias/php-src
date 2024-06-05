@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: b45ef763d82e1ad9ab27336fd0ab95e2d2e79a90 */
+ * Stub hash: 2529a23e3b1c8597f6d1cf7a2ea87a65c1440fe8 */
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_intlcal_create_instance, 0, 0, IntlCalendar, 1)
 	ZEND_ARG_INFO_WITH_DEFAULT_VALUE(0, timezone, "null")
@@ -1218,6 +1218,15 @@ static void register_php_intl_symbols(int module_number)
 	REGISTER_LONG_CONSTANT("IDNA_ERROR_INVALID_ACE_LABEL", UIDNA_ERROR_INVALID_ACE_LABEL, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("IDNA_ERROR_BIDI", UIDNA_ERROR_BIDI, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("IDNA_ERROR_CONTEXTJ", UIDNA_ERROR_CONTEXTJ, CONST_PERSISTENT);
+
+
+	zend_string *attribute_name_Deprecated_func_intlcal_set_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "intlcal_set", sizeof("intlcal_set") - 1), attribute_name_Deprecated_func_intlcal_set_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_intlcal_set_0);
+
+	zend_string *attribute_name_Deprecated_func_intlgregcal_create_instance_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "intlgregcal_create_instance", sizeof("intlgregcal_create_instance") - 1), attribute_name_Deprecated_func_intlgregcal_create_instance_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_intlgregcal_create_instance_0);
 }
 
 static zend_class_entry *register_class_IntlException(zend_class_entry *class_entry_Exception)

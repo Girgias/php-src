@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 08e4e3f10ba89430292831f50c4760a362593282 */
+ * Stub hash: d80134a69b562d99cbcc7ae533229bfaa2bb17b7 */
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_libxml_set_streams_context, 0, 1, IS_VOID, 0)
 	ZEND_ARG_INFO(0, context)
@@ -86,6 +86,11 @@ static void register_libxml_symbols(int module_number)
 	REGISTER_LONG_CONSTANT("LIBXML_ERR_WARNING", XML_ERR_WARNING, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("LIBXML_ERR_ERROR", XML_ERR_ERROR, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("LIBXML_ERR_FATAL", XML_ERR_FATAL, CONST_PERSISTENT);
+
+
+	zend_string *attribute_name_Deprecated_func_libxml_disable_entity_loader_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "libxml_disable_entity_loader", sizeof("libxml_disable_entity_loader") - 1), attribute_name_Deprecated_func_libxml_disable_entity_loader_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_libxml_disable_entity_loader_0);
 }
 
 static zend_class_entry *register_class_LibXMLError(void)

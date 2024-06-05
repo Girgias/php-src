@@ -23,6 +23,7 @@
 #include "ext/standard/php_versioning.h"
 #include "ext/standard/php_math.h"
 #include "php_date.h"
+#include "zend_attributes.h"
 #include "zend_interfaces.h"
 #include "zend_exceptions.h"
 #include "lib/timelib.h"

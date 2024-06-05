@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 6212994df4935f42c99080b928b8b5b08bdbe19d */
+ * Stub hash: 8464bcf7b6e2239da07e3ee2da9cb86243592df8 */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_SplFileInfo___construct, 0, 0, 1)
 	ZEND_ARG_TYPE_INFO(0, filename, IS_STRING, 0)
@@ -490,6 +490,11 @@ static zend_class_entry *register_class_SplFileInfo(zend_class_entry *class_entr
 	class_entry = zend_register_internal_class_ex(&ce, NULL);
 	class_entry->ce_flags |= ZEND_ACC_NOT_SERIALIZABLE;
 	zend_class_implements(class_entry, 1, class_entry_Stringable);
+
+
+	zend_string *attribute_name_Deprecated_func__bad_state_ex_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(&class_entry->function_table, "_bad_state_ex", sizeof("_bad_state_ex") - 1), attribute_name_Deprecated_func__bad_state_ex_0, 0);
+	zend_string_release(attribute_name_Deprecated_func__bad_state_ex_0);
 
 	return class_entry;
 }

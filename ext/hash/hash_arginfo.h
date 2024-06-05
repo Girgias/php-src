@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 9c0f01839a287d394b78b0dfd37b278a59d1b366 */
+ * Stub hash: 588ca23f8dfb80ba8866b435496ff15ae434bf3c */
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_hash, 0, 2, IS_STRING, 0)
 	ZEND_ARG_TYPE_INFO(0, algo, IS_STRING, 0)
@@ -226,6 +226,36 @@ static void register_hash_symbols(int module_number)
 	zend_add_parameter_attribute(zend_hash_str_find_ptr(CG(function_table), "hash_equals", sizeof("hash_equals") - 1), 1, ZSTR_KNOWN(ZEND_STR_SENSITIVEPARAMETER), 0);
 
 	zend_add_parameter_attribute(zend_hash_str_find_ptr(CG(function_table), "hash_hkdf", sizeof("hash_hkdf") - 1), 1, ZSTR_KNOWN(ZEND_STR_SENSITIVEPARAMETER), 0);
+#if defined(PHP_MHASH_BC)
+
+	zend_string *attribute_name_Deprecated_func_mhash_get_block_size_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "mhash_get_block_size", sizeof("mhash_get_block_size") - 1), attribute_name_Deprecated_func_mhash_get_block_size_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_mhash_get_block_size_0);
+#endif
+#if defined(PHP_MHASH_BC)
+
+	zend_string *attribute_name_Deprecated_func_mhash_get_hash_name_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "mhash_get_hash_name", sizeof("mhash_get_hash_name") - 1), attribute_name_Deprecated_func_mhash_get_hash_name_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_mhash_get_hash_name_0);
+#endif
+#if defined(PHP_MHASH_BC)
+
+	zend_string *attribute_name_Deprecated_func_mhash_keygen_s2k_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "mhash_keygen_s2k", sizeof("mhash_keygen_s2k") - 1), attribute_name_Deprecated_func_mhash_keygen_s2k_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_mhash_keygen_s2k_0);
+#endif
+#if defined(PHP_MHASH_BC)
+
+	zend_string *attribute_name_Deprecated_func_mhash_count_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "mhash_count", sizeof("mhash_count") - 1), attribute_name_Deprecated_func_mhash_count_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_mhash_count_0);
+#endif
+#if defined(PHP_MHASH_BC)
+
+	zend_string *attribute_name_Deprecated_func_mhash_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "mhash", sizeof("mhash") - 1), attribute_name_Deprecated_func_mhash_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_mhash_0);
+#endif
 }
 
 static zend_class_entry *register_class_HashContext(void)

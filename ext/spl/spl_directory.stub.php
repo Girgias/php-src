@@ -98,9 +98,9 @@ class SplFileInfo implements Stringable
     public function __debugInfo(): array {}
 
     /**
-     * @deprecated
      * @tentative-return-type
      */
+    #[\Deprecated]
     final public function _bad_state_ex(): void {}
 }
 

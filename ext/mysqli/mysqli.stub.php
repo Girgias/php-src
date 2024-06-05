@@ -826,8 +826,8 @@ class mysqli
     /**
      * @tentative-return-type
      * @alias mysqli_get_client_info
-     * @deprecated 8.1.0
      */
+    #[\Deprecated(since: '8.1')]
     public function get_client_info(): string {}
 
     /**
@@ -850,9 +850,9 @@ class mysqli
     public function get_warnings(): mysqli_warning|false {}
 
     /**
-     * @deprecated
      * @return bool|null
      * */
+    #[\Deprecated]
     public function init() {}
 
     /**

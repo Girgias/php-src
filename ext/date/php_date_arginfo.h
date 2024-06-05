@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: c4d04a19ff61ab112d598d994b4c3ad499c2ba9f */
+ * Stub hash: 801aeff2781c79ffa8363a07125e7b3710779565 */
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_strtotime, 0, 1, MAY_BE_LONG|MAY_BE_FALSE)
 	ZEND_ARG_TYPE_INFO(0, datetime, IS_STRING, 0)
@@ -847,6 +847,23 @@ static void register_php_date_symbols(int module_number)
 	REGISTER_LONG_CONSTANT("SUNFUNCS_RET_TIMESTAMP", SUNFUNCS_RET_TIMESTAMP, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SUNFUNCS_RET_STRING", SUNFUNCS_RET_STRING, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SUNFUNCS_RET_DOUBLE", SUNFUNCS_RET_DOUBLE, CONST_PERSISTENT);
+
+
+	zend_string *attribute_name_Deprecated_func_strftime_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "strftime", sizeof("strftime") - 1), attribute_name_Deprecated_func_strftime_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_strftime_0);
+
+	zend_string *attribute_name_Deprecated_func_gmstrftime_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "gmstrftime", sizeof("gmstrftime") - 1), attribute_name_Deprecated_func_gmstrftime_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_gmstrftime_0);
+
+	zend_string *attribute_name_Deprecated_func_date_sunrise_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "date_sunrise", sizeof("date_sunrise") - 1), attribute_name_Deprecated_func_date_sunrise_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_date_sunrise_0);
+
+	zend_string *attribute_name_Deprecated_func_date_sunset_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "date_sunset", sizeof("date_sunset") - 1), attribute_name_Deprecated_func_date_sunset_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_date_sunset_0);
 }
 
 static zend_class_entry *register_class_DateTimeInterface(void)

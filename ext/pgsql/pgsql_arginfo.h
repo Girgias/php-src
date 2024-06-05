@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 4a2a5778003aa741952e16617e5bdb2ad06e6e16 */
+ * Stub hash: 1c003bb4f816cc5a7565a74b4d9ff505c49d6743 */
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_TYPE_MASK_EX(arginfo_pg_connect, 0, 1, PgSql\\Connection, MAY_BE_FALSE)
 	ZEND_ARG_TYPE_INFO(0, connection_string, IS_STRING, 0)
@@ -842,6 +842,102 @@ static void register_pgsql_symbols(int module_number)
 	REGISTER_LONG_CONSTANT("PGSQL_SHOW_CONTEXT_ALWAYS", PQSHOW_CONTEXT_ALWAYS, CONST_PERSISTENT);
 #endif
 
+
+	zend_string *attribute_name_Deprecated_func_pg_errormessage_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_errormessage", sizeof("pg_errormessage") - 1), attribute_name_Deprecated_func_pg_errormessage_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_pg_errormessage_0);
+
+	zend_string *attribute_name_Deprecated_func_pg_numrows_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_numrows", sizeof("pg_numrows") - 1), attribute_name_Deprecated_func_pg_numrows_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_pg_numrows_0);
+
+	zend_string *attribute_name_Deprecated_func_pg_numfields_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_numfields", sizeof("pg_numfields") - 1), attribute_name_Deprecated_func_pg_numfields_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_pg_numfields_0);
+
+	zend_string *attribute_name_Deprecated_func_pg_cmdtuples_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_cmdtuples", sizeof("pg_cmdtuples") - 1), attribute_name_Deprecated_func_pg_cmdtuples_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_pg_cmdtuples_0);
+
+	zend_string *attribute_name_Deprecated_func_pg_fieldname_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_fieldname", sizeof("pg_fieldname") - 1), attribute_name_Deprecated_func_pg_fieldname_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_pg_fieldname_0);
+
+	zend_string *attribute_name_Deprecated_func_pg_fieldsize_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_fieldsize", sizeof("pg_fieldsize") - 1), attribute_name_Deprecated_func_pg_fieldsize_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_pg_fieldsize_0);
+
+	zend_string *attribute_name_Deprecated_func_pg_fieldtype_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_fieldtype", sizeof("pg_fieldtype") - 1), attribute_name_Deprecated_func_pg_fieldtype_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_pg_fieldtype_0);
+
+	zend_string *attribute_name_Deprecated_func_pg_fieldnum_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_fieldnum", sizeof("pg_fieldnum") - 1), attribute_name_Deprecated_func_pg_fieldnum_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_pg_fieldnum_0);
+
+	zend_string *attribute_name_Deprecated_func_pg_result_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_result", sizeof("pg_result") - 1), attribute_name_Deprecated_func_pg_result_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_pg_result_0);
+
+	zend_string *attribute_name_Deprecated_func_pg_fieldprtlen_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_fieldprtlen", sizeof("pg_fieldprtlen") - 1), attribute_name_Deprecated_func_pg_fieldprtlen_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_pg_fieldprtlen_0);
+
+	zend_string *attribute_name_Deprecated_func_pg_fieldisnull_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_fieldisnull", sizeof("pg_fieldisnull") - 1), attribute_name_Deprecated_func_pg_fieldisnull_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_pg_fieldisnull_0);
+
+	zend_string *attribute_name_Deprecated_func_pg_freeresult_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_freeresult", sizeof("pg_freeresult") - 1), attribute_name_Deprecated_func_pg_freeresult_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_pg_freeresult_0);
+
+	zend_string *attribute_name_Deprecated_func_pg_getlastoid_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_getlastoid", sizeof("pg_getlastoid") - 1), attribute_name_Deprecated_func_pg_getlastoid_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_pg_getlastoid_0);
+
+	zend_string *attribute_name_Deprecated_func_pg_locreate_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_locreate", sizeof("pg_locreate") - 1), attribute_name_Deprecated_func_pg_locreate_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_pg_locreate_0);
+
+	zend_string *attribute_name_Deprecated_func_pg_lounlink_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_lounlink", sizeof("pg_lounlink") - 1), attribute_name_Deprecated_func_pg_lounlink_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_pg_lounlink_0);
+
+	zend_string *attribute_name_Deprecated_func_pg_loopen_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_loopen", sizeof("pg_loopen") - 1), attribute_name_Deprecated_func_pg_loopen_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_pg_loopen_0);
+
+	zend_string *attribute_name_Deprecated_func_pg_loclose_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_loclose", sizeof("pg_loclose") - 1), attribute_name_Deprecated_func_pg_loclose_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_pg_loclose_0);
+
+	zend_string *attribute_name_Deprecated_func_pg_loread_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_loread", sizeof("pg_loread") - 1), attribute_name_Deprecated_func_pg_loread_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_pg_loread_0);
+
+	zend_string *attribute_name_Deprecated_func_pg_lowrite_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_lowrite", sizeof("pg_lowrite") - 1), attribute_name_Deprecated_func_pg_lowrite_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_pg_lowrite_0);
+
+	zend_string *attribute_name_Deprecated_func_pg_loreadall_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_loreadall", sizeof("pg_loreadall") - 1), attribute_name_Deprecated_func_pg_loreadall_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_pg_loreadall_0);
+
+	zend_string *attribute_name_Deprecated_func_pg_loimport_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_loimport", sizeof("pg_loimport") - 1), attribute_name_Deprecated_func_pg_loimport_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_pg_loimport_0);
+
+	zend_string *attribute_name_Deprecated_func_pg_loexport_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_loexport", sizeof("pg_loexport") - 1), attribute_name_Deprecated_func_pg_loexport_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_pg_loexport_0);
+
+	zend_string *attribute_name_Deprecated_func_pg_setclientencoding_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_setclientencoding", sizeof("pg_setclientencoding") - 1), attribute_name_Deprecated_func_pg_setclientencoding_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_pg_setclientencoding_0);
+
+	zend_string *attribute_name_Deprecated_func_pg_clientencoding_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_clientencoding", sizeof("pg_clientencoding") - 1), attribute_name_Deprecated_func_pg_clientencoding_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_pg_clientencoding_0);
 
 	zend_add_parameter_attribute(zend_hash_str_find_ptr(CG(function_table), "pg_change_password", sizeof("pg_change_password") - 1), 2, ZSTR_KNOWN(ZEND_STR_SENSITIVEPARAMETER), 0);
 }

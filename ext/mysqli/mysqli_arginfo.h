@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 5cdfeec10f0f92e3e2f9d2df572b2681b208449d */
+ * Stub hash: d0c6b6fe35299d70b27f9aea5de74e2f8908b884 */
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_mysqli_affected_rows, 0, 1, MAY_BE_LONG|MAY_BE_STRING)
 	ZEND_ARG_OBJ_INFO(0, mysql, mysqli, 0)
@@ -1331,6 +1331,19 @@ static zend_class_entry *register_class_mysqli(void)
 	zend_add_parameter_attribute(zend_hash_str_find_ptr(&class_entry->function_table, "change_user", sizeof("change_user") - 1), 1, ZSTR_KNOWN(ZEND_STR_SENSITIVEPARAMETER), 0);
 
 	zend_add_parameter_attribute(zend_hash_str_find_ptr(&class_entry->function_table, "connect", sizeof("connect") - 1), 2, ZSTR_KNOWN(ZEND_STR_SENSITIVEPARAMETER), 0);
+
+	zend_string *attribute_name_Deprecated_func_get_client_info_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_attribute *attribute_Deprecated_func_get_client_info_0 = zend_add_function_attribute(zend_hash_str_find_ptr(&class_entry->function_table, "get_client_info", sizeof("get_client_info") - 1), attribute_name_Deprecated_func_get_client_info_0, 1);
+	zend_string_release(attribute_name_Deprecated_func_get_client_info_0);
+	zval attribute_Deprecated_func_get_client_info_0_arg0;
+	zend_string *attribute_Deprecated_func_get_client_info_0_arg0_str = zend_string_init("8.1", strlen("8.1"), 1);
+	ZVAL_STR(&attribute_Deprecated_func_get_client_info_0_arg0, attribute_Deprecated_func_get_client_info_0_arg0_str);
+	ZVAL_COPY_VALUE(&attribute_Deprecated_func_get_client_info_0->args[0].value, &attribute_Deprecated_func_get_client_info_0_arg0);
+	attribute_Deprecated_func_get_client_info_0->args[0].name = zend_string_init("since", sizeof("since") - 1, 1);
+
+	zend_string *attribute_name_Deprecated_func_init_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(&class_entry->function_table, "init", sizeof("init") - 1), attribute_name_Deprecated_func_init_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_init_0);
 
 	zend_add_parameter_attribute(zend_hash_str_find_ptr(&class_entry->function_table, "real_connect", sizeof("real_connect") - 1), 2, ZSTR_KNOWN(ZEND_STR_SENSITIVEPARAMETER), 0);
 

@@ -475,8 +475,8 @@ namespace {
 
     /**
      * @alias pg_last_error
-     * @deprecated
      */
+    #[\Deprecated]
     function pg_errormessage(?PgSql\Connection $connection = null): string {}
 
     /** @refcount 1 */
@@ -541,24 +541,24 @@ namespace {
 
     /**
      * @alias pg_num_rows
-     * @deprecated
      */
+    #[\Deprecated]
     function pg_numrows(PgSql\Result $result): int {}
 
     function pg_num_fields(PgSql\Result $result): int {}
 
     /**
      * @alias pg_num_fields
-     * @deprecated
      */
+    #[\Deprecated]
     function pg_numfields(PgSql\Result $result): int {}
 
     function pg_affected_rows(PgSql\Result $result): int {}
 
     /**
      * @alias pg_affected_rows
-     * @deprecated
      */
+    #[\Deprecated]
     function pg_cmdtuples(PgSql\Result $result): int {}
 
     function pg_last_notice(PgSql\Connection $connection, int $mode = PGSQL_NOTICE_LAST): array|string|bool {}
@@ -570,24 +570,24 @@ namespace {
 
     /**
      * @alias pg_field_name
-     * @deprecated
      */
+    #[\Deprecated]
     function pg_fieldname(PgSql\Result $result, int $field): string {}
 
     function pg_field_size(PgSql\Result $result, int $field): int {}
 
     /**
      * @alias pg_field_size
-     * @deprecated
      */
+    #[\Deprecated]
     function pg_fieldsize(PgSql\Result $result, int $field): int {}
 
     function pg_field_type(PgSql\Result $result, int $field): string {}
 
     /**
      * @alias pg_field_type
-     * @deprecated
      */
+    #[\Deprecated]
     function pg_fieldtype(PgSql\Result $result, int $field): string {}
 
     /** @refcount 1 */
@@ -597,8 +597,8 @@ namespace {
 
     /**
      * @alias pg_field_num
-     * @deprecated
      */
+    #[\Deprecated]
     function pg_fieldnum(PgSql\Result $result, string $field): int {}
 
     /**
@@ -610,8 +610,8 @@ namespace {
     /**
      * @param string|int $row
      * @alias pg_fetch_result
-     * @deprecated
      */
+    #[\Deprecated]
     function pg_result(PgSql\Result $result, $row, string|int $field = UNKNOWN): string|false|null {}
 
     /**
@@ -654,8 +654,8 @@ namespace {
 
     /**
      * @param string|int $row
-     * @deprecated
      */
+    #[\Deprecated]
     function pg_fieldprtlen(PgSql\Result $result, $row, string|int $field = UNKNOWN): int|false {}
 
     /** @param string|int|null $row */
@@ -663,16 +663,16 @@ namespace {
 
     /**
      * @param string|int $row
-     * @deprecated
      */
+    #[\Deprecated]
     function pg_fieldisnull(PgSql\Result $result, $row, string|int $field = UNKNOWN): int|false {}
 
     function pg_free_result(PgSql\Result $result): bool {}
 
     /**
      * @alias pg_free_result
-     * @deprecated
      */
+    #[\Deprecated]
     function pg_freeresult(PgSql\Result $result): bool {}
 
     /** @refcount 1 */
@@ -680,8 +680,8 @@ namespace {
 
     /**
      * @alias pg_last_oid
-     * @deprecated
      */
+    #[\Deprecated]
     function pg_getlastoid(PgSql\Result $result): string|int|false {}
 
     function pg_trace(string $filename, string $mode = "w", ?PgSql\Connection $connection = null, int $trace_mode = 0): bool {}
@@ -699,8 +699,8 @@ namespace {
      * @param PgSql\Connection $connection
      * @param string|int $oid
      * @alias pg_lo_create
-     * @deprecated
      */
+    #[\Deprecated]
     function pg_locreate($connection = UNKNOWN, $oid = UNKNOWN): string|int|false {}
 
     /**
@@ -713,8 +713,8 @@ namespace {
      * @param PgSql\Connection $connection
      * @param string|int $oid
      * @alias pg_lo_unlink
-     * @deprecated
      */
+    #[\Deprecated]
     function pg_lounlink($connection, $oid = UNKNOWN): bool {}
 
     /**
@@ -728,16 +728,16 @@ namespace {
      * @param PgSql\Connection $connection
      * @param string|int $oid
      * @alias pg_lo_open
-     * @deprecated
      */
+    #[\Deprecated]
     function pg_loopen($connection, $oid = UNKNOWN, string $mode = UNKNOWN): PgSql\Lob|false {}
 
     function pg_lo_close(PgSql\Lob $lob): bool {}
 
     /**
      * @alias pg_lo_close
-     * @deprecated
      */
+    #[\Deprecated]
     function pg_loclose(PgSql\Lob $lob): bool {}
 
     /** @refcount 1 */
@@ -745,24 +745,24 @@ namespace {
 
     /**
      * @alias pg_lo_read
-     * @deprecated
      */
+    #[\Deprecated]
     function pg_loread(PgSql\Lob $lob, int $length = 8192): string|false {}
 
     function pg_lo_write(PgSql\Lob $lob, string $data, ?int $length = null): int|false {}
 
     /**
      * @alias pg_lo_write
-     * @deprecated
      */
+    #[\Deprecated]
     function pg_lowrite(PgSql\Lob $lob, string $data, ?int $length = null): int|false {}
 
     function pg_lo_read_all(PgSql\Lob $lob): int {}
 
     /**
      * @alias pg_lo_read_all
-     * @deprecated
      */
+    #[\Deprecated]
     function pg_loreadall(PgSql\Lob $lob): int {}
 
     /**
@@ -778,8 +778,8 @@ namespace {
      * @param string|int $filename
      * @param string|int $oid
      * @alias pg_lo_import
-     * @deprecated
      */
+    #[\Deprecated]
     function pg_loimport($connection, $filename = UNKNOWN, $oid = UNKNOWN): string|int|false {}
 
     /**
@@ -794,8 +794,8 @@ namespace {
      * @param string|int $oid
      * @param string|int $filename
      * @alias pg_lo_export
-     * @deprecated
      */
+    #[\Deprecated]
     function pg_loexport($connection, $oid = UNKNOWN, $filename = UNKNOWN): bool {}
 
     function pg_lo_seek(PgSql\Lob $lob, int $offset, int $whence = SEEK_CUR): bool {}
@@ -813,16 +813,16 @@ namespace {
     /**
      * @param PgSql\Connection|string $connection
      * @alias pg_set_client_encoding
-     * @deprecated
      */
+    #[\Deprecated]
     function pg_setclientencoding($connection, string $encoding = UNKNOWN): int {}
 
     function pg_client_encoding(?PgSql\Connection $connection = null): string {}
 
     /**
      * @alias pg_client_encoding
-     * @deprecated
      */
+    #[\Deprecated]
     function pg_clientencoding(?PgSql\Connection $connection = null): string {}
 
     function pg_end_copy(?PgSql\Connection $connection = null): bool {}

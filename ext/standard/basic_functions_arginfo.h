@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 7d588414e84ed62088cd5b1c668b29c0e51d406f */
+ * Stub hash: 3f7e3d4ae896ea2a07dfcc069d1b90e971d98995 */
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_set_time_limit, 0, 1, _IS_BOOL, 0)
 	ZEND_ARG_TYPE_INFO(0, seconds, IS_LONG, 0)
@@ -4122,6 +4122,24 @@ static void register_basic_functions_symbols(int module_number)
 
 
 	zend_add_parameter_attribute(zend_hash_str_find_ptr(CG(function_table), "crypt", sizeof("crypt") - 1), 0, ZSTR_KNOWN(ZEND_STR_SENSITIVEPARAMETER), 0);
+#if defined(HAVE_STRPTIME)
+
+	zend_string *attribute_name_Deprecated_func_strptime_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "strptime", sizeof("strptime") - 1), attribute_name_Deprecated_func_strptime_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_strptime_0);
+#endif
+
+	zend_string *attribute_name_Deprecated_func_assert_options_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "assert_options", sizeof("assert_options") - 1), attribute_name_Deprecated_func_assert_options_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_assert_options_0);
+
+	zend_string *attribute_name_Deprecated_func_utf8_encode_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "utf8_encode", sizeof("utf8_encode") - 1), attribute_name_Deprecated_func_utf8_encode_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_utf8_encode_0);
+
+	zend_string *attribute_name_Deprecated_func_utf8_decode_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
+	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "utf8_decode", sizeof("utf8_decode") - 1), attribute_name_Deprecated_func_utf8_decode_0, 0);
+	zend_string_release(attribute_name_Deprecated_func_utf8_decode_0);
 
 	zend_add_parameter_attribute(zend_hash_str_find_ptr(CG(function_table), "password_hash", sizeof("password_hash") - 1), 0, ZSTR_KNOWN(ZEND_STR_SENSITIVEPARAMETER), 0);
 

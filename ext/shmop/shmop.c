@@ -24,6 +24,8 @@
 #include "php.h"
 #include "php_ini.h"
 #include "php_shmop.h"
+#include "Zend/zend_attributes.h"
+
 #include "shmop_arginfo.h"
 
 # ifndef PHP_WIN32
@@ -116,6 +118,8 @@ PHP_MINIT_FUNCTION(shmop)
 	shmop_object_handlers.get_constructor = shmop_get_constructor;
 	shmop_object_handlers.clone_obj = NULL;
 	shmop_object_handlers.compare = zend_objects_not_comparable;
+
+	register_shmop_symbols(module_number);
 
 	return SUCCESS;
 }
