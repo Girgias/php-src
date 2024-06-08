@@ -419,6 +419,7 @@ ZEND_API void destroy_zend_class(zval *zv)
 			if (ce->num_interfaces > 0 && (ce->ce_flags & ZEND_ACC_RESOLVED_INTERFACES)) {
 				efree(ce->interfaces);
 			}
+			/* Do not free ce->dimension_handlers as it is allocated on the arena */
 			if (ce->backed_enum_table) {
 				zend_hash_release(ce->backed_enum_table);
 			}
@@ -509,8 +510,8 @@ ZEND_API void destroy_zend_class(zval *zv)
 			}
 			if (ce->arrayaccess_funcs_ptr) {
 				free(ce->arrayaccess_funcs_ptr);
-			}
-			if (ce->dimension_handlers) {
+				// TODO This is a temporary solution
+				ZEND_ASSERT(ce->dimension_handlers);
 				free(ce->dimension_handlers);
 			}
 			if (ce->num_interfaces > 0) {
