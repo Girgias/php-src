@@ -8136,7 +8136,7 @@ static void zend_compile_class_const_decl(zend_ast *ast, uint32_t flags, zend_as
 			zend_attribute *deprecated = zend_get_attribute_str(c->attributes, "deprecated", sizeof("deprecated")-1);
 
 			if (deprecated) {
-				ZEND_CLASS_CONST_FLAGS(c) = ZEND_CLASS_CONST_FLAGS(c) | ZEND_ACC_DEPRECATED;
+				ZEND_CLASS_CONST_FLAGS(c) |= ZEND_ACC_DEPRECATED;
 			}
 		}
 	}
@@ -8571,7 +8571,7 @@ static void zend_compile_enum_case(zend_ast *ast)
 		zend_attribute *deprecated = zend_get_attribute_str(c->attributes, "deprecated", sizeof("deprecated")-1);
 
 		if (deprecated) {
-			ZEND_CLASS_CONST_FLAGS(c) = ZEND_CLASS_CONST_FLAGS(c) | ZEND_ACC_DEPRECATED;
+			ZEND_CLASS_CONST_FLAGS(c) |= ZEND_ACC_DEPRECATED;
 		}
 	}
 }
