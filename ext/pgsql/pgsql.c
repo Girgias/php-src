@@ -30,7 +30,7 @@
 
 #include "php.h"
 #include "php_ini.h"
-#include "ext/standard/php_standard.h"
+#include "ext/standard/info.h"
 #include "zend_smart_str.h"
 #include "ext/pcre/php_pcre.h"
 #ifdef PHP_WIN32
@@ -116,7 +116,7 @@ char pgsql_libpq_version[16];
 #define PQfreemem free
 #endif
 
-#if PG_VERSION_NUM < 120000
+#ifndef HAVE_PQERRORS_SQLSTATE
 #define PQERRORS_SQLSTATE 0
 #endif
 

@@ -20,11 +20,11 @@
 #ifndef PHP_SOCKETS_H
 #define PHP_SOCKETS_H
 
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 # include "config.h"
 #endif
 
-#if HAVE_SOCKETS
+#ifdef HAVE_SOCKETS
 
 #include <php.h>
 #ifdef PHP_WIN32

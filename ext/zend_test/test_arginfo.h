@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 27b4a6d55c67bf91112c158d8b7d3ca7c3735617 */
+ * Stub hash: e9bcf9aff800a12e9d731df3a08e6fdf3e6ea449 */
 
 ZEND_STATIC_ASSERT(PHP_VERSION_ID >= 80000, "test_arginfo.h only supports PHP version ID 80000 or newer, "
 	"but it is included on an older PHP version");
@@ -100,6 +100,11 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_zend_call_method, 0, 2, IS_MIXED
 	ZEND_ARG_TYPE_INFO(0, method, IS_STRING, 0)
 	ZEND_ARG_TYPE_INFO(0, arg1, IS_MIXED, 0)
 	ZEND_ARG_TYPE_INFO(0, arg2, IS_MIXED, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_zend_object_init_with_constructor, 0, 1, IS_MIXED, 0)
+	ZEND_ARG_TYPE_INFO(0, class, IS_STRING, 0)
+	ZEND_ARG_VARIADIC_TYPE_INFO(0, args, IS_MIXED, 0)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_zend_test_zend_ini_parse_quantity, 0, 1, IS_LONG, 0)
@@ -258,6 +263,7 @@ static ZEND_FUNCTION(zend_get_unit_enum);
 static ZEND_FUNCTION(zend_test_parameter_with_attribute);
 static ZEND_FUNCTION(zend_get_current_func_name);
 static ZEND_FUNCTION(zend_call_method);
+static ZEND_FUNCTION(zend_object_init_with_constructor);
 static ZEND_FUNCTION(zend_test_zend_ini_parse_quantity);
 static ZEND_FUNCTION(zend_test_zend_ini_parse_uquantity);
 static ZEND_FUNCTION(zend_test_zend_ini_str);
@@ -358,6 +364,7 @@ static const zend_function_entry ext_functions[] = {
 	ZEND_FE(zend_test_parameter_with_attribute, arginfo_zend_test_parameter_with_attribute)
 	ZEND_FE(zend_get_current_func_name, arginfo_zend_get_current_func_name)
 	ZEND_FE(zend_call_method, arginfo_zend_call_method)
+	ZEND_FE(zend_object_init_with_constructor, arginfo_zend_object_init_with_constructor)
 	ZEND_FE(zend_test_zend_ini_parse_quantity, arginfo_zend_test_zend_ini_parse_quantity)
 	ZEND_FE(zend_test_zend_ini_parse_uquantity, arginfo_zend_test_zend_ini_parse_uquantity)
 	ZEND_FE(zend_test_zend_ini_str, arginfo_zend_test_zend_ini_str)

@@ -21,7 +21,6 @@
 #endif
 
 #include "php.h"
-#include "php_globals.h"
 #include "ext/standard/info.h"
 #include "main/php_output.h"
 #include "SAPI.h"
@@ -58,7 +57,7 @@
 
 #ifdef PHP_ICONV_IMPL
 #define PHP_ICONV_IMPL_VALUE PHP_ICONV_IMPL
-#elif HAVE_LIBICONV
+#elif defined(HAVE_LIBICONV)
 #define PHP_ICONV_IMPL_VALUE "libiconv"
 #else
 #define PHP_ICONV_IMPL_VALUE "unknown"

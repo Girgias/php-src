@@ -86,9 +86,11 @@ PHP 8.4 UPGRADE NOTES
     JIT, set the opcache.jit config value accordingly.
   . The maximum value of the opcache.interned_strings_buffer setting on 64bit
     architectures is now 32767 (it was previously 4095).
+  . If JIT is enabled, PHP will now exit with a fatal error on startup in case
+    of JIT startup initialization issues.
 
 - PCRE:
-  . The bundled pcre2lib has been updated to version 10.43.
+  . The bundled pcre2lib has been updated to version 10.44.
     As a consequence, this means {,3} is now recognized as a quantifier instead
     of as text. Furthermore, the meaning of some character classes in UCP mode
     has changed. Consult https://github.com/PCRE2Project/pcre2/blob/master/NEWS
@@ -241,10 +243,12 @@ PHP 8.4 UPGRADE NOTES
   . Added support for the unix timestamp extension for zip archives.
 
 - PCRE:
-  . The bundled pcre2lib has been updated to version 10.43.
+  . The bundled pcre2lib has been updated to version 10.44.
     As a consequence, LoongArch JIT support has been added, spaces
     are now allowed between braces in Perl-compatible items, and
     variable-length lookbehind assertions are now supported.
+  . With pcre2lib version 10.44, the maximum length of named capture groups
+    has changed from 32 to 128.
   . Added support for the "r" (PCRE2_EXTRA_CASELESS_RESTRICT) modifier, as well
     as the (?r) mode modifier. When enabled along with the case-insensitive
     modifier ("i"), the expression locks out mixing of ASCII and non-ASCII
@@ -259,22 +263,22 @@ PHP 8.4 UPGRADE NOTES
     or by invoking their constructor directly.
 
 - PDO_DBLIB:
-  . Added class PdoDbLib.
+  . Added class Pdo\DbLib.
 
 - PDO_FIREBIRD:
-  . Added class PdoFirebird.
+  . Added class Pdo\Firebird.
 
 - PDO_MYSQL:
-  . Added class PdoMysql.
+  . Added class Pdo\Mysql.
 
 - PDO_ODBC:
-  . Added class PdoOdbc.
+  . Added class Pdo\Odbc.
 
 - PDO_PGSQL:
-  . Added class PdoPgsql.
+  . Added class Pdo\Pgsql.
 
 - PDO_SQLITE:
-  . Added class PdoSqlite.
+  . Added class Pdo\Sqlite.
 
 - POSIX:
   . Added constant POSIX_SC_CHILD_MAX
@@ -383,6 +387,11 @@ PHP 8.4 UPGRADE NOTES
   . DOMDocument::registerNodeClass() now has a tentative return type of true.
     Previously, the return type was bool but only true could be returned in practice.
 
+- GD:
+  . imagejpeg/imagewebp/imagepng/imageavif throws an exception if an invalid
+    quality parameter value is passed. In addition, imageavif will throw an exception
+    if an invalid speed parameter value is passed.
+
 - Gettext:
   . bind_textdomain_codeset, textdomain and d(*)gettext functions now throw an exception
     if the domain argument is empty.
@@ -417,6 +426,9 @@ PHP 8.4 UPGRADE NOTES
     a single entry.
   . New serial_hex parameter added to openssl_csr_sign to allow setting serial
     number in the hexadecimal format.
+  . Parsing ASN.1 UTCTime by openssl_x509_parse fails if seconds are omitted
+    for OpenSSL version below 3.2 (-1 is returned for such fields). The
+    OpenSSL version 3.3+ does not load such certificates already.
 
 - ODBC:
   . Parameter $row of odbc_fetch_object(), odbc_fetch_array(), and
@@ -527,10 +539,6 @@ PHP 8.4 UPGRADE NOTES
   . Added mb_ucfirst and mb_lcfirst functions.
     RFC: https://wiki.php.net/rfc/mb_ucfirst
 
-- Opcache:
-  . If JIT is enabled, PHP will now exit with a fatal error on startup in case
-    of JIT startup initialization issues.
-
 - PCNTL:
   . Added pcntl_setns allowing a process to be reassociated with a namespace in order
     to share resources with other processes within this context.
@@ -541,7 +549,7 @@ PHP 8.4 UPGRADE NOTES
     energy consumption) of the current process and pcntl_setqos_class to set it.
 
 - PDO_PGSQL:
-  . Added PDO::pgsqlSetNoticeCallback to allow a callback to be triggered on
+  . Added Pdo\Pgsql::setNoticeCallback() to allow a callback to be triggered on
     every notice sent (e.g. RAISE NOTICE).
 
 - PGSQL:
