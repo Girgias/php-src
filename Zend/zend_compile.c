@@ -7813,7 +7813,6 @@ static void zend_compile_func_decl(znode *result, zend_ast *ast, bool toplevel) 
 	zend_ast *return_type_ast = decl->child[3];
 	bool is_method = decl->kind == ZEND_AST_METHOD;
 	zend_string *lcname;
-	zend_attribute *deprecated;
 
 	zend_class_entry *orig_class_entry = CG(active_class_entry);
 	zend_op_array *orig_op_array = CG(active_op_array);
@@ -7873,6 +7872,16 @@ static void zend_compile_func_decl(znode *result, zend_ast *ast, bool toplevel) 
 		if (override_attribute) {
 			op_array->fn_flags |= ZEND_ACC_OVERRIDE;
 		}
+
+		zend_attribute *deprecated_attribute = zend_get_attribute_str(
+			op_array->attributes,
+			"deprecated",
+			sizeof("deprecated")-1
+		);
+
+		if (deprecated_attribute && stmt_ast != NULL) {
+			op_array->fn_flags |= ZEND_ACC_DEPRECATED;
+		}
 	}
 
 	/* Do not leak the class scope into free standing functions, even if they are dynamically
@@ -7907,12 +7916,6 @@ static void zend_compile_func_decl(znode *result, zend_ast *ast, bool toplevel) 
 		zend_hash_destroy(&info.uses);
 	} else if (uses_ast) {
 		zend_compile_closure_uses(uses_ast);
-	}
-
-	deprecated = zend_get_attribute_str(op_array->attributes, "deprecated", sizeof("deprecated")-1);
-
-	if (deprecated && stmt_ast != NULL) {
-		op_array->fn_flags |= ZEND_ACC_DEPRECATED;
 	}
 
 	if (ast->kind == ZEND_AST_ARROW_FUNC && decl->child[2]->kind != ZEND_AST_RETURN) {
