@@ -1717,22 +1717,22 @@ static zend_never_inline void zend_binary_assign_op_obj_dim(zend_object *obj, zv
 
 				zval zref;
 				zend_fetch_object_dimension_address(&zref, obj, NULL, 0, BP_VAR_W EXECUTE_DATA_CC);
-				ZEND_ASSERT(Z_ISREF(zref) || Z_TYPE(zref) == IS_INDIRECT);
+				ZEND_ASSERT((Z_ISREF(zref) || Z_TYPE(zref) == IS_INDIRECT) && "zend_fetch_object_dimension_address did not return REF/INDIRECT");
 
 				zval *var_ptr;
 				if (Z_ISREF(zref)) {
 					zend_reference *ref = Z_REF(zref);
 					var_ptr = Z_REFVAL(zref);
 					if (UNEXPECTED(ZEND_REF_HAS_TYPE_SOURCES(ref))) {
-						zval_ptr_dtor(&zref);
 						zend_binary_assign_op_typed_ref(ref, value OPLINE_CC EXECUTE_DATA_CC);
 						if (UNEXPECTED(RETURN_VALUE_USED(opline))) {
 							ZVAL_NULL(EX_VAR(opline->result.var));
 						}
+						Z_TRY_DELREF(zref);
 						goto clean_up;
 					}
+					Z_TRY_DELREF(zref);
 					zend_result status = zend_binary_op(var_ptr, var_ptr, value OPLINE_CC);
-					zval_ptr_dtor(&zref);
 					if (UNEXPECTED(RETURN_VALUE_USED(opline))) {
 						if (UNEXPECTED(status == FAILURE)) {
 							ZVAL_NULL(EX_VAR(opline->result.var));
@@ -2870,13 +2870,13 @@ static zend_never_inline void zend_fetch_object_dimension_address(zval *result, 
 			ZVAL_UNDEF(result);
 			goto clean_up;
 		}
-		/* This is a legacy behaviour to support ArrayAccess */
-		if (UNEXPECTED(Z_TYPE_P(retval) == IS_OBJECT)) {
-			if (result != retval) {
-				ZVAL_INDIRECT(result, retval);
-			}
-			goto clean_up;
-		}
+		///* This is a legacy behaviour to support ArrayAccess */
+		//if (UNEXPECTED(Z_TYPE_P(retval) == IS_OBJECT)) {
+		//	if (result != retval) {
+		//		ZVAL_INDIRECT(result, retval);
+		//	}
+		//	goto clean_up;
+		//}
 		if (
 			!Z_ISREF_P(retval)
 			/* Support indirect for:
