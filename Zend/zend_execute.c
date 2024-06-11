@@ -1717,60 +1717,39 @@ static zend_never_inline void zend_binary_assign_op_obj_dim(zend_object *obj, zv
 
 				zval zref;
 				zend_fetch_object_dimension_address(&zref, obj, NULL, 0, BP_VAR_W EXECUTE_DATA_CC);
+				ZEND_ASSERT(Z_ISREF(zref) || Z_TYPE(zref) == IS_INDIRECT);
 
-				switch (Z_TYPE(zref)) {
-					case IS_REFERENCE: {
-						zend_reference *ref = Z_REF(zref);
-						zval *var_ptr = Z_REFVAL(zref);
-						if (UNEXPECTED(ZEND_REF_HAS_TYPE_SOURCES(ref))) {
-							zend_binary_assign_op_typed_ref(ref, value OPLINE_CC EXECUTE_DATA_CC);
-							if (UNEXPECTED(RETURN_VALUE_USED(opline))) {
-								ZVAL_NULL(EX_VAR(opline->result.var));
-							}
-							goto clean_up;
-						}
-						zend_result status = zend_binary_op(var_ptr, var_ptr, value OPLINE_CC);
-						if (UNEXPECTED(status == FAILURE)) {
-							if (UNEXPECTED(RETURN_VALUE_USED(opline))) {
-								ZVAL_NULL(EX_VAR(opline->result.var));
-							}
-							goto clean_up;
-						}
-
+				zval *var_ptr;
+				if (Z_ISREF(zref)) {
+					zend_reference *ref = Z_REF(zref);
+					var_ptr = Z_REFVAL(zref);
+					if (UNEXPECTED(ZEND_REF_HAS_TYPE_SOURCES(ref))) {
+						zval_ptr_dtor(&zref);
+						zend_binary_assign_op_typed_ref(ref, value OPLINE_CC EXECUTE_DATA_CC);
 						if (UNEXPECTED(RETURN_VALUE_USED(opline))) {
+							ZVAL_NULL(EX_VAR(opline->result.var));
+						}
+						goto clean_up;
+					}
+					zend_result status = zend_binary_op(var_ptr, var_ptr, value OPLINE_CC);
+					zval_ptr_dtor(&zref);
+					if (UNEXPECTED(RETURN_VALUE_USED(opline))) {
+						if (UNEXPECTED(status == FAILURE)) {
+							ZVAL_NULL(EX_VAR(opline->result.var));
+						} else {
 							ZVAL_COPY(EX_VAR(opline->result.var), var_ptr);
 						}
-						zval_ptr_dtor(&zref);
-						break;
 					}
-					case IS_OBJECT: {
-						//zend_result status = Z_OBJ_HT_P(&zref)->do_operation(opline->extended_value, &zref, &zref, value);
-						zval *var_ptr = &zref;
-						zend_result status = zend_binary_op(var_ptr, var_ptr, value OPLINE_CC);
+				} else {
+					var_ptr = Z_INDIRECT_P(&zref);
+					zend_result status = zend_binary_op(var_ptr, var_ptr, value OPLINE_CC);
+					if (UNEXPECTED(RETURN_VALUE_USED(opline))) {
 						if (UNEXPECTED(status == FAILURE)) {
-							if (UNEXPECTED(RETURN_VALUE_USED(opline))) {
-								ZVAL_NULL(EX_VAR(opline->result.var));
-							}
-							goto clean_up;
+							ZVAL_NULL(EX_VAR(opline->result.var));
+						} else {
+							ZVAL_COPY(EX_VAR(opline->result.var), var_ptr);
 						}
-						if (UNEXPECTED(RETURN_VALUE_USED(opline))) {
-							ZVAL_COPY(EX_VAR(opline->result.var), &zref);
-						}
-						break;
 					}
-					case IS_INDIRECT: {
-						zval *var_ptr = Z_INDIRECT_P(&zref);
-						zend_result status = zend_binary_op(var_ptr, var_ptr, value OPLINE_CC);
-						if (UNEXPECTED(RETURN_VALUE_USED(opline))) {
-							if (UNEXPECTED(status == FAILURE)) {
-								ZVAL_NULL(EX_VAR(opline->result.var));
-							} else {
-								ZVAL_COPY(EX_VAR(opline->result.var), var_ptr);
-							}
-						}
-						break;
-					}
-					EMPTY_SWITCH_DEFAULT_CASE();
 				}
 			} else {
 				zend_invalid_use_of_object_as_array(obj, /* has_offset */ false, BP_VAR_FETCH);
@@ -2891,9 +2870,15 @@ static zend_never_inline void zend_fetch_object_dimension_address(zval *result, 
 			ZVAL_UNDEF(result);
 			goto clean_up;
 		}
+		/* This is a legacy behaviour to support ArrayAccess */
+		if (UNEXPECTED(Z_TYPE_P(retval) == IS_OBJECT)) {
+			if (result != retval) {
+				ZVAL_INDIRECT(result, retval);
+			}
+			goto clean_up;
+		}
 		if (
 			!Z_ISREF_P(retval)
-			&& Z_TYPE_P(retval) != IS_OBJECT
 			/* Support indirect for:
 			 * $ao[$i] = &$var;
 			 * and
@@ -2906,12 +2891,6 @@ static zend_never_inline void zend_fetch_object_dimension_address(zval *result, 
 				ZSTR_VAL(ce->name), offset ? "offsetFetch" : "fetchAppend");
 			ZVAL_UNDEF(result);
 			goto clean_up;
-		}
-		if (Z_ISREF_P(retval)) {
-			if (Z_TYPE_P(Z_REFVAL_P(retval)) == IS_OBJECT) {
-				/* We need to seperate objects returned by reference */
-				SEPARATE_ZVAL(retval);
-			}
 		}
 		if (result != retval) {
 			ZVAL_INDIRECT(result, retval);
@@ -2982,6 +2961,13 @@ fetch_from_array:
 		ZVAL_UNDEF(result);
 	} else if (EXPECTED(Z_TYPE_P(container) == IS_OBJECT)) {
 		zend_fetch_object_dimension_address(result, Z_OBJ_P(container), dim, dim_type, type EXECUTE_DATA_CC);
+		/* Needed to properly support: Zend/tests/bug70321.phpt */
+		if (Z_ISREF_P(result)) {
+			if (Z_TYPE_P(Z_REFVAL_P(result)) == IS_OBJECT) {
+				/* We need to seperate objects returned by reference */
+				SEPARATE_ZVAL(result);
+			}
+		}
 		if (UNEXPECTED(EG(exception))) {
 			ZVAL_UNDEF(result);
 		}

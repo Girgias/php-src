@@ -74,17 +74,9 @@ static zval *zend_user_class_fetch_dimension(zend_object *object, zval *offset, 
 	if (UNEXPECTED(Z_TYPE_P(rv) == IS_UNDEF)) {
 		ZEND_ASSERT(EG(exception));
 		return NULL;
-	} else {
-		if (!Z_ISREF_P(rv)) {
-			if (Z_TYPE_P(rv) != IS_OBJECT) {
-				zend_class_entry *ce = object->ce;
-				zend_error(E_NOTICE, "Indirect modification of overloaded element of %s has no effect", ZSTR_VAL(ce->name));
-			}
-		}
-		//else if (UNEXPECTED(Z_REFCOUNT_P(rv) == 1)) {
-		//	ZVAL_UNREF(rv); // Why is this wanted???
-		//}
 	}
+
+	ZEND_ASSERT(Z_ISREF_P(rv));
 	return rv;
 }
 
@@ -101,12 +93,21 @@ static zval *zend_legacy_ArrayAccess_fetch_dimension(zend_object *object, zval *
 		ZEND_ASSERT(EG(exception));
 		return NULL;
 	}
-	if (!Z_ISREF_P(rv) && Z_TYPE_P(rv) != IS_OBJECT) {
-		zend_class_entry *ce = object->ce;
-		zend_error(E_NOTICE, "Indirect modification of overloaded element of %s has no effect", ZSTR_VAL(ce->name));
-
-		/* "Create" a ref to the value even if it is not to have BC behaviour */
-		ZVAL_NEW_REF(rv, rv);
+	if (!Z_ISREF_P(rv)) {
+		if (Z_TYPE_P(rv) != IS_OBJECT) {
+			zend_class_entry *ce = object->ce;
+			zend_error(E_NOTICE, "Indirect modification of overloaded element of %s has no effect", ZSTR_VAL(ce->name));
+			if (UNEXPECTED(EG(exception))) {
+				zval_ptr_dtor(rv);
+				ZVAL_UNDEF(rv);
+				return NULL;
+			}
+			/* "Create" a ref to the value even if it is not to have BC behaviour */
+			ZVAL_MAKE_REF(rv);
+		} else {
+			SEPARATE_ZVAL(rv);
+			//GC_ADDREF(Z_OBJ_P(rv));
+		}
 	}
 
 	return rv;
@@ -214,6 +215,7 @@ static zval *zend_user_class_fetch_append(zend_object *object, zval *rv)
 		ZEND_ASSERT(EG(exception));
 		return NULL;
 	}
+	ZEND_ASSERT(Z_ISREF_P(rv));
 	return rv;
 }
 
