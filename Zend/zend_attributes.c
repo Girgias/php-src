@@ -171,7 +171,7 @@ ZEND_METHOD(Deprecated, __construct)
 
 	/* The assignment might fail due to 'readonly'. */
 	if (EG(exception)) {
-		return;
+		RETURN_THROWS();
 	}
 
 	property_name = ZSTR_INIT_LITERAL("since", 0);
