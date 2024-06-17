@@ -65,12 +65,12 @@ if test "$PHP_PGSQL" != "no"; then
   old_CFLAGS=$CFLAGS
   CFLAGS="$CFLAGS -I$PGSQL_INCLUDE"
   AC_CHECK_LIB(pq, PQlibVersion,, AC_MSG_ERROR([Unable to build the PostgreSQL extension: at least libpq 9.1 is required]))
-  AC_CHECK_LIB(pq, pg_encoding_to_char,AC_DEFINE(HAVE_PGSQL_WITH_MULTIBYTE_SUPPORT,1,[Whether libpq is compiled with --enable-multibyte]))
   AC_CHECK_LIB(pq, lo_truncate64, AC_DEFINE(HAVE_PG_LO64,1,[PostgreSQL 9.3 or later]))
   AC_CHECK_LIB(pq, PQsetErrorContextVisibility, AC_DEFINE(HAVE_PG_CONTEXT_VISIBILITY,1,[PostgreSQL 9.6 or later]))
   AC_CHECK_LIB(pq, PQresultMemorySize, AC_DEFINE(HAVE_PG_RESULT_MEMORY_SIZE,1,[PostgreSQL 12 or later]))
   AC_CHECK_LIB(pq, PQchangePassword, AC_DEFINE(HAVE_PG_CHANGE_PASSWORD,1,[PostgreSQL 17 or later]))
   AC_CHECK_LIB(pq, PQsocketPoll, AC_DEFINE(HAVE_PG_SOCKET_POLL,1,[PostgreSQL 17 or later]))
+  AC_CHECK_LIB(pq, PQsetChunkedRowsMode, AC_DEFINE(HAVE_PG_SET_CHUNKED_ROWS_SIZE,1,[PostgreSQL 17 or later]))
 
   dnl Available since PostgreSQL 12.
   AC_CACHE_CHECK([if PGVerbosity enum has PQERRORS_SQLSTATE],
@@ -93,4 +93,5 @@ if test "$PHP_PGSQL" != "no"; then
   PHP_ADD_INCLUDE($PGSQL_INCLUDE)
 
   PHP_NEW_EXTENSION(pgsql, pgsql.c, $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
+  PHP_ADD_EXTENSION_DEP(pgsql, pcre)
 fi

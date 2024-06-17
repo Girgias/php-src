@@ -47,7 +47,7 @@
 
 #ifdef HAVE_SYS_PARAM_H
 # include <sys/param.h>
-# if (__FreeBSD__ && __FreeBSD_version > 1200000) || (__DragonFly__ && __DragonFly_version >= 500700) || \
+# if (defined(__FreeBSD__) && __FreeBSD_version > 1200000) || (defined(__DragonFly__) && __DragonFly_version >= 500700) || \
      defined(__sun) || (defined(__NetBSD__) && __NetBSD_Version__ >= 1000000000) || defined(__midipix__)
 #  include <sys/random.h>
 # endif
@@ -85,7 +85,7 @@ ZEND_ATTRIBUTE_NONNULL PHPAPI zend_result php_random_bytes_ex(void *bytes, size_
 		snprintf(errstr, errstr_size, "Failed to retrieve randomness from the operating system (CCRandomGenerateBytes)");
 		return FAILURE;
 	}
-#elif HAVE_DECL_ARC4RANDOM_BUF && ((defined(__OpenBSD__) && OpenBSD >= 201405) || (defined(__NetBSD__) && __NetBSD_Version__ >= 700000001 && __NetBSD_Version__ < 1000000000) || \
+#elif defined(HAVE_ARC4RANDOM_BUF) && ((defined(__OpenBSD__) && OpenBSD >= 201405) || (defined(__NetBSD__) && __NetBSD_Version__ >= 700000001 && __NetBSD_Version__ < 1000000000) || \
   defined(__APPLE__))
 	/*
 	 * OpenBSD until there is a valid equivalent

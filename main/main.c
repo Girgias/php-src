@@ -49,6 +49,8 @@
 #include "fopen_wrappers.h"
 #include "ext/standard/php_standard.h"
 #include "ext/date/php_date.h"
+#include "ext/random/php_random_csprng.h"
+#include "ext/random/php_random_zend_utils.h"
 #include "php_variables.h"
 #include "ext/standard/credits.h"
 #ifdef PHP_WIN32
@@ -2106,6 +2108,11 @@ zend_result php_module_startup(sapi_module_struct *sf, zend_module_entry *additi
 #endif
 	gc_globals_ctor();
 
+	zend_observer_startup();
+#if ZEND_DEBUG
+	zend_observer_error_register(report_zend_debug_error_notify_cb);
+#endif
+
 	zuf.error_function = php_error_cb;
 	zuf.printf_function = php_printf;
 	zuf.write_function = php_output_write;
@@ -2119,14 +2126,11 @@ zend_result php_module_startup(sapi_module_struct *sf, zend_module_entry *additi
 	zuf.printf_to_smart_str_function = php_printf_to_smart_str;
 	zuf.getenv_function = sapi_getenv;
 	zuf.resolve_path_function = php_resolve_path_for_zend;
+	zuf.random_bytes_function = php_random_bytes_ex;
+	zuf.random_bytes_insecure_function = php_random_bytes_insecure_for_zend;
 	zend_startup(&zuf);
 	zend_reset_lc_ctype_locale();
 	zend_update_current_locale();
-
-	zend_observer_startup();
-#if ZEND_DEBUG
-	zend_observer_error_register(report_zend_debug_error_notify_cb);
-#endif
 
 #if HAVE_TZSET
 	tzset();

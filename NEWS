@@ -24,6 +24,8 @@ PHP                                                                        NEWS
   . Fixed GH-13581 no space available for TLS on NetBSD. (Paul Ripke)
   . Added fiber Sys-V loongarch64 support. (qiangxuhui)
   . Adjusted closure names to include the parent function's name. (timwolla)
+  . Improve randomness of uploaded file names and files created by tempnam().
+    (Arnaud)
 
 - Curl:
   . Deprecated the CURLOPT_BINARYTRANSFER constant. (divinity76)
@@ -194,7 +196,7 @@ PHP                                                                        NEWS
   . Added class Pdo\Pgsql. (danack, kocsismate)
   . Retrieve the memory usage of the query result resource. (KentarouTakeda)
   . Added Pdo\Pgsql::setNoticeCallBack method to receive DB notices.
-    (outtersg) 
+    (outtersg)
 
 - PDO_SQLITE:
   . Added class Pdo\Sqlite. (danack, kocsismate)
@@ -211,6 +213,8 @@ PHP                                                                        NEWS
   . Added pg_put_copy_data/pg_put_copy_end to send COPY commands and signal
     the end of the COPY. (David Carlier)
   . Added pg_socket_poll to poll on the connection. (David Carlier)
+  . Added pg_jit to get infos on server JIT support. (David Carlier)
+  . Added pg_set_chunked_rows_size to fetch results per chunk. (David Carlier)
 
 - Phar:
   . Fixed bug GH-12532 (PharData created from zip has incorrect timestamp).
