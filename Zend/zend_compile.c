@@ -8046,7 +8046,7 @@ static void zend_compile_func_decl(znode *result, zend_ast *ast, bool toplevel) 
 			sizeof("deprecated")-1
 		);
 
-		if (deprecated_attribute && stmt_ast != NULL) {
+		if (deprecated_attribute) {
 			op_array->fn_flags |= ZEND_ACC_DEPRECATED;
 		}
 	}

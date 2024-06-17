@@ -1,7 +1,5 @@
 --TEST--
 #[\Deprecated]: Interfaces.
---XFAIL--
-https://github.com/php/php-src/pull/11293#discussion_r1632925617
 --FILE--
 <?php
 
