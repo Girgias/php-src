@@ -170,7 +170,7 @@ ZEND_METHOD(Deprecated, __construct)
 	zend_string_release(property_name);
 
 	/* The assignment might fail due to 'readonly'. */
-	if (EG(exception)) {
+	if (UNEXPECTED(EG(exception))) {
 		RETURN_THROWS();
 	}
 
@@ -182,6 +182,11 @@ ZEND_METHOD(Deprecated, __construct)
 	}
 	zend_update_property_ex(zend_ce_deprecated, Z_OBJ_P(ZEND_THIS), property_name, &value);
 	zend_string_release(property_name);
+
+	/* The assignment might fail due to 'readonly'. */
+	if (UNEXPECTED(EG(exception))) {
+		RETURN_THROWS();
+	}
 }
 
 static zend_attribute *get_attribute(HashTable *attributes, zend_string *lcname, uint32_t offset)
