@@ -40,15 +40,15 @@ final class EnchantDictionary
 
 function enchant_broker_init(): EnchantBroker|false {}
 
-#[\Deprecated]
+#[\Deprecated(message: 'EnchantBroker object is freed automatically', since: '8.1')]
 function enchant_broker_free(EnchantBroker $broker): bool {}
 
 function enchant_broker_get_error(EnchantBroker $broker): string|false {}
 
-#[\Deprecated]
+#[\Deprecated(since: '8.1')]
 function enchant_broker_set_dict_path(EnchantBroker $broker, int $type, string $path): bool {}
 
-#[\Deprecated]
+#[\Deprecated(since: '8.1')]
 function enchant_broker_get_dict_path(EnchantBroker $broker, int $type): string|false {}
 
 /**
@@ -61,7 +61,7 @@ function enchant_broker_request_dict(EnchantBroker $broker, string $tag): Enchan
 
 function enchant_broker_request_pwl_dict(EnchantBroker $broker, string $filename): EnchantDictionary|false {}
 
-#[\Deprecated]
+#[\Deprecated(message: 'EnchantDictionary object is freed automatically', since: '8.1')]
 function enchant_broker_free_dict(EnchantDictionary $dictionary): bool {}
 
 function enchant_broker_dict_exists(EnchantBroker $broker, string $tag): bool {}
@@ -90,7 +90,7 @@ function enchant_dict_add(EnchantDictionary $dictionary, string $word): void {}
 /**
 * @alias enchant_dict_add
 */
-#[\Deprecated]
+#[\Deprecated(since: '8.1')]
 function enchant_dict_add_to_personal(EnchantDictionary $dictionary, string $word): void {}
 
 function enchant_dict_add_to_session(EnchantDictionary $dictionary, string $word): void {}
@@ -100,7 +100,7 @@ function enchant_dict_is_added(EnchantDictionary $dictionary, string $word): boo
 /**
 * @alias enchant_dict_is_added
 */
-#[\Deprecated]
+#[\Deprecated(since: '8.1')]
 function enchant_dict_is_in_session(EnchantDictionary $dictionary, string $word): bool {}
 
 function enchant_dict_store_replacement(EnchantDictionary $dictionary, string $misspelled, string $correct): void {}
