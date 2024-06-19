@@ -483,7 +483,7 @@ namespace {
     /**
      * @alias pg_last_error
      */
-    #[\Deprecated]
+    #[\Deprecated(since: '8.0', message: 'use pg_last_error() instead')]
     function pg_errormessage(?PgSql\Connection $connection = null): string {}
 
     /** @refcount 1 */
@@ -555,7 +555,7 @@ namespace {
     /**
      * @alias pg_num_rows
      */
-    #[\Deprecated]
+    #[\Deprecated(since: '8.0', message: 'use pg_num_rows() instead')]
     function pg_numrows(PgSql\Result $result): int {}
 
     function pg_num_fields(PgSql\Result $result): int {}
@@ -563,7 +563,7 @@ namespace {
     /**
      * @alias pg_num_fields
      */
-    #[\Deprecated]
+    #[\Deprecated(since: '8.0', message: 'use pg_num_fields() instead')]
     function pg_numfields(PgSql\Result $result): int {}
 
     function pg_affected_rows(PgSql\Result $result): int {}
@@ -571,7 +571,7 @@ namespace {
     /**
      * @alias pg_affected_rows
      */
-    #[\Deprecated]
+    #[\Deprecated(since: '8.0', message: 'use pg_affected_rows() instead')]
     function pg_cmdtuples(PgSql\Result $result): int {}
 
     function pg_last_notice(PgSql\Connection $connection, int $mode = PGSQL_NOTICE_LAST): array|string|bool {}
@@ -584,7 +584,7 @@ namespace {
     /**
      * @alias pg_field_name
      */
-    #[\Deprecated]
+    #[\Deprecated(since: '8.0', message: 'use pg_field_name() instead')]
     function pg_fieldname(PgSql\Result $result, int $field): string {}
 
     function pg_field_size(PgSql\Result $result, int $field): int {}
@@ -592,7 +592,7 @@ namespace {
     /**
      * @alias pg_field_size
      */
-    #[\Deprecated]
+    #[\Deprecated(since: '8.0', message: 'use pg_field_size() instead')]
     function pg_fieldsize(PgSql\Result $result, int $field): int {}
 
     function pg_field_type(PgSql\Result $result, int $field): string {}
@@ -600,7 +600,7 @@ namespace {
     /**
      * @alias pg_field_type
      */
-    #[\Deprecated]
+    #[\Deprecated(since: '8.0', message: 'use pg_field_type() instead')]
     function pg_fieldtype(PgSql\Result $result, int $field): string {}
 
     /** @refcount 1 */
@@ -611,7 +611,7 @@ namespace {
     /**
      * @alias pg_field_num
      */
-    #[\Deprecated]
+    #[\Deprecated(since: '8.0', message: 'use pg_field_num() instead')]
     function pg_fieldnum(PgSql\Result $result, string $field): int {}
 
     /**
@@ -624,7 +624,7 @@ namespace {
      * @param string|int $row
      * @alias pg_fetch_result
      */
-    #[\Deprecated]
+    #[\Deprecated(since: '8.0', message: 'use pg_fetch_result() instead')]
     function pg_result(PgSql\Result $result, $row, string|int $field = UNKNOWN): string|false|null {}
 
     /**
@@ -685,7 +685,7 @@ namespace {
     /**
      * @alias pg_free_result
      */
-    #[\Deprecated]
+    #[\Deprecated(since: '8.0', message: 'use pg_free_result() instead')]
     function pg_freeresult(PgSql\Result $result): bool {}
 
     /** @refcount 1 */
@@ -694,7 +694,7 @@ namespace {
     /**
      * @alias pg_last_oid
      */
-    #[\Deprecated]
+    #[\Deprecated(since: '8.0', message: 'use pg_last_oid() instead')]
     function pg_getlastoid(PgSql\Result $result): string|int|false {}
 
     function pg_trace(string $filename, string $mode = "w", ?PgSql\Connection $connection = null, int $trace_mode = 0): bool {}
@@ -713,7 +713,7 @@ namespace {
      * @param string|int $oid
      * @alias pg_lo_create
      */
-    #[\Deprecated]
+    #[\Deprecated(since: '8.0', message: 'use pg_lo_create() instead')]
     function pg_locreate($connection = UNKNOWN, $oid = UNKNOWN): string|int|false {}
 
     /**
@@ -727,7 +727,7 @@ namespace {
      * @param string|int $oid
      * @alias pg_lo_unlink
      */
-    #[\Deprecated]
+    #[\Deprecated(since: '8.0', message: 'use pg_lo_unlink() instead')]
     function pg_lounlink($connection, $oid = UNKNOWN): bool {}
 
     /**
@@ -742,7 +742,7 @@ namespace {
      * @param string|int $oid
      * @alias pg_lo_open
      */
-    #[\Deprecated]
+    #[\Deprecated(since: '8.0', message: 'use pg_lo_open() instead')]
     function pg_loopen($connection, $oid = UNKNOWN, string $mode = UNKNOWN): PgSql\Lob|false {}
 
     function pg_lo_close(PgSql\Lob $lob): bool {}
@@ -750,7 +750,7 @@ namespace {
     /**
      * @alias pg_lo_close
      */
-    #[\Deprecated]
+    #[\Deprecated(since: '8.0', message: 'use pg_lo_close() instead')]
     function pg_loclose(PgSql\Lob $lob): bool {}
 
     /** @refcount 1 */
@@ -759,7 +759,7 @@ namespace {
     /**
      * @alias pg_lo_read
      */
-    #[\Deprecated]
+    #[\Deprecated(since: '8.0', message: 'use pg_lo_read() instead')]
     function pg_loread(PgSql\Lob $lob, int $length = 8192): string|false {}
 
     function pg_lo_write(PgSql\Lob $lob, string $data, ?int $length = null): int|false {}
@@ -767,7 +767,7 @@ namespace {
     /**
      * @alias pg_lo_write
      */
-    #[\Deprecated]
+    #[\Deprecated(since: '8.0', message: 'use pg_lo_write() instead')]
     function pg_lowrite(PgSql\Lob $lob, string $data, ?int $length = null): int|false {}
 
     function pg_lo_read_all(PgSql\Lob $lob): int {}
@@ -775,7 +775,7 @@ namespace {
     /**
      * @alias pg_lo_read_all
      */
-    #[\Deprecated]
+    #[\Deprecated(since: '8.0', message: 'use pg_lo_read_all() instead')]
     function pg_loreadall(PgSql\Lob $lob): int {}
 
     /**
@@ -792,7 +792,7 @@ namespace {
      * @param string|int $oid
      * @alias pg_lo_import
      */
-    #[\Deprecated]
+    #[\Deprecated(since: '8.0', message: 'use pg_lo_import() instead')]
     function pg_loimport($connection, $filename = UNKNOWN, $oid = UNKNOWN): string|int|false {}
 
     /**
@@ -808,7 +808,7 @@ namespace {
      * @param string|int $filename
      * @alias pg_lo_export
      */
-    #[\Deprecated]
+    #[\Deprecated(since: '8.0', message: 'use pg_lo_export() instead')]
     function pg_loexport($connection, $oid = UNKNOWN, $filename = UNKNOWN): bool {}
 
     function pg_lo_seek(PgSql\Lob $lob, int $offset, int $whence = SEEK_CUR): bool {}
@@ -827,7 +827,7 @@ namespace {
      * @param PgSql\Connection|string $connection
      * @alias pg_set_client_encoding
      */
-    #[\Deprecated]
+    #[\Deprecated(since: '8.0', message: 'use pg_set_client_encoding() instead')]
     function pg_setclientencoding($connection, string $encoding = UNKNOWN): int {}
 
     function pg_client_encoding(?PgSql\Connection $connection = null): string {}
@@ -835,7 +835,7 @@ namespace {
     /**
      * @alias pg_client_encoding
      */
-    #[\Deprecated]
+    #[\Deprecated(since: '8.0', message: 'use pg_client_encoding() instead')]
     function pg_clientencoding(?PgSql\Connection $connection = null): string {}
 
     function pg_end_copy(?PgSql\Connection $connection = null): bool {}
