@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 8464bcf7b6e2239da07e3ee2da9cb86243592df8 */
+ * Stub hash: 3ed3a9f6609e1b8fa642f1e4cfaa1de40e3cc11e */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_SplFileInfo___construct, 0, 0, 1)
 	ZEND_ARG_TYPE_INFO(0, filename, IS_STRING, 0)
@@ -493,8 +493,13 @@ static zend_class_entry *register_class_SplFileInfo(zend_class_entry *class_entr
 
 
 	zend_string *attribute_name_Deprecated_func__bad_state_ex_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
-	zend_add_function_attribute(zend_hash_str_find_ptr(&class_entry->function_table, "_bad_state_ex", sizeof("_bad_state_ex") - 1), attribute_name_Deprecated_func__bad_state_ex_0, 0);
+	zend_attribute *attribute_Deprecated_func__bad_state_ex_0 = zend_add_function_attribute(zend_hash_str_find_ptr(&class_entry->function_table, "_bad_state_ex", sizeof("_bad_state_ex") - 1), attribute_name_Deprecated_func__bad_state_ex_0, 1);
 	zend_string_release(attribute_name_Deprecated_func__bad_state_ex_0);
+	zval attribute_Deprecated_func__bad_state_ex_0_arg0;
+	zend_string *attribute_Deprecated_func__bad_state_ex_0_arg0_str = zend_string_init("8.2", strlen("8.2"), 1);
+	ZVAL_STR(&attribute_Deprecated_func__bad_state_ex_0_arg0, attribute_Deprecated_func__bad_state_ex_0_arg0_str);
+	ZVAL_COPY_VALUE(&attribute_Deprecated_func__bad_state_ex_0->args[0].value, &attribute_Deprecated_func__bad_state_ex_0_arg0);
+	attribute_Deprecated_func__bad_state_ex_0->args[0].name = zend_string_init_interned("since", sizeof("since") - 1, 1);
 
 	return class_entry;
 }

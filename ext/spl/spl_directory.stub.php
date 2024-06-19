@@ -100,7 +100,7 @@ class SplFileInfo implements Stringable
     /**
      * @tentative-return-type
      */
-    #[\Deprecated]
+    #[\Deprecated(since: '8.2')]
     final public function _bad_state_ex(): void {}
 }
 
