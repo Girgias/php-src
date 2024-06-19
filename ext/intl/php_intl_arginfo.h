@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 2529a23e3b1c8597f6d1cf7a2ea87a65c1440fe8 */
+ * Stub hash: 27e8b2eebd269d44bf4c9e0af8ee73818385c24c */
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_intlcal_create_instance, 0, 0, IntlCalendar, 1)
 	ZEND_ARG_INFO_WITH_DEFAULT_VALUE(0, timezone, "null")
@@ -1221,12 +1221,21 @@ static void register_php_intl_symbols(int module_number)
 
 
 	zend_string *attribute_name_Deprecated_func_intlcal_set_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
-	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "intlcal_set", sizeof("intlcal_set") - 1), attribute_name_Deprecated_func_intlcal_set_0, 0);
+	zend_attribute *attribute_Deprecated_func_intlcal_set_0 = zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "intlcal_set", sizeof("intlcal_set") - 1), attribute_name_Deprecated_func_intlcal_set_0, 1);
 	zend_string_release(attribute_name_Deprecated_func_intlcal_set_0);
+	zval attribute_Deprecated_func_intlcal_set_0_arg0;
+	ZVAL_DOUBLE(&attribute_Deprecated_func_intlcal_set_0_arg0, 8.4);
+	ZVAL_COPY_VALUE(&attribute_Deprecated_func_intlcal_set_0->args[0].value, &attribute_Deprecated_func_intlcal_set_0_arg0);
+	attribute_Deprecated_func_intlcal_set_0->args[0].name = zend_string_init_interned("since", sizeof("since") - 1, 1);
 
 	zend_string *attribute_name_Deprecated_func_intlgregcal_create_instance_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
-	zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "intlgregcal_create_instance", sizeof("intlgregcal_create_instance") - 1), attribute_name_Deprecated_func_intlgregcal_create_instance_0, 0);
+	zend_attribute *attribute_Deprecated_func_intlgregcal_create_instance_0 = zend_add_function_attribute(zend_hash_str_find_ptr(CG(function_table), "intlgregcal_create_instance", sizeof("intlgregcal_create_instance") - 1), attribute_name_Deprecated_func_intlgregcal_create_instance_0, 1);
 	zend_string_release(attribute_name_Deprecated_func_intlgregcal_create_instance_0);
+	zval attribute_Deprecated_func_intlgregcal_create_instance_0_arg0;
+	zend_string *attribute_Deprecated_func_intlgregcal_create_instance_0_arg0_str = zend_string_init("8.4", strlen("8.4"), 1);
+	ZVAL_STR(&attribute_Deprecated_func_intlgregcal_create_instance_0_arg0, attribute_Deprecated_func_intlgregcal_create_instance_0_arg0_str);
+	ZVAL_COPY_VALUE(&attribute_Deprecated_func_intlgregcal_create_instance_0->args[0].value, &attribute_Deprecated_func_intlgregcal_create_instance_0_arg0);
+	attribute_Deprecated_func_intlgregcal_create_instance_0->args[0].name = zend_string_init_interned("since", sizeof("since") - 1, 1);
 }
 
 static zend_class_entry *register_class_IntlException(zend_class_entry *class_entry_Exception)
