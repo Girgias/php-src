@@ -2301,7 +2301,7 @@ function get_html_translation_table(int $table = HTML_SPECIALCHARS, int $flags =
 
 function assert(mixed $assertion, Throwable|string|null $description = null): bool {}
 
-#[\Deprecated]
+#[\Deprecated(since: '8.3')]
 function assert_options(int $option, mixed $value = UNKNOWN): mixed {}
 
 /* string.c */
