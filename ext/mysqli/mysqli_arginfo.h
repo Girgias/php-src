@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: d0c6b6fe35299d70b27f9aea5de74e2f8908b884 */
+ * Stub hash: 0a4bccdb992e21fdfaeb465ab9c7ba1ec246d574 */
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_mysqli_affected_rows, 0, 1, MAY_BE_LONG|MAY_BE_STRING)
 	ZEND_ARG_OBJ_INFO(0, mysql, mysqli, 0)
@@ -1333,17 +1333,32 @@ static zend_class_entry *register_class_mysqli(void)
 	zend_add_parameter_attribute(zend_hash_str_find_ptr(&class_entry->function_table, "connect", sizeof("connect") - 1), 2, ZSTR_KNOWN(ZEND_STR_SENSITIVEPARAMETER), 0);
 
 	zend_string *attribute_name_Deprecated_func_get_client_info_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
-	zend_attribute *attribute_Deprecated_func_get_client_info_0 = zend_add_function_attribute(zend_hash_str_find_ptr(&class_entry->function_table, "get_client_info", sizeof("get_client_info") - 1), attribute_name_Deprecated_func_get_client_info_0, 1);
+	zend_attribute *attribute_Deprecated_func_get_client_info_0 = zend_add_function_attribute(zend_hash_str_find_ptr(&class_entry->function_table, "get_client_info", sizeof("get_client_info") - 1), attribute_name_Deprecated_func_get_client_info_0, 2);
 	zend_string_release(attribute_name_Deprecated_func_get_client_info_0);
 	zval attribute_Deprecated_func_get_client_info_0_arg0;
 	zend_string *attribute_Deprecated_func_get_client_info_0_arg0_str = zend_string_init("8.1", strlen("8.1"), 1);
 	ZVAL_STR(&attribute_Deprecated_func_get_client_info_0_arg0, attribute_Deprecated_func_get_client_info_0_arg0_str);
 	ZVAL_COPY_VALUE(&attribute_Deprecated_func_get_client_info_0->args[0].value, &attribute_Deprecated_func_get_client_info_0_arg0);
 	attribute_Deprecated_func_get_client_info_0->args[0].name = zend_string_init_interned("since", sizeof("since") - 1, 1);
+	zval attribute_Deprecated_func_get_client_info_0_arg1;
+	zend_string *attribute_Deprecated_func_get_client_info_0_arg1_str = zend_string_init("use mysqli_get_client_info() instead", strlen("use mysqli_get_client_info() instead"), 1);
+	ZVAL_STR(&attribute_Deprecated_func_get_client_info_0_arg1, attribute_Deprecated_func_get_client_info_0_arg1_str);
+	ZVAL_COPY_VALUE(&attribute_Deprecated_func_get_client_info_0->args[1].value, &attribute_Deprecated_func_get_client_info_0_arg1);
+	attribute_Deprecated_func_get_client_info_0->args[1].name = zend_string_init_interned("message", sizeof("message") - 1, 1);
 
 	zend_string *attribute_name_Deprecated_func_init_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
-	zend_add_function_attribute(zend_hash_str_find_ptr(&class_entry->function_table, "init", sizeof("init") - 1), attribute_name_Deprecated_func_init_0, 0);
+	zend_attribute *attribute_Deprecated_func_init_0 = zend_add_function_attribute(zend_hash_str_find_ptr(&class_entry->function_table, "init", sizeof("init") - 1), attribute_name_Deprecated_func_init_0, 2);
 	zend_string_release(attribute_name_Deprecated_func_init_0);
+	zval attribute_Deprecated_func_init_0_arg0;
+	zend_string *attribute_Deprecated_func_init_0_arg0_str = zend_string_init("8.1", strlen("8.1"), 1);
+	ZVAL_STR(&attribute_Deprecated_func_init_0_arg0, attribute_Deprecated_func_init_0_arg0_str);
+	ZVAL_COPY_VALUE(&attribute_Deprecated_func_init_0->args[0].value, &attribute_Deprecated_func_init_0_arg0);
+	attribute_Deprecated_func_init_0->args[0].name = zend_string_init_interned("since", sizeof("since") - 1, 1);
+	zval attribute_Deprecated_func_init_0_arg1;
+	zend_string *attribute_Deprecated_func_init_0_arg1_str = zend_string_init("replace calls to parent::init() with parent::__construct()", strlen("replace calls to parent::init() with parent::__construct()"), 1);
+	ZVAL_STR(&attribute_Deprecated_func_init_0_arg1, attribute_Deprecated_func_init_0_arg1_str);
+	ZVAL_COPY_VALUE(&attribute_Deprecated_func_init_0->args[1].value, &attribute_Deprecated_func_init_0_arg1);
+	attribute_Deprecated_func_init_0->args[1].name = zend_string_init_interned("message", sizeof("message") - 1, 1);
 
 	zend_add_parameter_attribute(zend_hash_str_find_ptr(&class_entry->function_table, "real_connect", sizeof("real_connect") - 1), 2, ZSTR_KNOWN(ZEND_STR_SENSITIVEPARAMETER), 0);
 
