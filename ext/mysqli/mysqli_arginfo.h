@@ -1339,7 +1339,7 @@ static zend_class_entry *register_class_mysqli(void)
 	zend_string *attribute_Deprecated_func_get_client_info_0_arg0_str = zend_string_init("8.1", strlen("8.1"), 1);
 	ZVAL_STR(&attribute_Deprecated_func_get_client_info_0_arg0, attribute_Deprecated_func_get_client_info_0_arg0_str);
 	ZVAL_COPY_VALUE(&attribute_Deprecated_func_get_client_info_0->args[0].value, &attribute_Deprecated_func_get_client_info_0_arg0);
-	attribute_Deprecated_func_get_client_info_0->args[0].name = zend_string_init("since", sizeof("since") - 1, 1);
+	attribute_Deprecated_func_get_client_info_0->args[0].name = zend_string_init_interned("since", sizeof("since") - 1, 1);
 
 	zend_string *attribute_name_Deprecated_func_init_0 = zend_string_init_interned("Deprecated", sizeof("Deprecated") - 1, 1);
 	zend_add_function_attribute(zend_hash_str_find_ptr(&class_entry->function_table, "init", sizeof("init") - 1), attribute_name_Deprecated_func_init_0, 0);

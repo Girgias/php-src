@@ -107,6 +107,13 @@ namespace {
     final class ZendTestAttribute {
     }
 
+    #[Attribute(Attribute::TARGET_ALL)]
+    final class ZendTestAttributeWithArguments {
+        public readonly mixed $arg;
+
+        public function __construct(mixed $arg) {}
+    }
+
     #[Attribute(Attribute::TARGET_ALL|Attribute::IS_REPEATABLE)]
     final class ZendTestRepeatableAttribute {
     }
@@ -248,6 +255,9 @@ namespace {
         #[ZendTestParameterAttribute("value1")]
         string $parameter
     ): int {}
+
+    #[ZendTestAttributeWithArguments(arg: "foo")]
+    function zend_test_attribute_with_named_argument(): void {}
 
     function zend_get_current_func_name(): string {}
 

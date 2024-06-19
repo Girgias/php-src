@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 801aeff2781c79ffa8363a07125e7b3710779565 */
+ * Stub hash: 6602bfd43942cfa82b1bf13196ccce31e1e25409 */
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_strtotime, 0, 1, MAY_BE_LONG|MAY_BE_FALSE)
 	ZEND_ARG_TYPE_INFO(0, datetime, IS_STRING, 0)
@@ -291,7 +291,7 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_class_DateTime_format arginfo_class_DateTimeInterface_format
 
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_OBJ_TYPE_MASK_EX(arginfo_class_DateTime_modify, 0, 1, DateTime, MAY_BE_FALSE)
+ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_OBJ_INFO_EX(arginfo_class_DateTime_modify, 0, 1, DateTime, 0)
 	ZEND_ARG_TYPE_INFO(0, modifier, IS_STRING, 0)
 ZEND_END_ARG_INFO()
 
@@ -376,7 +376,7 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_class_DateTimeImmutable_diff arginfo_class_DateTimeInterface_diff
 
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_OBJ_TYPE_MASK_EX(arginfo_class_DateTimeImmutable_modify, 0, 1, DateTimeImmutable, MAY_BE_FALSE)
+ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_OBJ_INFO_EX(arginfo_class_DateTimeImmutable_modify, 0, 1, DateTimeImmutable, 0)
 	ZEND_ARG_TYPE_INFO(0, modifier, IS_STRING, 0)
 ZEND_END_ARG_INFO()
 
@@ -463,7 +463,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_class_DateInterval___construct, 0, 0, 1)
 	ZEND_ARG_TYPE_INFO(0, duration, IS_STRING, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_OBJ_TYPE_MASK_EX(arginfo_class_DateInterval_createFromDateString, 0, 1, DateInterval, MAY_BE_FALSE)
+ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_OBJ_INFO_EX(arginfo_class_DateInterval_createFromDateString, 0, 1, DateInterval, 0)
 	ZEND_ARG_TYPE_INFO(0, datetime, IS_STRING, 0)
 ZEND_END_ARG_INFO()
 
