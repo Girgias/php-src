@@ -827,7 +827,7 @@ class mysqli
      * @tentative-return-type
      * @alias mysqli_get_client_info
      */
-    #[\Deprecated(since: '8.1')]
+    #[\Deprecated(since: '8.1', message: 'use mysqli_get_client_info() instead')]
     public function get_client_info(): string {}
 
     /**
@@ -852,7 +852,7 @@ class mysqli
     /**
      * @return bool|null
      * */
-    #[\Deprecated]
+    #[\Deprecated(since: '8.1', message: 'replace calls to parent::init() with parent::__construct()')]
     public function init() {}
 
     /**
