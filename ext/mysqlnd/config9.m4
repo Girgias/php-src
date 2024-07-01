@@ -24,20 +24,10 @@ PHP_ARG_ENABLE([mysqlnd-compression-support],
 
 dnl If some extension uses mysqlnd it will get compiled in PHP core
 if test "$PHP_MYSQLND" != "no" || test "$PHP_MYSQLND_ENABLED" = "yes"; then
-  mysqlnd_ps_sources="mysqlnd_ps.c mysqlnd_ps_codec.c"
-  mysqlnd_base_sources="mysqlnd_connection.c mysqlnd_alloc.c mysqlnd_charset.c mysqlnd_wireprotocol.c \
-                   mysqlnd_loaddata.c mysqlnd_reverse_api.c mysqlnd_vio.c mysqlnd_protocol_frame_codec.c \
-                   mysqlnd_statistics.c mysqlnd_driver.c mysqlnd_ext_plugin.c mysqlnd_auth.c \
-				   mysqlnd_result.c mysqlnd_result_meta.c mysqlnd_debug.c mysqlnd_commands.c \
-				   mysqlnd_block_alloc.c mysqlnd_read_buffer.c mysqlnd_plugin.c php_mysqlnd.c"
-
-
-  if test "$PHP_MYSQLND_COMPRESSION_SUPPORT" != "no"; then
-    PKG_CHECK_MODULES([ZLIB], [zlib])
-    PHP_EVAL_LIBLINE($ZLIB_LIBS, MYSQLND_SHARED_LIBADD)
-    PHP_EVAL_INCLINE($ZLIB_CFLAGS)
-    AC_DEFINE([MYSQLND_COMPRESSION_ENABLED], 1, [Enable compressed protocol support])
-  fi
+  AS_VAR_IF([PHP_MYSQLND_COMPRESSION_SUPPORT], [no],,
+    [PHP_SETUP_ZLIB([MYSQLND_SHARED_LIBADD],
+      [AC_DEFINE([MYSQLND_COMPRESSION_ENABLED], [1],
+        [Define to 1 if mysqlnd has compressed protocol support.])])])
 
   AC_DEFINE([MYSQLND_SSL_SUPPORTED], 1, [Enable core mysqlnd SSL code])
 
@@ -48,8 +38,33 @@ if test "$PHP_MYSQLND" != "no" || test "$PHP_MYSQLND_ENABLED" = "yes"; then
     PHP_SETUP_OPENSSL(MYSQLND_SHARED_LIBADD, [AC_DEFINE(MYSQLND_HAVE_SSL,1,[Enable mysqlnd code that uses OpenSSL directly])])
   fi
 
-  mysqlnd_sources="$mysqlnd_base_sources $mysqlnd_ps_sources"
-  PHP_NEW_EXTENSION(mysqlnd, $mysqlnd_sources, $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
+  PHP_NEW_EXTENSION([mysqlnd], [m4_normalize([
+    mysqlnd_alloc.c
+    mysqlnd_auth.c
+    mysqlnd_block_alloc.c
+    mysqlnd_charset.c
+    mysqlnd_commands.c
+    mysqlnd_connection.c
+    mysqlnd_debug.c
+    mysqlnd_driver.c
+    mysqlnd_ext_plugin.c
+    mysqlnd_loaddata.c
+    mysqlnd_plugin.c
+    mysqlnd_protocol_frame_codec.c
+    mysqlnd_ps_codec.c
+    mysqlnd_ps.c
+    mysqlnd_read_buffer.c
+    mysqlnd_result_meta.c
+    mysqlnd_result.c
+    mysqlnd_reverse_api.c
+    mysqlnd_statistics.c
+    mysqlnd_vio.c
+    mysqlnd_wireprotocol.c
+    php_mysqlnd.c
+  ])],
+  [$ext_shared],,
+  [-DZEND_ENABLE_STATIC_TSRMLS_CACHE=1])
+
   PHP_INSTALL_HEADERS([ext/mysqlnd/])
   PHP_SUBST([MYSQLND_SHARED_LIBADD])
 fi

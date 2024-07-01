@@ -48,7 +48,10 @@
 #include "zend_file_cache.h"
 #include "ext/pcre/php_pcre.h"
 #include "ext/standard/md5.h"
-#include "ext/hash/php_hash.h"
+
+#ifdef ZEND_WIN32
+# include "ext/hash/php_hash.h"
+#endif
 
 #ifdef HAVE_JIT
 # include "jit/zend_jit.h"
@@ -2181,7 +2184,7 @@ zend_op_array *persistent_compile_file(zend_file_handle *file_handle, int type)
 		ZCSG(hits)++; /* TBFixed: may lose one hit */
 		persistent_script->dynamic_members.hits++; /* see above */
 #else
-#if ZEND_ENABLE_ZVAL_LONG64
+#ifdef ZEND_ENABLE_ZVAL_LONG64
 		InterlockedIncrement64(&ZCSG(hits));
 		InterlockedIncrement64(&persistent_script->dynamic_members.hits);
 #else

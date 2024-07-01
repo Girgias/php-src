@@ -408,7 +408,7 @@ namespace
         public function compareDocumentPosition(DOMNode $other): int {}
 
         public function __sleep(): array {}
-    
+
         public function __wakeup(): void {}
     }
 
@@ -446,7 +446,7 @@ namespace
 
         /** @implementation-alias DOMNode::__sleep */
         public function __sleep(): array {}
-    
+
         /** @implementation-alias DOMNode::__wakeup */
         public function __wakeup(): void {}
     }
@@ -501,7 +501,7 @@ namespace
         public function replaceChildren(...$nodes): void {}
     }
 
-    class DOMNodeList implements IteratorAggregate, Countable
+    class DOMNodeList implements IteratorAggregate, Countable, DimensionFetchable
     {
         /** @readonly */
         public int $length;
@@ -513,6 +513,16 @@ namespace
 
         /** @return DOMElement|DOMNode|DOMNameSpaceNode|null */
         public function item(int $index) {}
+
+        /** @return DOMElement|DOMNode|DOMNameSpaceNode */
+        public function offsetGet(mixed $offset): mixed {}
+
+        /**
+         * @return DOMElement|DOMNode|DOMNameSpaceNode
+         * @implementation-alias DOMNodeList::offsetGet
+         */
+        public function &offsetFetch(mixed $offset): mixed {}
+        public function offsetExists(mixed $offset): bool {}
     }
 
     class DOMCharacterData extends DOMNode implements DOMChildNode
@@ -911,7 +921,7 @@ namespace
         public function splitText(int $offset) {}
     }
 
-    class DOMNamedNodeMap implements IteratorAggregate, Countable
+    class DOMNamedNodeMap implements IteratorAggregate, Countable, DimensionFetchable
     {
         /** @readonly */
         public int $length;
@@ -929,6 +939,16 @@ namespace
         public function count(): int {}
 
         public function getIterator(): Iterator {}
+
+        /** @return DOMAttr */
+        public function offsetGet(mixed $offset): mixed {}
+
+        /**
+         * @return DOMAttr
+         * @implementation-alias DOMNamedNodeMap::offsetGet
+         */
+        public function &offsetFetch(mixed $offset): mixed {}
+        public function offsetExists(mixed $offset): bool {}
     }
 
     class DOMEntity extends DOMNode
@@ -1106,6 +1126,9 @@ namespace Dom
         public function append(Node|string ...$nodes): void;
         public function prepend(Node|string ...$nodes): void;
         public function replaceChildren(Node|string ...$nodes): void;
+
+        public function querySelector(string $selectors): ?Element;
+        public function querySelectorAll(string $selectors): NodeList;
     }
 
     interface ChildNode
@@ -1210,7 +1233,7 @@ namespace Dom
         public function __wakeup(): void {}
     }
 
-    class NodeList implements \IteratorAggregate, \Countable
+    class NodeList implements \IteratorAggregate, \Countable, \DimensionFetchable
     {
         /** @readonly */
         public int $length;
@@ -1223,9 +1246,17 @@ namespace Dom
 
         /** @implementation-alias DOMNodeList::item */
         public function item(int $index): ?Node {}
+
+        /** @implementation-alias DOMNodeList::offsetGet */
+        public function offsetGet(mixed $offset): ?Attr {}
+
+        /** @implementation-alias DOMNodeList::offsetGet */
+        public function &offsetFetch(mixed $offset): ?Attr {}
+        /** @implementation-alias DOMNodeList::offsetExists */
+        public function offsetExists(mixed $offset): bool {}
     }
 
-    class NamedNodeMap implements \IteratorAggregate, \Countable
+    class NamedNodeMap implements \IteratorAggregate, \Countable, \DimensionFetchable
     {
         /** @readonly */
         public int $length;
@@ -1242,9 +1273,17 @@ namespace Dom
 
         /** @implementation-alias DOMNamedNodeMap::getIterator */
         public function getIterator(): \Iterator {}
+
+        /** @implementation-alias DOMNamedNodeMap::offsetGet */
+        public function offsetGet(mixed $offset): ?Attr {}
+
+        /** @implementation-alias DOMNamedNodeMap::offsetGet */
+        public function &offsetFetch(mixed $offset): ?Attr {}
+        /** @implementation-alias DOMNamedNodeMap::offsetExists */
+        public function offsetExists(mixed $offset): bool {}
     }
 
-    class DtdNamedNodeMap implements \IteratorAggregate, \Countable
+    class DtdNamedNodeMap implements \IteratorAggregate, \Countable, \DimensionFetchable
     {
         /** @readonly */
         public int $length;
@@ -1261,9 +1300,17 @@ namespace Dom
 
         /** @implementation-alias DOMNamedNodeMap::getIterator */
         public function getIterator(): \Iterator {}
+
+        /** @implementation-alias DOMNamedNodeMap::offsetGet */
+        public function offsetGet(mixed $offset): ?Attr {}
+
+        /** @implementation-alias DOMNamedNodeMap::offsetGet */
+        public function &offsetFetch(mixed $offset): ?Attr {}
+        /** @implementation-alias DOMNamedNodeMap::offsetExists */
+        public function offsetExists(mixed $offset): bool {}
     }
 
-    class HTMLCollection implements \IteratorAggregate, \Countable
+    class HTMLCollection implements \IteratorAggregate, \Countable, \DimensionFetchable
     {
         /** @readonly */
         public int $length;
@@ -1278,6 +1325,22 @@ namespace Dom
 
         /** @implementation-alias DOMNodeList::getIterator */
         public function getIterator(): \Iterator {}
+
+        /** @implementation-alias DOMNodeList::offsetGet */
+        public function offsetGet(mixed $offset): ?Attr {}
+
+        /** @implementation-alias DOMNodeList::offsetGet */
+        public function &offsetFetch(mixed $offset): ?Attr {}
+        /** @implementation-alias DOMNodeList::offsetExists */
+        public function offsetExists(mixed $offset): bool {}
+    }
+
+    enum AdjacentPosition : string
+    {
+        case BeforeBegin = "beforebegin";
+        case AfterBegin = "afterbegin";
+        case BeforeEnd = "beforeend";
+        case AfterEnd = "afterend";
     }
 
     class Element extends Node implements ParentNode, ChildNode
@@ -1330,9 +1393,8 @@ namespace Dom
         public function getElementsByTagName(string $qualifiedName): HTMLCollection {}
         public function getElementsByTagNameNS(?string $namespace, string $localName): HTMLCollection {}
 
-        public function insertAdjacentElement(string $where, Element $element): ?Element {}
-        /** @implementation-alias DOMElement::insertAdjacentText */
-        public function insertAdjacentText(string $where, string $data): void {}
+        public function insertAdjacentElement(AdjacentPosition $where, Element $element): ?Element {}
+        public function insertAdjacentText(AdjacentPosition $where, string $data): void {}
 
         /** @readonly */
         public ?Element $firstElementChild;
@@ -1365,6 +1427,15 @@ namespace Dom
         public function prepend(Node|string ...$nodes): void {}
         /** @implementation-alias DOMElement::replaceChildren */
         public function replaceChildren(Node|string ...$nodes): void {}
+
+        public function querySelector(string $selectors): ?Element {}
+        public function querySelectorAll(string $selectors): NodeList {}
+        public function closest(string $selectors): ?Element {}
+        public function matches(string $selectors): bool {}
+    }
+
+    class HTMLElement extends Element
+    {
     }
 
     class Attr extends Node
@@ -1481,6 +1552,11 @@ namespace Dom
         public function prepend(Node|string ...$nodes): void {}
         /** @implementation-alias DOMElement::replaceChildren */
         public function replaceChildren(Node|string ...$nodes): void {}
+
+        /** @implementation-alias Dom\Element::querySelector */
+        public function querySelector(string $selectors): ?Element {}
+        /** @implementation-alias Dom\Element::querySelectorAll */
+        public function querySelectorAll(string $selectors): NodeList {}
     }
 
     class Entity extends Node
@@ -1573,6 +1649,16 @@ namespace Dom
         public function replaceChildren(Node|string ...$nodes): void {}
 
         public function importLegacyNode(\DOMNode $node, bool $deep = false): Node {}
+
+        /** @implementation-alias Dom\Element::querySelector */
+        public function querySelector(string $selectors): ?Element {}
+        /** @implementation-alias Dom\Element::querySelectorAll */
+        public function querySelectorAll(string $selectors): NodeList {}
+
+        public ?HTMLElement $body;
+        /** @readonly */
+        public ?HTMLElement $head;
+        public string $title;
     }
 
     final class HTMLDocument extends Document
@@ -1617,8 +1703,7 @@ namespace Dom
         /** @implementation-alias DOMDocument::validate */
         public function validate(): bool {}
 
-        /** @implementation-alias DOMDocument::xinclude */
-        public function xinclude(int $options = 0): int|false {}
+        public function xinclude(int $options = 0): int {}
 
         public function saveXml(?Node $node = null, int $options = 0): string|false {}
 

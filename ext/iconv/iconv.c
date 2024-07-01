@@ -17,7 +17,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#include <config.h>
 #endif
 
 #include "php.h"
@@ -70,7 +70,7 @@ static char *get_iconv_version(void) {
 	static char buf[16];
 	snprintf(buf, sizeof(buf), "%d.%d", _libiconv_version >> 8, _libiconv_version & 0xff);
 	version = buf;
-#elif HAVE_GLIBC_ICONV
+#elif defined(HAVE_GLIBC_ICONV)
 	version = (char *) gnu_get_libc_version();
 #endif
 

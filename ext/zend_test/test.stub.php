@@ -104,6 +104,13 @@ namespace {
     final class ZendTestAttribute {
     }
 
+    #[Attribute(Attribute::TARGET_ALL)]
+    final class ZendTestAttributeWithArguments {
+        public readonly mixed $arg;
+
+        public function __construct(mixed $arg) {}
+    }
+
     #[Attribute(Attribute::TARGET_ALL|Attribute::IS_REPEATABLE)]
     final class ZendTestRepeatableAttribute {
     }
@@ -243,6 +250,9 @@ namespace {
         string $parameter
     ): int {}
 
+    #[ZendTestAttributeWithArguments(arg: "foo")]
+    function zend_test_attribute_with_named_argument(): void {}
+
     function zend_get_current_func_name(): string {}
 
     function zend_call_method(object|string $obj_or_class, string $method, mixed $arg1 = UNKNOWN, mixed $arg2 = UNKNOWN): mixed {}
@@ -284,6 +294,8 @@ function zend_test_override_libxml_global_state(): void {}
 
     /** @param resource $stream */
     function zend_test_cast_fread($stream): void {}
+
+    function zend_test_is_zend_ptr(int $addr): bool {}
 }
 
 namespace ZendTestNS {

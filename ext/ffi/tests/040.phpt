@@ -34,6 +34,7 @@ $y = FFI::cdef()->new("int[2]");
 $y[0] = 6;
 var_dump($y[0]);
 var_dump(FFI::typeof($y[0]));
+var_dump($y[0]);
 var_dump(FFI::cdef()->cast("int8_t[4]", $y[0]));
 $p = FFI::addr($y[0]);
 var_dump($p);

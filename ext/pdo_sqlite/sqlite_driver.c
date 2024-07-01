@@ -15,7 +15,7 @@
 */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#include <config.h>
 #endif
 
 #include "php.h"
@@ -743,7 +743,8 @@ static const struct pdo_dbh_methods sqlite_methods = {
 	get_driver_methods,
 	pdo_sqlite_request_shutdown,
 	pdo_sqlite_in_transaction,
-	pdo_sqlite_get_gc
+	pdo_sqlite_get_gc,
+    pdo_sqlite_scanner
 };
 
 static char *make_filename_safe(const char *filename)

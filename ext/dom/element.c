@@ -16,11 +16,12 @@
 */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#include <config.h>
 #endif
 
 #include "php.h"
 #if defined(HAVE_LIBXML) && defined(HAVE_DOM)
+#include "zend_enum.h"
 #include "php_dom.h"
 #include "namespace_compat.h"
 #include "internal_helpers.h"
@@ -1573,16 +1574,11 @@ static xmlNodePtr dom_insert_adjacent(const zend_string *where, xmlNodePtr thisp
 /* {{{ URL: https://dom.spec.whatwg.org/#dom-element-insertadjacentelement
 Since:
 */
-static void dom_element_insert_adjacent_element(INTERNAL_FUNCTION_PARAMETERS, zend_class_entry *element_ce)
+static void dom_element_insert_adjacent_element(INTERNAL_FUNCTION_PARAMETERS, const zend_string *where, zval *element_zval)
 {
-	zend_string *where;
-	zval *element_zval, *id;
+	zval *id;
 	xmlNodePtr thisp, otherp;
 	dom_object *this_intern, *other_intern;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "SO", &where, &element_zval, element_ce) != SUCCESS) {
-		RETURN_THROWS();
-	}
 
 	DOM_GET_THIS_OBJ(thisp, id, xmlNodePtr, this_intern);
 	DOM_GET_OBJ(otherp, element_zval, xmlNodePtr, other_intern);
@@ -1599,28 +1595,38 @@ static void dom_element_insert_adjacent_element(INTERNAL_FUNCTION_PARAMETERS, ze
 
 PHP_METHOD(DOMElement, insertAdjacentElement)
 {
-	dom_element_insert_adjacent_element(INTERNAL_FUNCTION_PARAM_PASSTHRU, dom_element_class_entry);
+	zend_string *where;
+	zval *element_zval;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "SO", &where, &element_zval, dom_element_class_entry) != SUCCESS) {
+		RETURN_THROWS();
+	}
+
+	dom_element_insert_adjacent_element(INTERNAL_FUNCTION_PARAM_PASSTHRU, where, element_zval);
 }
 
 PHP_METHOD(Dom_Element, insertAdjacentElement)
 {
-	dom_element_insert_adjacent_element(INTERNAL_FUNCTION_PARAM_PASSTHRU, dom_modern_element_class_entry);
+	zval *element_zval, *where_zv;
+
+	ZEND_PARSE_PARAMETERS_START(2, 2)
+		Z_PARAM_OBJECT_OF_CLASS(where_zv, dom_adjacent_position_class_entry)
+		Z_PARAM_OBJECT_OF_CLASS(element_zval, dom_modern_element_class_entry)
+	ZEND_PARSE_PARAMETERS_END();
+
+	const zend_string *where = Z_STR_P(zend_enum_fetch_case_name(Z_OBJ_P(where_zv)));
+	dom_element_insert_adjacent_element(INTERNAL_FUNCTION_PARAM_PASSTHRU, where, element_zval);
 }
 /* }}} end DOMElement::insertAdjacentElement */
 
 /* {{{ URL: https://dom.spec.whatwg.org/#dom-element-insertadjacenttext
 Since:
 */
-PHP_METHOD(DOMElement, insertAdjacentText)
+static void dom_element_insert_adjacent_text(INTERNAL_FUNCTION_PARAMETERS, const zend_string *where, const zend_string *data)
 {
-	zend_string *where, *data;
 	dom_object *this_intern;
 	zval *id;
 	xmlNodePtr thisp;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "SS", &where, &data) == FAILURE) {
-		RETURN_THROWS();
-	}
 
 	DOM_GET_THIS_OBJ(thisp, id, xmlNodePtr, this_intern);
 
@@ -1634,6 +1640,31 @@ PHP_METHOD(DOMElement, insertAdjacentText)
 	if (result == NULL || result == INSERT_ADJACENT_RES_ADOPT_FAILED) {
 		xmlFreeNode(otherp);
 	}
+}
+
+PHP_METHOD(DOMElement, insertAdjacentText)
+{
+	zend_string *where, *data;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "SS", &where, &data) == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	dom_element_insert_adjacent_text(INTERNAL_FUNCTION_PARAM_PASSTHRU, where, data);
+}
+
+PHP_METHOD(Dom_Element, insertAdjacentText)
+{
+	zval *where_zv;
+	zend_string *data;
+
+	ZEND_PARSE_PARAMETERS_START(2, 2)
+		Z_PARAM_OBJECT_OF_CLASS(where_zv, dom_adjacent_position_class_entry)
+		Z_PARAM_STR(data)
+	ZEND_PARSE_PARAMETERS_END();
+
+	const zend_string *where = Z_STR_P(zend_enum_fetch_case_name(Z_OBJ_P(where_zv)));
+	dom_element_insert_adjacent_text(INTERNAL_FUNCTION_PARAM_PASSTHRU, where, data);
 }
 /* }}} end DOMElement::insertAdjacentText */
 
@@ -1720,5 +1751,67 @@ out:
 	RETURN_BOOL(retval);
 }
 /* }}} end DOMElement::prepend */
+
+static void php_dom_dispatch_query_selector(INTERNAL_FUNCTION_PARAMETERS, bool all)
+{
+	zend_string *selectors_str;
+
+	ZEND_PARSE_PARAMETERS_START(1, 1)
+		Z_PARAM_STR(selectors_str)
+	ZEND_PARSE_PARAMETERS_END();
+
+	xmlNodePtr thisp;
+	dom_object *intern;
+	zval *id;
+	DOM_GET_THIS_OBJ(thisp, id, xmlNodePtr, intern);
+
+	if (all) {
+		dom_parent_node_query_selector_all(thisp, intern, return_value, selectors_str);
+	} else {
+		dom_parent_node_query_selector(thisp, intern, return_value, selectors_str);
+	}
+}
+
+PHP_METHOD(Dom_Element, querySelector)
+{
+	php_dom_dispatch_query_selector(INTERNAL_FUNCTION_PARAM_PASSTHRU, false);
+}
+
+PHP_METHOD(Dom_Element, querySelectorAll)
+{
+	php_dom_dispatch_query_selector(INTERNAL_FUNCTION_PARAM_PASSTHRU, true);
+}
+
+PHP_METHOD(Dom_Element, matches)
+{
+	zend_string *selectors_str;
+
+	ZEND_PARSE_PARAMETERS_START(1, 1)
+		Z_PARAM_STR(selectors_str)
+	ZEND_PARSE_PARAMETERS_END();
+
+	xmlNodePtr thisp;
+	dom_object *intern;
+	zval *id;
+	DOM_GET_THIS_OBJ(thisp, id, xmlNodePtr, intern);
+
+	dom_element_matches(thisp, intern, return_value, selectors_str);
+}
+
+PHP_METHOD(Dom_Element, closest)
+{
+	zend_string *selectors_str;
+
+	ZEND_PARSE_PARAMETERS_START(1, 1)
+		Z_PARAM_STR(selectors_str)
+	ZEND_PARSE_PARAMETERS_END();
+
+	xmlNodePtr thisp;
+	dom_object *intern;
+	zval *id;
+	DOM_GET_THIS_OBJ(thisp, id, xmlNodePtr, intern);
+
+	dom_element_closest(thisp, intern, return_value, selectors_str);
+}
 
 #endif

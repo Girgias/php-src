@@ -1,8 +1,6 @@
-AC_DEFUN([PHP_ODBC_CHECK_HEADER],[
-if ! test -f "$ODBC_INCDIR/$1"; then
-  AC_MSG_ERROR([ODBC header file '$ODBC_INCDIR/$1' not found!])
-fi
-])
+AC_DEFUN([PHP_ODBC_CHECK_HEADER],
+[AS_IF([test ! -f "$ODBC_INCDIR/$1"],
+  [AC_MSG_ERROR([ODBC header file '$ODBC_INCDIR/$1' not found!])])])
 
 dnl
 dnl Figure out which library file to link with for the Solid support.
@@ -451,9 +449,7 @@ if test -n "$ODBC_TYPE"; then
   fi
 
   AC_DEFINE(HAVE_UODBC,1,[ ])
-  PHP_SUBST(ODBC_SHARED_LIBADD)
-  PHP_SUBST(ODBC_INCDIR)
-  PHP_SUBST(ODBC_LIBDIR)
+  PHP_SUBST([ODBC_SHARED_LIBADD])
   AC_SUBST([ODBC_CFLAGS])
   AC_SUBST([ODBC_LIBS])
   AC_SUBST([ODBC_LFLAGS])

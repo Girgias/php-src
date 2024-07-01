@@ -178,6 +178,15 @@ PHP 8.4 UPGRADE NOTES
     Passing an empty string to disable the handler is still allowed,
     but not recommended.
 
+- XMLReader:
+  . Passing an invalid character encoding to XMLReader::open() or
+    XMLReader::XML() now throws a ValueError. Passing a string containing NULL
+    bytes previously emitted a warning and now throws a ValueError as well.
+
+- XMLWriter:
+  . Passing a string containing NULL bytes previously emitted a warning and
+    now throws a ValueError.
+
 - XSL:
   . XSLTProcessor::setParameter() will now throw a ValueError when its arguments
     contain null bytes. This never actually worked correctly in the first place,
@@ -230,6 +239,9 @@ PHP 8.4 UPGRADE NOTES
 - FPM:
   . Flushing headers without a body will now succeed. See GH-12785.
 
+- Hash:
+  . Added HashContext::__debugInfo().
+
 - Intl:
   . NumberFormatter::ROUND_HALFODD added to complement existing
     NumberFormatter::ROUND_HALFEVEN functionality.
@@ -240,6 +252,32 @@ PHP 8.4 UPGRADE NOTES
     openssl_pkey_get_details as well as openssl_sign and openssl_verify were
     extended to support those keys.
 
+- PDO:
+  . Added support for driver specific SQL parsers. The default parser supports:
+    - single and double quoted literals, with doubling as escaping mechanism.
+    - two-dashes and non-nested C-style comments.
+
+- PDO_MYSQL:
+  . Added custom parser supporting:
+    - single and double-quoted literals, with doubling and backslash as escaping
+      mechanism
+    - backtick literal identifiers and with doubling as escaping mechanism
+    - two dashes followed by at least 1 whitespace, non-nested C-style comments,
+      and hash-comments
+
+- PDO_PGSQL:
+  . Added custom parser supporting:
+    - single and double quoted literals, with doubling as escaping mechanism
+    - C-style "escape" string literals (E'string')
+    - dollar-quoted string literals
+    - two-dashes and C-style comments (non-nested)
+    - support for "??" as escape sequence for the "?" operator
+
+- PDO_SQLITE:
+  . Added custom parser supporting:
+    - single, double quoted, and backtick literals, with doubling as escaping mechanism
+    - square brackets quoting for identifiers
+    - two-dashes and C-style comments (non-nested)
 
 - Phar:
   . Added support for the unix timestamp extension for zip archives.
@@ -354,6 +392,11 @@ PHP 8.4 UPGRADE NOTES
     ldap_connect_wallet() instead.
   . Calling ldap_exop() with more than 4 arguments is deprecated. Use
     ldap_exop_sync() instead.
+
+- PDO_PGSQL:
+  . Using escaped question marks (??) inside dollar-quoted strings is deprecated.
+    Since PDO_PGSQL has its own SQL parser with dollar-quoted strings support, it
+    is no longer necessary to escape question marks inside them.
 
 - PgSQL:
   . Calling pgsql_fetch_result() with 2 arguments is deprecated. Use the
@@ -561,6 +604,9 @@ PHP 8.4 UPGRADE NOTES
     end-of-data to the server.
   . Added pg_socket_poll to check if there is any read and/or write events
     with an optional timeout.
+  . Added pg_jit to get informations on the server JIT support.
+  . Added pg_set_chunked_rows_size to allow to fetch results in chunk of
+    max N rows.
 
 - Sodium:
   . Added the sodium_crypto_aead_aegis128l_*() and sodium_crypto_aead_aegis256l_*()
@@ -581,6 +627,14 @@ PHP 8.4 UPGRADE NOTES
   . Added functions array_find(), array_find_key(), array_all(), and
     array_any().
     RFC: https://wiki.php.net/rfc/array_find
+
+- XMLReader:
+  . Added XMLReader::fromStream(), XMLReader::fromUri(), XMLReader::fromString().
+    RFC: https://wiki.php.net/rfc/xmlreader_writer_streams
+
+- XMLWriter:
+  . Added XMLWriter::toStream(), XMLWriter::toUri(), XMLWriter::toMemory().
+    RFC: https://wiki.php.net/rfc/xmlreader_writer_streams
 
 - XSL:
   . Added XSLTProcessor::registerPhpFunctionNS().
@@ -605,6 +659,8 @@ PHP 8.4 UPGRADE NOTES
     equivalents to the old DOM classes in the global namespaces.
     The new classes follow the DOM living spec.
     RFC: https://wiki.php.net/rfc/opt_in_dom_spec_compliance
+  . Implemented "New ext-dom features in PHP 8.4" RFC.
+    RFC: https://wiki.php.net/rfc/dom_additions_84
 
 ========================================
 8. Removed Extensions and SAPIs
@@ -612,6 +668,14 @@ PHP 8.4 UPGRADE NOTES
 
 - IMAP:
   . The IMAP extension has been unbundled and moved to PECL.
+    RFC: https://wiki.php.net/rfc/unbundle_imap_pspell_oci8
+
+- OCI8:
+  . The OCI8 extension has been unbundled and moved to PECL.
+    RFC: https://wiki.php.net/rfc/unbundle_imap_pspell_oci8
+
+- PDO_OCI:
+  . The PDO_OCI extension has been unbundled and moved to PECL.
     RFC: https://wiki.php.net/rfc/unbundle_imap_pspell_oci8
 
 - PSpell:
@@ -637,11 +701,24 @@ PHP 8.4 UPGRADE NOTES
     $domain name is empty or too long, and if $variant is not
     INTL_IDNA_VARIANT_UTS46.
 
+- MBString:
+  . Unicode data tables have been updated to Unicode 15.1.
+
+- mysqli:
+  . The unused and undocumented constant MYSQLI_SET_CHARSET_DIR
+    has been removed.
+
 - OpenSSL:
   . The OpenSSL extension now requires at least OpenSSL 1.1.1.
 
 - PDO:
   . The class constants are typed now.
+
+- pdo_pgsql:
+  . The pdo_pgsql extension now requires at least libpq 10.0.
+
+- pgsql:
+  . The pgsql extension now requires at least libpq 10.0.
 
 - Reflection:
   . The class constants are typed now.
@@ -658,6 +735,9 @@ PHP 8.4 UPGRADE NOTES
 - XSL:
   . The typed properties XSLTProcessor::$cloneDocument and
     XSLTProcessor::$doXInclude are now declared.
+
+- zlib:
+  . The zlib extension now requires at least zlib 1.2.11.
 
 ========================================
 10. New Global Constants
@@ -708,6 +788,7 @@ PHP 8.4 UPGRADE NOTES
   . TCP_SYNCNT (Linux only).
   . SO_EXCLBIND (Solaris/Illumos only).
   . SO_NOSIGPIPE (macOs and FreeBSD).
+  . SO_LINGER_SEC (macOs only).
 
 - Sodium:
   . SODIUM_CRYPTO_AEAD_AEGIS128L_KEYBYTES

@@ -14,6 +14,7 @@
   +----------------------------------------------------------------------+
 */
 
+#include "zend_modules.h"
 #ifdef HAVE_CONFIG_H
 # include "config.h"
 #endif
@@ -35,6 +36,7 @@
 #include "test_arginfo.h"
 #include "zend_call_stack.h"
 #include "zend_exceptions.h"
+#include "zend_mm_custom_handlers.h"
 
 // `php.h` sets `NDEBUG` when not `PHP_DEBUG` which will make `assert()` from
 // assert.h a no-op. In order to have `assert()` working on NDEBUG builds, we
@@ -58,6 +60,7 @@ static zend_class_entry *zend_test_attribute;
 static zend_class_entry *zend_test_repeatable_attribute;
 static zend_class_entry *zend_test_parameter_attribute;
 static zend_class_entry *zend_test_property_attribute;
+static zend_class_entry *zend_test_attribute_with_arguments;
 static zend_class_entry *zend_test_class_with_method_with_parameter_attribute;
 static zend_class_entry *zend_test_child_class_with_method_with_parameter_attribute;
 static zend_class_entry *zend_test_class_with_property_attribute;
@@ -575,6 +578,11 @@ static ZEND_FUNCTION(zend_test_parameter_with_attribute)
 	RETURN_LONG(1);
 }
 
+static ZEND_FUNCTION(zend_test_attribute_with_named_argument)
+{
+	ZEND_PARSE_PARAMETERS_NONE();
+}
+
 #ifdef ZEND_CHECK_STACK_LIMIT
 static ZEND_FUNCTION(zend_test_zend_call_stack_get)
 {
@@ -806,6 +814,17 @@ static ZEND_FUNCTION(zend_test_cast_fread)
 	}
 }
 
+static ZEND_FUNCTION(zend_test_is_zend_ptr)
+{
+	zend_long addr;
+
+	ZEND_PARSE_PARAMETERS_START(1, 1)
+		Z_PARAM_LONG(addr);
+	ZEND_PARSE_PARAMETERS_END();
+
+	RETURN_BOOL(is_zend_ptr((void*)addr));
+}
+
 static zend_object *zend_test_class_new(zend_class_entry *class_type)
 {
 	zend_object *obj = zend_objects_new(class_type);
@@ -987,6 +1006,19 @@ static ZEND_METHOD(ZendTestPropertyAttribute, __construct)
 	ZEND_PARSE_PARAMETERS_END();
 
 	ZVAL_STR_COPY(OBJ_PROP_NUM(Z_OBJ_P(ZEND_THIS), 0), parameter);
+}
+
+static ZEND_METHOD(ZendTestAttributeWithArguments, __construct)
+{
+	zval *arg;
+
+	ZEND_PARSE_PARAMETERS_START(1, 1)
+		Z_PARAM_ZVAL(arg)
+	ZEND_PARSE_PARAMETERS_END();
+
+	zend_string *property_name = zend_string_init("arg", strlen("arg"), 0);
+	zend_update_property_ex(zend_test_attribute_with_arguments, Z_OBJ_P(ZEND_THIS), property_name, arg);
+	zend_string_release(property_name);
 }
 
 static ZEND_METHOD(ZendTestClassWithMethodWithParameterAttribute, no_override)
@@ -1217,6 +1249,9 @@ PHP_MINIT_FUNCTION(zend_test)
 	zend_test_property_attribute = register_class_ZendTestPropertyAttribute();
 	zend_mark_internal_attribute(zend_test_property_attribute);
 
+	zend_test_attribute_with_arguments = register_class_ZendTestAttributeWithArguments();
+	zend_mark_internal_attribute(zend_test_attribute_with_arguments);
+
 	zend_test_class_with_method_with_parameter_attribute = register_class_ZendTestClassWithMethodWithParameterAttribute();
 	zend_test_child_class_with_method_with_parameter_attribute = register_class_ZendTestChildClassWithMethodWithParameterAttribute(zend_test_class_with_method_with_parameter_attribute);
 
@@ -1260,6 +1295,7 @@ PHP_MINIT_FUNCTION(zend_test)
 	}
 
 	zend_test_observer_init(INIT_FUNC_ARGS_PASSTHRU);
+	zend_test_mm_custom_handlers_minit(INIT_FUNC_ARGS_PASSTHRU);
 	zend_test_fiber_init();
 	zend_test_iterators_init();
 	zend_test_object_handlers_init();
@@ -1288,6 +1324,7 @@ PHP_RINIT_FUNCTION(zend_test)
 {
 	zend_hash_init(&ZT_G(global_weakmap), 8, NULL, ZVAL_PTR_DTOR, 0);
 	ZT_G(observer_nesting_depth) = 0;
+	zend_test_mm_custom_handlers_rinit();
 	return SUCCESS;
 }
 
@@ -1305,6 +1342,7 @@ PHP_RSHUTDOWN_FUNCTION(zend_test)
 		zend_mm_set_heap(ZT_G(zend_orig_heap));
 	}
 
+	zend_test_mm_custom_handlers_rshutdown();
 	return SUCCESS;
 }
 

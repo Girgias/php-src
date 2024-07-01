@@ -245,6 +245,13 @@ namespace {
      * @cvalue PGRES_TUPLES_OK
      */
     const PGSQL_TUPLES_OK = UNKNOWN;
+#ifdef HAVE_PG_SET_CHUNKED_ROWS_SIZE
+    /**
+     * @var int
+     * @cvalue PGRES_TUPLES_CHUNK
+     */
+    const PGSQL_TUPLES_CHUNK = UNKNOWN;
+#endif
     /**
      * @var int
      * @cvalue PGRES_COPY_OUT
@@ -440,7 +447,6 @@ namespace {
     const PGSQL_TRACE_REGRESS_MODE = UNKNOWN;
 #endif
 
-#ifdef HAVE_PG_CONTEXT_VISIBILITY
     /* For pg_set_error_context_visibility() */
 
     /**
@@ -458,7 +464,6 @@ namespace {
      * @cvalue PQSHOW_CONTEXT_ALWAYS
      */
     const PGSQL_SHOW_CONTEXT_ALWAYS = UNKNOWN;
-#endif
 
     function pg_connect(string $connection_string, int $flags = 0): PgSql\Connection|false {}
 
@@ -496,6 +501,12 @@ namespace {
      * @refcount 1
      */
     function pg_version(?PgSql\Connection $connection = null): array {}
+
+    /**
+     * @return array<string, string|null>
+     * @refcount 1
+     */
+    function pg_jit(?PgSql\Connection $connection = null): array {}
 
     /**
      * @param PgSql\Connection|string $connection
@@ -940,9 +951,7 @@ namespace {
      */
     function pg_select(PgSql\Connection $connection, string $table_name, array $conditions = [], int $flags = PGSQL_DML_EXEC, int $mode = PGSQL_ASSOC): array|string|false {}
 
-#ifdef HAVE_PG_CONTEXT_VISIBILITY
     function pg_set_error_context_visibility(PgSql\Connection $connection, int $visibility): int {}
-#endif
 
 #ifdef HAVE_PG_RESULT_MEMORY_SIZE
     function pg_result_memory_size(PgSql\Result $result): int {}
@@ -957,6 +966,10 @@ namespace {
      * @param resource $socket
      */
     function pg_socket_poll($socket, int $read, int $write, int $timeout = -1): int {}
+
+#ifdef HAVE_PG_SET_CHUNKED_ROWS_SIZE
+    function pg_set_chunked_rows_size(Pgsql\Connection $connection, int $size): bool {}
+#endif
 }
 
 namespace PgSql {

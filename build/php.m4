@@ -1022,10 +1022,10 @@ $3
 
 int main(void)
 {
-	FILE *fp = fopen("conftestval", "w");
-	if (!fp) return(1);
-	fprintf(fp, "%d\n", sizeof($1));
-	return(0);
+  FILE *fp = fopen("conftestval", "w");
+  if (!fp) return(1);
+  fprintf(fp, "%d\n", sizeof($1));
+  return(0);
 }
   ]])], [
     eval $php_cache_value=`cat conftestval`
@@ -1124,7 +1124,7 @@ AC_DEFUN([PHP_DOES_PWRITE_WORK],[
 #include <stdlib.h>
 $1
     int main(void) {
-    int fd = open("conftest_in", O_WRONLY|O_CREAT, 0600);
+    int fd = open("conftest_pwrite", O_WRONLY|O_CREAT, 0600);
 
     if (fd < 0) return 1;
     if (pwrite(fd, "text", 4, 0) != 4) return 1;
@@ -1148,7 +1148,7 @@ dnl
 dnl Internal.
 dnl
 AC_DEFUN([PHP_DOES_PREAD_WORK],[
-  echo test > conftest_in
+  echo test > conftest_pread
   AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -1159,7 +1159,7 @@ AC_DEFUN([PHP_DOES_PREAD_WORK],[
 $1
     int main(void) {
     char buf[3];
-    int fd = open("conftest_in", O_RDONLY);
+    int fd = open("conftest_pread", O_RDONLY);
     if (fd < 0) return 1;
     if (pread(fd, buf, 2, 0) != 2) return 1;
     /* Linux glibc breakage until 2.2.5 */
@@ -1173,7 +1173,6 @@ $1
   ],[
     ac_cv_pread=no
   ])
-  rm -f conftest_in
 ])
 
 dnl
@@ -1533,8 +1532,8 @@ dnl .sl
 dnl
 AC_DEFUN([PHP_SHLIB_SUFFIX_NAMES],[
  AC_REQUIRE([PHP_CANONICAL_HOST_TARGET])dnl
- PHP_SUBST_OLD(SHLIB_SUFFIX_NAME)
- PHP_SUBST_OLD(SHLIB_DL_SUFFIX_NAME)
+ PHP_SUBST_OLD([SHLIB_SUFFIX_NAME])
+ PHP_SUBST_OLD([SHLIB_DL_SUFFIX_NAME])
  SHLIB_SUFFIX_NAME=so
  SHLIB_DL_SUFFIX_NAME=$SHLIB_SUFFIX_NAME
  case $host_alias in
@@ -1690,10 +1689,12 @@ AC_DEFUN([PHP_PROG_BISON], [
 ])
 
 dnl
-dnl PHP_PROG_RE2C([MIN-VERSION])
+dnl PHP_PROG_RE2C([min-version], [options])
 dnl
 dnl Search for the re2c and optionally check if version is at least the minimum
-dnl required version MIN-VERSION.
+dnl required version "min-version". The blank-or-newline-separated "options" are
+dnl the re2c command-line flags substituted into a Makefile variable RE2C_FLAGS
+dnl which can be added to all re2c invocations.
 dnl
 AC_DEFUN([PHP_PROG_RE2C],[
   AC_CHECK_PROG(RE2C, re2c, re2c)
@@ -1745,6 +1746,8 @@ AC_DEFUN([PHP_PROG_RE2C],[
   esac
 
   PHP_SUBST(RE2C)
+  AS_VAR_SET([RE2C_FLAGS], [m4_normalize([$2])])
+  PHP_SUBST([RE2C_FLAGS])
 ])
 
 AC_DEFUN([PHP_PROG_PHP],[
@@ -1824,10 +1827,10 @@ AC_DEFUN([PHP_SETUP_ICONV], [
     dnl Reset LIBS temporarily as it may have already been included -liconv in.
     LIBS_save="$LIBS"
     LIBS=
-    AC_CHECK_FUNC(iconv, [
+    AC_CHECK_FUNC([iconv], [
       found_iconv=yes
     ],[
-      AC_CHECK_FUNC(libiconv,[
+      AC_CHECK_FUNC([libiconv], [
         AC_DEFINE(HAVE_LIBICONV, 1, [ ])
         found_iconv=yes
       ])
@@ -1929,6 +1932,90 @@ PKG_CHECK_MODULES([SQLITE], [sqlite3 >= 3.7.7], [
 ])
 ])
 
+dnl
+dnl PHP_SETUP_ZLIB(shared-add [, action-found, [action-not-found]])
+dnl
+dnl Common setup macro for zlib library. If zlib is not found on the system, the
+dnl default error by PKG_CHECK_MODULES is emitted, unless the action-not-found
+dnl is given.
+dnl
+AC_DEFUN([PHP_SETUP_ZLIB], [dnl
+PKG_CHECK_MODULES([ZLIB], [zlib >= 1.2.11], [dnl
+  PHP_EVAL_INCLINE([$ZLIB_CFLAGS])
+  PHP_EVAL_LIBLINE([$ZLIB_LIBS], [$1])
+  $2], [$3])dnl
+])
+
+dnl
+dnl PHP_SETUP_PGSQL([shared-add [, action-found [, action-not-found [, pgsql-dir]]]])
+dnl
+dnl Common setup macro for PostgreSQL library (libpq). The optional "pgsql-dir"
+dnl is the PostgreSQL base install directory or the path to pg_config. Support
+dnl for pkg-config was introduced in PostgreSQL 9.3. If library can't be found
+dnl with pkg-config, check falls back to pg_config. If libpq is not found, error
+dnl is thrown, unless the "action-not-found" is given.
+dnl
+AC_DEFUN([PHP_SETUP_PGSQL], [dnl
+found_pgsql=no
+dnl Set PostgreSQL installation directory if given from the configure argument.
+AS_CASE([$4], [yes], [pgsql_dir=""], [pgsql_dir=$4])
+AS_VAR_IF([pgsql_dir],,
+  [PKG_CHECK_MODULES([PGSQL], [libpq >= 10.0],
+    [found_pgsql=yes],
+    [found_pgsql=no])])
+
+AS_VAR_IF([found_pgsql], [no], [dnl
+  AC_MSG_CHECKING([for pg_config])
+  for i in $pgsql_dir $pgsql_dir/bin /usr/local/pgsql/bin /usr/local/bin /usr/bin ""; do
+    AS_IF([test -x $i/pg_config], [PG_CONFIG="$i/pg_config"; break;])
+  done
+
+  AS_VAR_IF([PG_CONFIG],, [dnl
+    AC_MSG_RESULT([not found])
+    AS_VAR_IF([pgsql_dir],,
+      [pgsql_search_paths="/usr /usr/local /usr/local/pgsql"],
+      [pgsql_search_paths=$pgsql_dir])
+
+    for i in $pgsql_search_paths; do
+      for j in include include/pgsql include/postgres include/postgresql ""; do
+        AS_IF([test -r "$i/$j/libpq-fe.h"], [PGSQL_INCLUDE=$i/$j])
+      done
+
+      for j in $PHP_LIBDIR lib $PHP_LIBDIR/pgsql $PHP_LIBDIR/postgres $PHP_LIBDIR/postgresql ""; do
+        AS_IF([test -f "$i/$j/libpq.so" || test -f "$i/$j/libpq.a"],
+          [PGSQL_LIBDIR=$i/$j])
+      done
+    done
+  ], [dnl
+    AC_MSG_RESULT([$PG_CONFIG])
+    PGSQL_INCLUDE=$($PG_CONFIG --includedir)
+    PGSQL_LIBDIR=$($PG_CONFIG --libdir)
+  ])
+
+  AS_IF([test -n "$PGSQL_INCLUDE" && test -n "PGSQL_LIBDIR"], [
+    found_pgsql=yes
+    PGSQL_CFLAGS="-I$PGSQL_INCLUDE"
+    PGSQL_LIBS="-L$PGSQL_LIBDIR -lpq"
+  ])dnl
+])
+
+AS_VAR_IF([found_pgsql], [yes], [dnl
+  PHP_EVAL_INCLINE([$PGSQL_CFLAGS])
+  PHP_EVAL_LIBLINE([$PGSQL_LIBS], [$1])
+dnl PostgreSQL minimum version sanity check.
+  PHP_CHECK_LIBRARY([pq], [PQencryptPasswordConn],, [AC_MSG_ERROR([m4_normalize([
+    PostgreSQL check failed: libpq 10.0 or later is required, please see
+    config.log for details.
+  ])])],
+  [$PGSQL_LIBS])
+$2],
+[m4_default([$3], [AC_MSG_ERROR([m4_normalize([
+  Cannot find libpq-fe.h or pq library (libpq). Please specify the correct
+  PostgreSQL installation path with environment variables PGSQL_CFLAGS and
+  PGSQL_LIBS or provide the PostgreSQL installation directory.
+])])])])
+])
+
 dnl ----------------------------------------------------------------------------
 dnl Misc. macros
 dnl ----------------------------------------------------------------------------
@@ -1981,8 +2068,8 @@ dnl
 AC_DEFUN([PHP_CONFIG_NICE],[
   AC_REQUIRE([AC_PROG_EGREP])
   AC_REQUIRE([AC_PROG_SED])
-  PHP_SUBST_OLD(EGREP)
-  PHP_SUBST_OLD(SED)
+  PHP_SUBST_OLD([EGREP])
+  PHP_SUBST_OLD([SED])
   test -f $1 && mv $1 $1.old
   rm -f $1.old
   cat >$1<<EOF
@@ -2196,7 +2283,10 @@ int main(void)
 dnl
 dnl PHP_INIT_DTRACE(providerdesc, header-file, sources [, module])
 dnl
-AC_DEFUN([PHP_INIT_DTRACE],[
+AC_DEFUN([PHP_INIT_DTRACE],
+[AC_CHECK_HEADER([sys/sdt.h],,
+  [AC_MSG_ERROR([Cannot find sys/sdt.h which is required for DTrace support.])])
+
 dnl Set paths properly when called from extension.
   case "$4" in
     ""[)] ac_srcdir="$abs_srcdir/"; unset ac_bdir;;
@@ -2301,6 +2391,9 @@ $ac_bdir[$]ac_provsrc.o: \$(PHP_DTRACE_OBJS)
 EOF
     ;;
   esac
+
+AC_DEFINE([HAVE_DTRACE], [1], [Define to 1 if DTrace support is enabled.])
+PHP_SUBST([PHP_DTRACE_OBJS])
 ])
 
 dnl

@@ -15,7 +15,7 @@
 */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#include <config.h>
 #endif
 
 #ifndef _GNU_SOURCE
@@ -1274,7 +1274,8 @@ static const struct pdo_dbh_methods firebird_methods = { /* {{{ */
 	NULL, /* get driver methods */
 	NULL, /* request shutdown */
 	pdo_firebird_in_manually_transaction,
-	NULL /* get gc */
+	NULL, /* get gc */
+	NULL /* scanner */
 };
 /* }}} */
 

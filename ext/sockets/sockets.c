@@ -19,7 +19,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#include <config.h>
 #endif
 
 #include "php.h"
@@ -268,6 +268,28 @@ static bool php_accept_connect(php_socket *in_sock, php_socket *out_sock, struct
 		PHP_SOCKET_ERROR(out_sock, "unable to accept incoming connection", errno);
 		return 0;
 	}
+
+#if !defined(PHP_WIN32)
+	/**
+	 * accept4 could had been used but not all platforms support it (e.g. Haiku, solaris < 11.4, ...)
+	 * win32, not having any concept of child process, has no need to address it.
+	 */
+	int mode;
+
+	if ((mode = fcntl(out_sock->bsd_socket, F_GETFD)) < 0) {
+		PHP_SOCKET_ERROR(out_sock, "unable to get fcntl mode on the socket", errno);
+		return 0;
+	}
+
+	int cloexec = (mode | FD_CLOEXEC);
+
+	if (mode != cloexec) {
+		if (fcntl(out_sock->bsd_socket, F_SETFD, cloexec) < 0) {
+			PHP_SOCKET_ERROR(out_sock, "unable to set cloexec mode on the socket", errno);
+			return 0;
+		}
+	}
+#endif
 
 	out_sock->error = 0;
 	out_sock->blocking = 1;
