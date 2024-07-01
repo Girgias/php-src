@@ -83,45 +83,28 @@ static zval *zend_user_class_fetch_dimension(zend_object *object, zval *offset, 
 static zval *zend_legacy_ArrayAccess_fetch_dimension(zend_object *object, zval *offset, zval *rv)
 {
 	zend_class_entry *ce = object->ce;
-	zend_function *called_fn = NULL;
 	zend_function *user_function = zend_hash_str_find_ptr(&ce->function_table, "offsetget", strlen("offsetget"));
 
-	//if (user_function->common.fn_flags & ZEND_ACC_RETURN_REFERENCE) {
-	//	called_fn = user_function;
-	//} else {
-	//	/* Force function to return by-ref */
-	//	called_fn = emalloc(sizeof(zend_function));
-	//	memcpy(called_fn, user_function, sizeof(zend_function));
-	//	called_fn->common.fn_flags = ZEND_ACC_RETURN_REFERENCE|called_fn->common.fn_flags;
-	//}
-	called_fn = user_function;
-
 	GC_ADDREF(object);
-	zend_call_known_function(called_fn, object, object->ce, rv, 1, offset, NULL);
-	//zend_call_known_instance_method_with_1_params(called_fn, object, rv, offset);
+	zend_call_known_function(user_function, object, object->ce, rv, 1, offset, NULL);
 	OBJ_RELEASE(object);
-
-	//if (called_fn != user_function) {
-	//	efree(called_fn);
-	//}
 
 	if (UNEXPECTED(Z_TYPE_P(rv) == IS_UNDEF)) {
 		ZEND_ASSERT(EG(exception));
 		return NULL;
 	}
+
+	/* Warn about not returning by-ref */
 	if (!Z_ISREF_P(rv)) {
 		if (Z_TYPE_P(rv) != IS_OBJECT) {
 			zend_class_entry *ce = object->ce;
+			// TODO Make this an E_WARNING
 			zend_error(E_NOTICE, "Indirect modification of overloaded element of %s has no effect", ZSTR_VAL(ce->name));
 			if (UNEXPECTED(EG(exception))) {
 				zval_ptr_dtor(rv);
 				ZVAL_UNDEF(rv);
 				return NULL;
 			}
-			/* "Create" a ref to the value even if it is not to have BC behaviour */
-			ZVAL_MAKE_REF_EX(rv, 1);
-		} else {
-			//SEPARATE_ZVAL(rv);
 		}
 	}
 

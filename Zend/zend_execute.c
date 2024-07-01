@@ -1717,6 +1717,37 @@ static zend_never_inline void zend_binary_assign_op_obj_dim(zend_object *obj, zv
 
 				zval zref;
 				zend_fetch_object_dimension_address(&zref, obj, NULL, 0, BP_VAR_W EXECUTE_DATA_CC);
+
+				if (UNEXPECTED(Z_TYPE(zref) == IS_UNDEF)) {
+					if (UNEXPECTED(RETURN_VALUE_USED(opline))) {
+						ZVAL_NULL(EX_VAR(opline->result.var));
+					}
+					goto clean_up;
+				}
+
+				/* BC Layer for ArrayAccess */
+				if (UNEXPECTED(!Z_ISREF(zref) && Z_TYPE(zref) != IS_INDIRECT)) {
+#ifdef ZEND_DEBUG
+					ZEND_ASSERT(instanceof_function(obj->ce, zend_ce_arrayaccess));
+#endif
+					/* For array access that doesn't return a reference we need to do the old read write
+					* technique with an offset of type IS_NULL */
+					zval res;
+
+					if (zend_binary_op(&res, &zref, value OPLINE_CC) == SUCCESS) {
+						zval tmp;
+						ZVAL_NULL(&tmp);
+
+						obj->ce->dimension_handlers->write_dimension(obj, &tmp, &res);
+					}
+
+					if (UNEXPECTED(RETURN_VALUE_USED(opline))) {
+						ZVAL_COPY(EX_VAR(opline->result.var), &res);
+					}
+					zval_ptr_dtor(&res);
+					zval_ptr_dtor(&zref);
+					goto clean_up;
+				}
 				ZEND_ASSERT((Z_ISREF(zref) || Z_TYPE(zref) == IS_INDIRECT) && "zend_fetch_object_dimension_address did not return REF/INDIRECT");
 
 				zval *var_ptr;
@@ -2870,13 +2901,7 @@ static zend_never_inline void zend_fetch_object_dimension_address(zval *result, 
 			ZVAL_UNDEF(result);
 			goto clean_up;
 		}
-		///* This is a legacy behaviour to support ArrayAccess */
-		//if (UNEXPECTED(Z_TYPE_P(retval) == IS_OBJECT)) {
-		//	if (result != retval) {
-		//		ZVAL_INDIRECT(result, retval);
-		//	}
-		//	goto clean_up;
-		//}
+
 		if (
 			!Z_ISREF_P(retval)
 			/* Support indirect for:
@@ -2885,8 +2910,14 @@ static zend_never_inline void zend_fetch_object_dimension_address(zval *result, 
 			 * $ao[] = &$var;
 			 * cases */
 			&& Z_TYPE_P(retval) != IS_INDIRECT
+			&& Z_TYPE_P(retval) != IS_OBJECT
 		) {
 			zend_class_entry *ce = obj->ce;
+
+			/* BC Layer for ArrayAccess where we do nothing */
+			if (UNEXPECTED(instanceof_function(ce, zend_ce_arrayaccess))) {
+				goto clean_up;
+			}
 			zend_throw_error(NULL, "%s::%s() must return a reference type",
 				ZSTR_VAL(ce->name), offset ? "offsetFetch" : "fetchAppend");
 			ZVAL_UNDEF(result);
@@ -2967,6 +2998,10 @@ fetch_from_array:
 				/* We need to seperate objects returned by reference */
 				SEPARATE_ZVAL(result);
 			}
+		} else if (UNEXPECTED(Z_TYPE_P(result) != IS_INDIRECT && Z_TYPE_P(result) != IS_OBJECT)) {
+			/* BC Layer for ArrayAccess */
+			/* "Create" a ref to the value even if it is not to have BC behaviour */
+			ZVAL_MAKE_REF(result);
 		}
 		if (UNEXPECTED(EG(exception))) {
 			ZVAL_UNDEF(result);
