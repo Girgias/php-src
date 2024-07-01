@@ -211,9 +211,11 @@ static zend_object_handlers zend_ffi_handlers;
 
 static zend_object_handlers zend_ffi_cdata_handlers;
 static zval *zend_ffi_cdata_read_dim(zend_object *obj, zval *offset, zval *rv);
+static zval *zend_ffi_cdata_fetch_dim(zend_object *obj, zval *offset, zval *rv);
 static void zend_ffi_cdata_write_dim(zend_object *obj, zval *offset, zval *value);
 static const zend_class_dimensions_functions zend_ffi_cdata_dimensions_functions = {
 	.read_dimension = zend_ffi_cdata_read_dim,
+	.fetch_dimension = zend_ffi_cdata_fetch_dim,
 	.write_dimension = zend_ffi_cdata_write_dim,
 };
 
@@ -226,6 +228,7 @@ static ZEND_COLD bool zend_ffi_free_has_dimension(zend_object *obj, zval *offset
 static ZEND_COLD void zend_ffi_free_unset_dimension(zend_object *obj, zval *offset);
 static const zend_class_dimensions_functions zend_ffi_cdata_free_dimensions_functions = {
 	.read_dimension = zend_ffi_free_read_dimension,
+	.fetch_dimension = zend_ffi_free_read_dimension,
 	.write_dimension = zend_ffi_free_write_dimension,
 	.has_dimension = zend_ffi_free_has_dimension,
 	.unset_dimension = zend_ffi_free_unset_dimension
@@ -1395,7 +1398,7 @@ static zval *zend_ffi_cdata_write_field(zend_object *obj, zend_string *field_nam
 }
 /* }}} */
 
-static zval *zend_ffi_cdata_read_dim(zend_object *obj, zval *offset, zval *rv) /* {{{ */
+static zval *zend_ffi_cdata_read_dim_impl(zend_object *obj, zval *offset, zval *rv, int op_type) /* {{{ */
 {
 	zend_ffi_cdata *cdata = (zend_ffi_cdata*)obj;
 	zend_ffi_type  *type = ZEND_FFI_TYPE(cdata->type);
@@ -1408,7 +1411,7 @@ static zval *zend_ffi_cdata_read_dim(zend_object *obj, zval *offset, zval *rv) /
 		if (UNEXPECTED((zend_ulong)(dim) >= (zend_ulong)type->array.length)
 		 && (UNEXPECTED(dim < 0) || UNEXPECTED(type->array.length != 0))) {
 			zend_throw_error(zend_ffi_exception_ce, "C array index out of bounds");
-			return &EG(uninitialized_zval);
+			return NULL;
 		}
 
 		is_const = (cdata->flags & ZEND_FFI_FLAG_CONST) | (zend_ffi_flags)(type->attr & ZEND_FFI_ATTR_CONST);
@@ -1424,7 +1427,7 @@ static zval *zend_ffi_cdata_read_dim(zend_object *obj, zval *offset, zval *rv) /
 #if 0
 		if (UNEXPECTED(!cdata->ptr)) {
 			zend_throw_error(zend_ffi_exception_ce, "NULL pointer dereference");
-			return &EG(uninitialized_zval);
+			return NULL;
 		}
 #endif
 		ptr = (void*)(((char*)cdata->ptr) + dim_type->size * dim);
@@ -1440,16 +1443,27 @@ static zval *zend_ffi_cdata_read_dim(zend_object *obj, zval *offset, zval *rv) /
 		}
 		if (UNEXPECTED(!cdata->ptr)) {
 			zend_throw_error(zend_ffi_exception_ce, "NULL pointer dereference");
-			return &EG(uninitialized_zval);
+			return NULL;
 		}
 		ptr = (void*)((*(char**)cdata->ptr) + dim_type->size * dim);
 	} else {
 		zend_throw_error(zend_ffi_exception_ce, "Attempt to read element of non C array");
-		return &EG(uninitialized_zval);
+		return NULL;
 	}
 
-	zend_ffi_cdata_to_zval(NULL, ptr, dim_type, BP_VAR_R, rv, is_const, 0, 0);
+	zend_ffi_cdata_to_zval(NULL, ptr, dim_type, op_type, rv, is_const, false, 0);
 	return rv;
+}
+/* }}} */
+
+static zval *zend_ffi_cdata_read_dim(zend_object *obj, zval *offset, zval *rv) /* {{{ */
+{
+	return zend_ffi_cdata_read_dim_impl(obj, offset, rv, BP_VAR_R);
+}
+
+static zval *zend_ffi_cdata_fetch_dim(zend_object *obj, zval *offset, zval *rv) /* {{{ */
+{
+	return zend_ffi_cdata_read_dim_impl(obj, offset, rv, BP_VAR_FETCH);
 }
 /* }}} */
 
@@ -4046,6 +4060,7 @@ ZEND_METHOD(FFI, cast) /* {{{ */
 		} else if (type->kind == ZEND_FFI_TYPE_POINTER && Z_TYPE_P(zv) == IS_LONG) {
 			/* number to pointer conversion */
 			cdata = (zend_ffi_cdata*)zend_ffi_cdata_new(zend_ffi_cdata_ce);
+			cdata->std.ce->dimension_handlers = (zend_class_dimensions_functions*)&zend_ffi_cdata_dimensions_functions;
 			cdata->type = type_ptr;
 			cdata->ptr = &cdata->ptr_holder;
 			cdata->ptr_holder = (void*)(intptr_t)Z_LVAL_P(zv);
@@ -4056,6 +4071,7 @@ ZEND_METHOD(FFI, cast) /* {{{ */
 		} else if (type->kind == ZEND_FFI_TYPE_POINTER && Z_TYPE_P(zv) == IS_NULL) {
 			/* null -> pointer */
 			cdata = (zend_ffi_cdata*)zend_ffi_cdata_new(zend_ffi_cdata_ce);
+			cdata->std.ce->dimension_handlers = (zend_class_dimensions_functions*)&zend_ffi_cdata_dimensions_functions;
 			cdata->type = type_ptr;
 			cdata->ptr = &cdata->ptr_holder;
 			cdata->ptr_holder = NULL;
