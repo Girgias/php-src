@@ -253,28 +253,6 @@ void zend_assert_valid_class_name(const zend_string *name, const char *type) /* 
 }
 /* }}} */
 
-typedef struct _builtin_type_info {
-	const char* name;
-	const size_t name_len;
-	const uint8_t type;
-} builtin_type_info;
-
-static const builtin_type_info builtin_types[] = {
-	{ZEND_STRL("null"), IS_NULL},
-	{ZEND_STRL("true"), IS_TRUE},
-	{ZEND_STRL("false"), IS_FALSE},
-	{ZEND_STRL("int"), IS_LONG},
-	{ZEND_STRL("float"), IS_DOUBLE},
-	{ZEND_STRL("string"), IS_STRING},
-	{ZEND_STRL("bool"), _IS_BOOL},
-	{ZEND_STRL("void"), IS_VOID},
-	{ZEND_STRL("never"), IS_NEVER},
-	{ZEND_STRL("iterable"), IS_ITERABLE},
-	{ZEND_STRL("object"), IS_OBJECT},
-	{ZEND_STRL("mixed"), IS_MIXED},
-	{NULL, 0, IS_UNDEF}
-};
-
 typedef struct {
 	const char *name;
 	size_t name_len;
@@ -291,12 +269,30 @@ static const confusable_type_info confusable_types[] = {
 
 static zend_always_inline uint8_t zend_lookup_builtin_type_by_name(const zend_string *name) /* {{{ */
 {
+	typedef struct _builtin_type_info {
+		const zend_string* name;
+		const uint8_t type;
+	} builtin_type_info;
+
+	const builtin_type_info builtin_types[] = {
+		{ZSTR_KNOWN(ZEND_STR_NULL), IS_NULL},
+		{ZSTR_KNOWN(ZEND_STR_TRUE), IS_TRUE},
+		{ZSTR_KNOWN(ZEND_STR_FALSE), IS_FALSE},
+		{ZSTR_KNOWN(ZEND_STR_INT), IS_LONG},
+		{ZSTR_KNOWN(ZEND_STR_FLOAT), IS_DOUBLE},
+		{ZSTR_KNOWN(ZEND_STR_STRING), IS_STRING},
+		{ZSTR_KNOWN(ZEND_STR_BOOL), _IS_BOOL},
+		{ZSTR_KNOWN(ZEND_STR_VOID), IS_VOID},
+		{ZSTR_KNOWN(ZEND_STR_NEVER), IS_NEVER},
+		{ZSTR_KNOWN(ZEND_STR_ITERABLE), IS_ITERABLE},
+		{ZSTR_KNOWN(ZEND_STR_OBJECT), IS_OBJECT},
+		{ZSTR_KNOWN(ZEND_STR_MIXED), IS_MIXED},
+		{NULL,  IS_UNDEF}
+	};
 	const builtin_type_info *info = &builtin_types[0];
 
 	for (; info->name; ++info) {
-		if (ZSTR_LEN(name) == info->name_len
-			&& zend_binary_strcasecmp(ZSTR_VAL(name), ZSTR_LEN(name), info->name, info->name_len) == 0
-		) {
+		if (zend_string_equals_ci(name, info->name)) {
 			return info->type;
 		}
 	}
