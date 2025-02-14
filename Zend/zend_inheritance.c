@@ -677,10 +677,9 @@ ZEND_API inheritance_status zend_perform_covariant_type_check(
 {
 	ZEND_ASSERT(ZEND_TYPE_IS_SET(fe_type) && ZEND_TYPE_IS_SET(proto_type));
 
-	/* Apart from void, everything is trivially covariant to the mixed type.
+	/* Everything is trivially covariant to the mixed type.
 	 * Handle this case separately to ensure it never requires class loading. */
-	if (ZEND_TYPE_PURE_MASK(proto_type) == MAY_BE_ANY &&
-			!ZEND_TYPE_CONTAINS_CODE(fe_type, IS_VOID)) {
+	if (ZEND_TYPE_PURE_MASK(proto_type) == MAY_BE_ANY) {
 		return INHERITANCE_SUCCESS;
 	}
 

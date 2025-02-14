@@ -1198,9 +1198,6 @@ static zend_always_inline bool zend_check_type_slow(
 	return zend_verify_scalar_type_hint(type_mask, arg,
 		is_return_type ? ZEND_RET_USES_STRICT_TYPES() : ZEND_ARG_USES_STRICT_TYPES(),
 		is_internal);
-
-	/* Special handling for IS_VOID is not necessary (for return types),
-	 * because this case is already checked at compile-time. */
 }
 
 static zend_always_inline bool zend_check_type(

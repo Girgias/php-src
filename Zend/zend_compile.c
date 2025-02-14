@@ -1502,6 +1502,7 @@ zend_string *zend_type_to_string_resolved(const zend_type type, zend_class_entry
 	} else if (type_mask & MAY_BE_TRUE) {
 		str = add_type_string(str, ZSTR_KNOWN(ZEND_STR_TRUE), /* is_intersection */ false);
 	}
+	/* Necessary for error messages during compilation */
 	if (type_mask & MAY_BE_VOID) {
 		str = add_type_string(str, ZSTR_KNOWN(ZEND_STR_VOID), /* is_intersection */ false);
 	}
@@ -2627,19 +2628,8 @@ static void zend_emit_return_type_check(
 	if (ZEND_TYPE_IS_SET(type)) {
 		zend_op *opline;
 
-		/* `return ...;` is illegal in a void function (but `return;` isn't) */
-		if (ZEND_TYPE_CONTAINS_CODE(type, IS_VOID)) {
-			if (expr) {
-				if (expr->op_type == IS_CONST && Z_TYPE(expr->u.constant) == IS_NULL) {
-					zend_error_noreturn(E_COMPILE_ERROR,
-						"A void %s must not return a value "
-						"(did you mean \"return;\" instead of \"return null;\"?)",
-						CG(active_class_entry) != NULL ? "method" : "function");
-				} else {
-					zend_error_noreturn(E_COMPILE_ERROR, "A void %s must not return a value",
-					CG(active_class_entry) != NULL ? "method" : "function");
-				}
-			}
+		/* void is converted to null and must accept `return;` */
+		if (ZEND_TYPE_FULL_MASK(type) == MAY_BE_NULL && !expr) {
 			/* we don't need run-time check */
 			return;
 		}
@@ -7130,7 +7120,7 @@ static void zend_is_type_list_redundant_by_single_type(const zend_type_list *typ
 static zend_type zend_compile_typename(zend_ast *ast);
 
 static zend_type zend_compile_typename_ex(
-		zend_ast *ast, bool force_allow_null, bool *forced_allow_null) /* {{{ */
+		zend_ast *ast, bool force_allow_null, bool *forced_allow_null, bool *has_void) /* {{{ */
 {
 	bool is_marked_nullable = ast->attr & ZEND_TYPE_NULLABLE;
 	zend_ast_attr orig_ast_attr = ast->attr;
@@ -7347,8 +7337,13 @@ static zend_type zend_compile_typename_ex(
 		type_mask = ZEND_TYPE_PURE_MASK(type);
 	}
 
-	if ((type_mask & MAY_BE_VOID) && (ZEND_TYPE_IS_COMPLEX(type) || type_mask != MAY_BE_VOID)) {
-		zend_error_noreturn(E_COMPILE_ERROR, "Void can only be used as a standalone type");
+	*has_void = false;
+	if (type_mask & MAY_BE_VOID) {
+		if ((ZEND_TYPE_IS_COMPLEX(type) || type_mask != MAY_BE_VOID)) {
+			zend_error_noreturn(E_COMPILE_ERROR, "Void can only be used as a standalone type");
+		}
+		ZEND_TYPE_FULL_MASK(type) = MAY_BE_NULL;
+		*has_void = true;
 	}
 
 	if ((type_mask & MAY_BE_NEVER) && (ZEND_TYPE_IS_COMPLEX(type) || type_mask != MAY_BE_NEVER)) {
@@ -7363,7 +7358,14 @@ static zend_type zend_compile_typename_ex(
 static zend_type zend_compile_typename(zend_ast *ast)
 {
 	bool forced_allow_null;
-	return zend_compile_typename_ex(ast, false, &forced_allow_null);
+	bool has_void;
+	return zend_compile_typename_ex(ast, false, &forced_allow_null, &has_void);
+}
+
+static zend_type zend_compile_typename_check_void(zend_ast *ast, bool *has_void)
+{
+	bool forced_allow_null;
+	return zend_compile_typename_ex(ast, false, &forced_allow_null, has_void);
 }
 
 /* May convert value from int to float. */
@@ -7585,8 +7587,9 @@ static void zend_compile_params(zend_ast *ast, zend_ast *return_type_ast, uint32
 		/* Use op_array->arg_info[-1] for return type */
 		arg_infos = safe_emalloc(sizeof(zend_arg_info), list->children + 1, 0);
 		arg_infos->name = NULL;
+		bool has_void = false;
 		if (return_type_ast) {
-			arg_infos->type = zend_compile_typename(return_type_ast);
+			arg_infos->type = zend_compile_typename_check_void(return_type_ast, &has_void);
 			ZEND_TYPE_FULL_MASK(arg_infos->type) |= _ZEND_ARG_INFO_FLAGS(
 				(op_array->fn_flags & ZEND_ACC_RETURN_REFERENCE) != 0, /* is_variadic */ 0, /* is_tentative */ 0);
 		} else {
@@ -7595,8 +7598,7 @@ static void zend_compile_params(zend_ast *ast, zend_ast *return_type_ast, uint32
 		arg_infos++;
 		op_array->fn_flags |= ZEND_ACC_HAS_RETURN_TYPE;
 
-		if (ZEND_TYPE_CONTAINS_CODE(arg_infos[-1].type, IS_VOID)
-				&& (op_array->fn_flags & ZEND_ACC_RETURN_REFERENCE)) {
+		if (has_void && (op_array->fn_flags & ZEND_ACC_RETURN_REFERENCE)) {
 			zend_string *func_name = get_function_or_method_name((zend_function *) op_array);
 			zend_error(E_DEPRECATED, "%s(): Returning by reference from a void function is deprecated", ZSTR_VAL(func_name));
 			zend_string_release(func_name);
@@ -7698,7 +7700,8 @@ static void zend_compile_params(zend_ast *ast, zend_ast *return_type_ast, uint32
 			bool force_nullable = default_type == IS_NULL && !is_promoted;
 
 			op_array->fn_flags |= ZEND_ACC_HAS_TYPE_HINTS;
-			arg_info->type = zend_compile_typename_ex(type_ast, force_nullable, &forced_allow_nullable);
+			bool has_void = false;
+			arg_info->type = zend_compile_typename_ex(type_ast, force_nullable, &forced_allow_nullable, &has_void);
 			if (forced_allow_nullable) {
 				zend_string *func_name = get_function_or_method_name((zend_function *) op_array);
 				zend_error(E_DEPRECATED,
@@ -7707,7 +7710,7 @@ static void zend_compile_params(zend_ast *ast, zend_ast *return_type_ast, uint32
 				zend_string_release(func_name);
 			}
 
-			if (ZEND_TYPE_FULL_MASK(arg_info->type) & MAY_BE_VOID) {
+			if (has_void) {
 				zend_error_noreturn(E_COMPILE_ERROR, "void cannot be used as a parameter type");
 			}
 
@@ -8731,9 +8734,10 @@ static void zend_compile_prop_decl(zend_ast *ast, zend_ast *type_ast, uint32_t f
 		}
 
 		if (type_ast) {
-			type = zend_compile_typename(type_ast);
+			bool has_void = false;
+			type = zend_compile_typename_check_void(type_ast, &has_void);
 
-			if (ZEND_TYPE_FULL_MASK(type) & (MAY_BE_VOID|MAY_BE_NEVER|MAY_BE_CALLABLE)) {
+			if (has_void || (ZEND_TYPE_FULL_MASK(type) & (MAY_BE_NEVER|MAY_BE_CALLABLE))) {
 				zend_string *str = zend_type_to_string(type);
 				zend_error_noreturn(E_COMPILE_ERROR,
 					"Property %s::$%s cannot have type %s",
@@ -8852,11 +8856,12 @@ static void zend_compile_class_const_decl(zend_ast *ast, uint32_t flags, zend_as
 		zend_type type = ZEND_TYPE_INIT_NONE(0);
 
 		if (type_ast) {
-			type = zend_compile_typename(type_ast);
+			bool has_void = false;
+			type = zend_compile_typename_check_void(type_ast, &has_void);
 
 			uint32_t type_mask = ZEND_TYPE_PURE_MASK(type);
 
-			if (type_mask != MAY_BE_ANY && (type_mask & (MAY_BE_CALLABLE|MAY_BE_VOID|MAY_BE_NEVER))) {
+			if (type_mask != MAY_BE_ANY && (has_void || (type_mask & (MAY_BE_CALLABLE|MAY_BE_NEVER)))) {
 				zend_string *type_str = zend_type_to_string(type);
 
 				zend_error_noreturn(E_COMPILE_ERROR, "Class constant %s::%s cannot have type %s",
