@@ -370,7 +370,7 @@ PHPAPI bool php_random_hex2bin_le(const zend_string *hexstr, void *dest)
 #endif
 		unsigned char c = str[i++];
 		unsigned char l = c & ~0x20;
-		int is_letter = ((uint32_t) ((l - 'A') ^ (l - 'F' - 1))) >> (8 * sizeof(uint32_t) - 1);
+		uint32_t is_letter = ((uint32_t) ((l - 'A') ^ (l - 'F' - 1))) >> (8 * sizeof(uint32_t) - 1);
 		unsigned char d;
 
 		/* basically (c >= '0' && c <= '9') || (l >= 'A' && l <= 'F') */
