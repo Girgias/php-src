@@ -557,20 +557,21 @@ PHP_METHOD(Phar, webPhar)
 	zval *mimeoverride = NULL;
 	zend_fcall_info rewrite_fci = {0};
 	zend_fcall_info_cache rewrite_fcc;
-	char *alias = NULL, *error, *index_php = NULL, *ru = NULL;
+	char *alias = NULL, *error, *ru = NULL;
 	size_t alias_len = 0, free_pathinfo = 0;
+	zend_string *index_php = zend_empty_string;
 	zend_string *f404 = NULL;
 	size_t ru_len = 0;
-	char *fname, *path_info, *mime_type = NULL, *entry, *pt;
+	char *fname, *path_info, *mime_type = NULL, *pt;
 	const char *basename;
-	size_t fname_len, index_php_len = 0;
-	size_t entry_len;
+	size_t fname_len;
 	int code, not_cgi;
 	phar_archive_data *phar = NULL;
 	phar_entry_info *info = NULL;
 	size_t sapi_mod_name_len = strlen(sapi_module.name);
+	zend_string *entry_str = zend_empty_string;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|s!s!S!af!", &alias, &alias_len, &index_php, &index_php_len, &f404, &mimeoverride, &rewrite_fci, &rewrite_fcc) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|s!S!S!af!", &alias, &alias_len, &index_php, &f404, &mimeoverride, &rewrite_fci, &rewrite_fcc) == FAILURE) {
 		RETURN_THROWS();
 	}
 
@@ -639,15 +640,13 @@ PHP_METHOD(Phar, webPhar)
 
 			if (NULL != (z_path_info = zend_hash_str_find(_server, "PATH_INFO", sizeof("PATH_INFO")-1)) &&
 				IS_STRING == Z_TYPE_P(z_path_info)) {
-				entry_len = Z_STRLEN_P(z_path_info);
-				entry = estrndup(Z_STRVAL_P(z_path_info), entry_len);
-				path_info = emalloc(Z_STRLEN_P(z_script_name) + entry_len + 1);
+				entry_str = zend_string_copy(Z_STR_P(z_path_info));
+				/* Concatenate path info with script name */
+				path_info = emalloc(Z_STRLEN_P(z_script_name) + ZSTR_LEN(entry_str) + 1);
 				memcpy(path_info, Z_STRVAL_P(z_script_name), Z_STRLEN_P(z_script_name));
-				memcpy(path_info + Z_STRLEN_P(z_script_name), entry, entry_len + 1);
-				free_pathinfo = 1;
+				memcpy(path_info + Z_STRLEN_P(z_script_name), ZSTR_VAL(entry_str), ZSTR_LEN(entry_str) + 1);
+				free_pathinfo = true;
 			} else {
-				entry_len = 0;
-				entry = estrndup("", 0);
 				path_info = Z_STRVAL_P(z_script_name);
 			}
 
@@ -665,15 +664,12 @@ PHP_METHOD(Phar, webPhar)
 			path_info = sapi_getenv("PATH_INFO", sizeof("PATH_INFO")-1);
 
 			if (path_info) {
-				entry = path_info;
-				entry_len = strlen(entry);
+				entry_str = zend_string_init(path_info, strlen(path_info), false);
 				spprintf(&path_info, 0, "%s%s", testit, path_info);
 				free_pathinfo = 1;
 			} else {
 				path_info = testit;
 				free_pathinfo = 1;
-				entry = estrndup("", 0);
-				entry_len = 0;
 			}
 
 			pt = estrndup(testit, (pt - testit) + (fname_len - (basename - fname)));
@@ -687,9 +683,9 @@ PHP_METHOD(Phar, webPhar)
 			goto finish;
 		}
 
-		entry_len = strlen(path_info);
+		size_t entry_len = strlen(path_info);
 		entry_len -= (pt - path_info) + (fname_len - (basename - fname));
-		entry = estrndup(pt + (fname_len - (basename - fname)), entry_len);
+		entry_str = zend_string_init(pt + (fname_len - (basename - fname)), entry_len, false);
 
 		pt = estrndup(path_info, (pt - path_info) + (fname_len - (basename - fname)));
 		not_cgi = 1;
@@ -698,8 +694,7 @@ PHP_METHOD(Phar, webPhar)
 	if (ZEND_FCI_INITIALIZED(rewrite_fci)) {
 		zval params, retval;
 
-		ZVAL_STRINGL(&params, entry, entry_len);
-		efree(entry);
+		ZVAL_STR(&params, entry_str);
 
 		rewrite_fci.param_count = 1;
 		rewrite_fci.params = &params;
@@ -713,14 +708,13 @@ PHP_METHOD(Phar, webPhar)
 			goto cleanup_fail;
 		}
 
+		/* This also frees entry_str */
 		zval_ptr_dtor_str(&params);
 
 		switch (Z_TYPE(retval)) {
 			case IS_STRING:
-				/* TODO: avoid relocation??? */
-				entry = estrndup(Z_STRVAL_P(rewrite_fci.retval), Z_STRLEN_P(rewrite_fci.retval));
-				entry_len = Z_STRLEN_P(rewrite_fci.retval);
-				zval_ptr_dtor_str(&retval);
+				entry_str = Z_STR_P(rewrite_fci.retval);
+				// TODO: Error if string has null bytes?
 				break;
 			case IS_TRUE:
 			case IS_FALSE:
@@ -741,6 +735,7 @@ cleanup_fail:
 				if (free_pathinfo) {
 					efree(path_info);
 				}
+				zend_string_release(entry_str);
 				efree(pt);
 #ifdef PHP_WIN32
 				efree(fname);
@@ -749,33 +744,30 @@ cleanup_fail:
 		}
 	}
 
-	if (entry_len) {
-		phar_postprocess_ru_web(fname, fname_len, entry, &entry_len, &ru, &ru_len);
+	if (ZSTR_LEN(entry_str)) {
+		size_t entry_len_for_ru_processing = ZSTR_LEN(entry_str);
+		phar_postprocess_ru_web(fname, fname_len, ZSTR_VAL(entry_str), &entry_len_for_ru_processing, &ru, &ru_len);
+		entry_str = zend_string_truncate(entry_str, entry_len_for_ru_processing, false);
 	}
 
-	if (!entry_len || (entry_len == 1 && entry[0] == '/')) {
-		efree(entry);
+	if (!ZSTR_LEN(entry_str) || (ZSTR_LEN(entry_str) == 1 && ZSTR_VAL(entry_str)[0] == '/')) {
+		zend_string_release(entry_str);
 		efree(pt);
 
-		bool is_entry_allocated = false;
-
 		/* direct request */
-		if (index_php_len) {
-			entry = index_php;
-			entry_len = index_php_len;
-			if (entry[0] != '/') {
-				spprintf(&entry, 0, "/%s", index_php);
-				++entry_len;
-				is_entry_allocated = true;
+		if (ZSTR_LEN(index_php)) {
+			if (ZSTR_VAL(index_php)[0] != '/') {
+				entry_str = zend_string_concat2(ZEND_STRL("/"), ZSTR_VAL(index_php), ZSTR_LEN(index_php));
+			} else {
+				entry_str = zend_string_copy(index_php);
 			}
 		} else {
 			/* assume "index.php" is starting point */
-			entry = "/index.php";
-			entry_len = sizeof("/index.php")-1;
+			entry_str = ZSTR_INIT_LITERAL("/index.php", false);
 		}
 
 		if (FAILURE == phar_get_archive(&phar, fname, fname_len, NULL, 0, NULL) ||
-			(info = phar_get_entry_info(phar, entry, entry_len, NULL, false)) == NULL) {
+			(info = phar_get_entry_info(phar, ZSTR_VAL(entry_str), ZSTR_LEN(entry_str), NULL, false)) == NULL) {
 			phar_do_404(phar, fname, fname_len, f404);
 		} else {
 			char *tmp = NULL, sa = '\0';
@@ -794,9 +786,9 @@ cleanup_fail:
 			ctr.response_code = 0;
 
 			if (path_info[strlen(path_info)-1] == '/') {
-				ctr.line_len = spprintf((char **) &(ctr.line), 4096, "Location: %s%s", path_info, entry + 1);
+				ctr.line_len = spprintf((char **) &(ctr.line), 4096, "Location: %s%s", path_info, ZSTR_VAL(entry_str) + 1);
 			} else {
-				ctr.line_len = spprintf((char **) &(ctr.line), 4096, "Location: %s%s", path_info, entry);
+				ctr.line_len = spprintf((char **) &(ctr.line), 4096, "Location: %s%s", path_info, ZSTR_VAL(entry_str));
 			}
 
 			if (not_cgi) {
@@ -808,9 +800,7 @@ cleanup_fail:
 			efree((void *) ctr.line);
 		}
 
-		if (is_entry_allocated) {
-			efree(entry);
-		}
+		zend_string_release(entry_str);
 		if (free_pathinfo) {
 			efree(path_info);
 		}
@@ -820,8 +810,8 @@ cleanup_fail:
 	}
 
 	if (FAILURE == phar_get_archive(&phar, fname, fname_len, NULL, 0, NULL) ||
-		(info = phar_get_entry_info(phar, entry, entry_len, NULL, false)) == NULL) {
-		efree(entry);
+		(info = phar_get_entry_info(phar, ZSTR_VAL(entry_str), ZSTR_LEN(entry_str), NULL, false)) == NULL) {
+		zend_string_release(entry_str);
 		efree(pt);
 		if (free_pathinfo) {
 			efree(path_info);
@@ -832,7 +822,7 @@ cleanup_fail:
 	}
 
 	if (mimeoverride && zend_hash_num_elements(Z_ARRVAL_P(mimeoverride))) {
-		const char *ext = zend_memrchr(entry, '.', entry_len);
+		const char *ext = zend_memrchr(ZSTR_VAL(entry_str), '.', ZSTR_LEN(entry_str));
 		zval *val;
 
 		if (ext) {
@@ -850,7 +840,7 @@ cleanup_fail:
 								efree(path_info);
 							}
 							efree(pt);
-							efree(entry);
+							zend_string_release(entry_str);
 #ifdef PHP_WIN32
 							efree(fname);
 #endif
@@ -867,7 +857,7 @@ cleanup_fail:
 							efree(path_info);
 						}
 						efree(pt);
-						efree(entry);
+						zend_string_release(entry_str);
 #ifdef PHP_WIN32
 						efree(fname);
 #endif
@@ -878,9 +868,9 @@ cleanup_fail:
 	}
 
 	if (!mime_type) {
-		code = phar_file_type(&PHAR_G(mime_types), entry, &mime_type);
+		code = phar_file_type(&PHAR_G(mime_types), ZSTR_VAL(entry_str), &mime_type);
 	}
-	phar_file_action(phar, info, mime_type, code, entry, entry_len, fname, pt, ru, ru_len);
+	phar_file_action(phar, info, mime_type, code, ZSTR_VAL(entry_str), ZSTR_LEN(entry_str), fname, pt, ru, ru_len);
 	efree(pt);
 
 finish: ;
