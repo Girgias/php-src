@@ -57,7 +57,7 @@ array(2) {
   string(16) "SplAutoloadTest2"
 }
 
-Deprecated: spl_autoload_unregister(): Using spl_autoload_call() as a callback for spl_autoload_unregister() is deprecated, to remove all registered autoloaders, call spl_autoload_unregister() for all values returned from spl_autoload_functions() in %s on line %d
+Deprecated: Using autoload_call_class() as a callback for autoload_unregister_class() is deprecated, to remove all registered autoloaders, call autoload_unregister_class() for all values returned from autoload_list_class() in %s on line %d
 array(0) {
 }
 array(1) {
