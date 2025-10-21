@@ -36,7 +36,7 @@
 /* }}} */
 
 ZEND_MINIT_FUNCTION(core) { /* {{{ */
-	zend_autoload = zend_perform_class_autoload;
+	zend_autoload_class = zend_perform_class_autoload;
 	zend_register_default_classes();
 
 	zend_standard_class_def = register_class_stdClass();

@@ -340,20 +340,6 @@ PHP_FUNCTION(spl_autoload_extensions)
 	}
 } /* }}} */
 
-/* {{{ Try all registered autoload function to load the requested class */
-PHP_FUNCTION(spl_autoload_call)
-{
-	zend_string *class_name;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "S", &class_name) == FAILURE) {
-		RETURN_THROWS();
-	}
-
-	zend_string *lc_name = zend_string_tolower(class_name);
-	zend_perform_class_autoload(class_name, lc_name);
-	zend_string_release(lc_name);
-} /* }}} */
-
 /* {{{ Register given function as autoloader */
 PHP_FUNCTION(spl_autoload_register)
 {
@@ -384,7 +370,7 @@ PHP_FUNCTION(spl_autoload_register)
 		}
 
 		if (fcc.function_handler->type == ZEND_INTERNAL_FUNCTION &&
-			fcc.function_handler->internal_function.handler == zif_spl_autoload_call) {
+			fcc.function_handler->internal_function.handler == zif_autoload_call_class) {
 			zend_argument_value_error(1, "must not be the spl_autoload_call() function");
 			RETURN_THROWS();
 		}
@@ -425,14 +411,6 @@ PHP_FUNCTION(spl_autoload_unregister)
 	RETVAL_BOOL(zend_autoload_unregister_class_loader(&fcc));
 	/* Release trampoline */
 	zend_release_fcall_info_cache(&fcc);
-} /* }}} */
-
-/* {{{ Return all registered autoloader functions */
-PHP_FUNCTION(spl_autoload_functions)
-{
-	ZEND_PARSE_PARAMETERS_NONE();
-
-	zend_autoload_fcc_map_to_callable_zval_map(return_value);
 } /* }}} */
 
 /* {{{ Return hash id for given object */
