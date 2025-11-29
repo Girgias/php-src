@@ -2039,7 +2039,7 @@ function connection_aborted(): int {}
 
 function connection_status(): int {}
 
-function ignore_user_abort(?bool $enable = null): int {}
+function ignore_user_abort(?bool $enable = null): bool {}
 
 #ifdef HAVE_GETSERVBYNAME
 function getservbyname(string $service, string $protocol): int|false {}
