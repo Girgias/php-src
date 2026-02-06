@@ -70,6 +70,8 @@ PHP 8.6 INTERNALS UPGRADE NOTES
     performed on the result.
   . The zend_dval_to_lval_cap() function no longer takes a second
     zend_string* parameter.
+  . The zend_ini_string{_ex} functions (and thus INI_STR() and INI_ORIG_STR()
+    macros) now return a const char* instead of a char*.
 
 ========================
 2. Build system changes
