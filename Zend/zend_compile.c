@@ -39,6 +39,7 @@
 #include "zend_call_stack.h"
 #include "zend_frameless_function.h"
 #include "zend_property_hooks.h"
+#include "zend_smart_str.h"
 
 #define SET_NODE(target, src) do { \
 		target ## _type = (src)->op_type; \
@@ -1484,6 +1485,29 @@ zend_string *zend_type_to_string_resolved(const zend_type type, const zend_class
 	if (ZEND_TYPE_IS_INTERSECTION(type)) {
 		ZEND_ASSERT(!ZEND_TYPE_IS_UNION(type));
 		str = add_intersection_type(str, ZEND_TYPE_LIST(type), /* is_bracketed */ false);
+	} else if (ZEND_TYPE_IS_NAME_WITH_GENERIC_TYPES(type)) {
+		const zend_type *single_type;
+		bool is_class_name = true;
+		bool just_after_class_name = true;
+
+		smart_str class_with_generic = {0};
+		ZEND_TYPE_LIST_FOREACH(ZEND_TYPE_LIST(type), single_type) {
+			if (is_class_name) {
+				ZEND_ASSERT(ZEND_TYPE_HAS_NAME(*single_type));
+				smart_str_append(&class_with_generic, resolve_class_name(ZEND_TYPE_NAME(*single_type), scope));
+				smart_str_appendc(&class_with_generic, '<');
+				is_class_name = false;
+				continue;
+			}
+			if (!just_after_class_name) {
+				smart_str_appends(&class_with_generic, ", ");
+			}
+			just_after_class_name = false;
+			smart_str_append(&class_with_generic, zend_type_to_string_resolved(*single_type, scope, bound_types_to_scope));
+		} ZEND_TYPE_LIST_FOREACH_END();
+		smart_str_appendc(&class_with_generic, '>');
+		str = smart_str_extract(&class_with_generic);
+		smart_str_free(&class_with_generic);
 	} else if (ZEND_TYPE_HAS_LIST(type)) {
 		/* A union type might not be a list */
 		const zend_type *list_type;
@@ -7413,6 +7437,8 @@ ZEND_API void zend_set_function_arg_flags(zend_function *func) /* {{{ */
 }
 /* }}} */
 
+static zend_type zend_compile_typename(zend_ast *ast);
+
 static zend_type zend_compile_single_typename(zend_ast *ast)
 {
 	const zend_class_entry *ce = CG(active_class_entry);
@@ -7512,7 +7538,32 @@ static zend_type zend_compile_single_typename(zend_ast *ast)
 			class_name = zend_new_interned_string(class_name);
 			zend_alloc_ce_cache(class_name);
 			// TODO: use args_ast
-			return (zend_type) ZEND_TYPE_INIT_CLASS(class_name, /* allow null */ false, 0);
+			if (args_ast) {
+				ZEND_ASSERT(args_ast->kind == ZEND_AST_GENERIC_ARG_LIST);
+				const zend_ast_list *list = zend_ast_get_list(args_ast);
+
+				/* Allocate the type list directly on the arena as it must be a type
+				 * list of the number of AST childs + 1 for the class name */
+				zend_type_list *type_list = zend_arena_alloc(&CG(arena), ZEND_TYPE_LIST_SIZE(list->children + 1));
+				type_list->num_types = 0;
+				/* Add type to the type list */
+				type_list->types[type_list->num_types++] = (zend_type) ZEND_TYPE_INIT_CLASS(class_name, /* allow null */ false, 0);
+
+				for (uint32_t i = 0; i < list->children; i++) {
+					zend_ast *generic_arg_type_ast = list->child[i];
+					type_list->types[type_list->num_types++] = zend_compile_typename(generic_arg_type_ast);
+				}
+				ZEND_ASSERT(list->children+1 == type_list->num_types);
+
+				zend_type type = ZEND_TYPE_INIT_NONE(0);
+				ZEND_TYPE_SET_LIST(type, type_list);
+				/* Inform that the type list is a class name with bound types */
+				ZEND_TYPE_FULL_MASK(type) |= _ZEND_TYPE_NAME_WITH_BOUND_TYPES;
+				ZEND_TYPE_FULL_MASK(type) |= _ZEND_TYPE_ARENA_BIT;
+				return type;
+			} else {
+				return (zend_type) ZEND_TYPE_INIT_CLASS(class_name, /* allow null */ false, 0);
+			}
 		}
 	}
 }
@@ -7598,8 +7649,6 @@ static void zend_is_type_list_redundant_by_single_type(const zend_type_list *typ
 		}
 	}
 }
-
-static zend_type zend_compile_typename(zend_ast *ast);
 
 static zend_type zend_compile_typename_ex(
 		zend_ast *ast, bool force_allow_null, bool *forced_allow_null) /* {{{ */

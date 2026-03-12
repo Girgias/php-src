@@ -3,24 +3,24 @@ Property generic class as type
 --FILE--
 <?php
 
-interface I<T> {
-    public function foo(T $param): T;
+interface I<T1, T2> {
+    public function foo(T1 $param): T2;
 }
 
-class CS implements I<string> {
+class CS implements I<string, string> {
     public function foo(string $param): string {
         return $param . '!';
     }
 }
 
-class CI implements I<int> {
+class CI implements I<int, int> {
     public function foo(int $param): int {
         return $param + 42;
     }
 }
 
 class T {
-	public I<string> $v;
+	public I<string, string> $v;
 }
 
 $cs = new CS();
@@ -37,7 +37,7 @@ var_dump($t);
 --EXPECT--
 object(T)#3 (0) {
   ["v"]=>
-  uninitialized(I<string>)
+  uninitialized(I<string, string>)
 }
 object(T)#3 (1) {
   ["v"]=>

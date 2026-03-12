@@ -135,9 +135,10 @@ typedef struct {
 	zend_type constraint;
 } zend_generic_parameter;
 
-#define _ZEND_TYPE_EXTRA_FLAGS_SHIFT 26
-#define _ZEND_TYPE_MASK ((1u << 26) - 1)
+#define _ZEND_TYPE_EXTRA_FLAGS_SHIFT 27
+#define _ZEND_TYPE_MASK ((1u << 27) - 1)
 /* Only one of these bits may be set. */
+#define _ZEND_TYPE_NAME_WITH_BOUND_TYPES (1u << 26)
 #define _ZEND_TYPE_GENERIC_PARAM_NAME_BIT (1u << 25)
 #define _ZEND_TYPE_NAME_BIT (1u << 24)
 // Used to signify that type.ptr is not a `zend_string*` but a `const char*`,
@@ -170,6 +171,9 @@ typedef struct {
 
 #define ZEND_TYPE_HAS_LITERAL_NAME(t) \
 	((((t).type_mask) & _ZEND_TYPE_LITERAL_NAME_BIT) != 0)
+
+#define ZEND_TYPE_IS_NAME_WITH_GENERIC_TYPES(t) \
+	((((t).type_mask) & _ZEND_TYPE_NAME_WITH_BOUND_TYPES) != 0)
 
 #define ZEND_TYPE_HAS_LIST(t) \
 	((((t).type_mask) & _ZEND_TYPE_LIST_BIT) != 0)
