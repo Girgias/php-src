@@ -27,11 +27,14 @@ $cs = new CS();
 $ci = new CI();
 
 var_dump(bar($cs));
-var_dump(bar($ci));
+try {
+	var_dump(bar($ci));
+} catch (Throwable $e) {
+	echo $e::class, ': ', $e->getMessage(), PHP_EOL;
+}
 
 ?>
 --EXPECT--
 object(CS)#1 (0) {
 }
-object(CI)#2 (0) {
-}
+TypeError: bar(): Return value must be of type I<string>, CI returned

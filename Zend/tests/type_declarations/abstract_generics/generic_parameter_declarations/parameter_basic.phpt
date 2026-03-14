@@ -27,11 +27,14 @@ $cs = new CS();
 $ci = new CI();
 
 bar($cs);
-bar($ci);
+try {
+	bar($ci);
+} catch (Throwable $e) {
+	echo $e::class, ': ', $e->getMessage(), PHP_EOL;
+}
 
 ?>
---EXPECT--
+--EXPECTF--
 object(CS)#1 (0) {
 }
-object(CI)#2 (0) {
-}
+TypeError: bar(): Argument #1 ($v) must be of type I<string>, CI given, called in %s on line %d

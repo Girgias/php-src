@@ -2396,6 +2396,7 @@ ZEND_ATTRIBUTE_NONNULL static void bind_generic_types_for_inherited_interfaces(z
 				}
 				const zend_type t1 = *iface_bound_type_ptr;
 				const zend_type t2 = *ce_bound_type_ptr;
+				// TODO Use zend_types_equals()
 				if (
 					ZEND_TYPE_FULL_MASK(t1) != ZEND_TYPE_FULL_MASK(t2)
 					|| (ZEND_TYPE_HAS_NAME(t1) && !zend_string_equals(ZEND_TYPE_NAME(t1), ZEND_TYPE_NAME(t2)))
