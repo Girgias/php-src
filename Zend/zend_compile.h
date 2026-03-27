@@ -1123,11 +1123,11 @@ ZEND_API zend_string *zend_type_to_string(zend_type type);
 
 /* The send mode, the is_variadic, the is_promoted, and the is_tentative flags are stored as part of zend_type */
 #define _ZEND_SEND_MODE_SHIFT _ZEND_TYPE_EXTRA_FLAGS_SHIFT
-#define _ZEND_IS_VARIADIC_BIT (1 << (_ZEND_TYPE_EXTRA_FLAGS_SHIFT + 2))
-#define _ZEND_IS_PROMOTED_BIT (1 << (_ZEND_TYPE_EXTRA_FLAGS_SHIFT + 3))
-#define _ZEND_IS_TENTATIVE_BIT (1 << (_ZEND_TYPE_EXTRA_FLAGS_SHIFT + 4))
+#define _ZEND_IS_VARIADIC_BIT (1u << (_ZEND_TYPE_EXTRA_FLAGS_SHIFT + 2u))
+#define _ZEND_IS_PROMOTED_BIT (1u << (_ZEND_TYPE_EXTRA_FLAGS_SHIFT + 3u))
+#define _ZEND_IS_TENTATIVE_BIT (1u << (_ZEND_TYPE_EXTRA_FLAGS_SHIFT + 4u))
 #define ZEND_ARG_SEND_MODE(arg_info) \
-	((ZEND_TYPE_FULL_MASK((arg_info)->type) >> _ZEND_SEND_MODE_SHIFT) & 3)
+	((ZEND_TYPE_FULL_MASK((arg_info)->type) >> _ZEND_SEND_MODE_SHIFT) & 3u)
 #define ZEND_ARG_IS_VARIADIC(arg_info) \
 	((ZEND_TYPE_FULL_MASK((arg_info)->type) & _ZEND_IS_VARIADIC_BIT) != 0)
 #define ZEND_ARG_IS_PROMOTED(arg_info) \
