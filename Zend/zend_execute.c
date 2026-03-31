@@ -763,7 +763,7 @@ static zend_always_inline const zend_class_entry *zend_ce_from_type(
 	return resolve_single_class_type(name, scope);
 }
 
-static bool zend_check_intersection_type_from_list(
+static zend_type_check_status zend_check_intersection_type_from_list(
 	const zend_type_list *intersection_type_list,
 	const zend_class_entry *arg_ce,
 	const zend_class_entry *scope
@@ -774,23 +774,22 @@ static bool zend_check_intersection_type_from_list(
 		/* If type is not an instance of one of the types taking part in the
 		 * intersection it cannot be a valid instance of the whole intersection type. */
 		if (UNEXPECTED(!ce || !instanceof_function(arg_ce, ce))) {
-			return false;
+			return ZEND_TYPE_CHECK_INVALID;
 		}
 	} ZEND_TYPE_LIST_FOREACH_END();
-	return true;
+	return ZEND_TYPE_CHECK_VALID;
 }
 
 /* Usually coerce_arg will be the same pointer as arg */
-static bool zend_coerce_weak_scalar_type_declaration(uint32_t type_mask, const zval *arg, zval *coerce_arg)
+static zend_type_check_status zend_coerce_weak_scalar_type_declaration(uint32_t type_mask, const zval *arg, zval *coerce_arg)
 {
 	zend_long lval;
 	double dval;
 	zend_string *str;
 	bool bval;
 
-	ZEND_ASSERT(!Z_ISREF_P(arg));
-	ZEND_ASSERT(!Z_ISREF_P(coerce_arg));
-	if (UNEXPECTED(Z_ISUNDEF_P(coerce_arg))) {
+	ZEND_ASSERT(!Z_ISREF_P(arg) && !Z_ISREF_P(coerce_arg));
+	if (UNEXPECTED(arg != coerce_arg)) {
 		ZVAL_COPY(coerce_arg, arg);
 	}
 
@@ -803,36 +802,36 @@ static bool zend_coerce_weak_scalar_type_declaration(uint32_t type_mask, const z
 			if (type == IS_LONG) {
 				zend_string_release(Z_STR_P(coerce_arg));
 				ZVAL_LONG(coerce_arg, lval);
-				return true;
+				return ZEND_TYPE_CHECK_MAY_COERCE;
 			}
 			if (type == IS_DOUBLE) {
 				zend_string_release(Z_STR_P(coerce_arg));
 				ZVAL_DOUBLE(coerce_arg, dval);
-				return true;
+				return ZEND_TYPE_CHECK_MAY_COERCE;
 			}
 		} else if (zend_parse_arg_long_weak(arg, &lval, 0)) {
 			zval_ptr_dtor(coerce_arg);
 			ZVAL_LONG(coerce_arg, lval);
-			return true;
+			return ZEND_TYPE_CHECK_MAY_COERCE;
 		} else if (UNEXPECTED(EG(exception))) {
-			return false;
+			return ZEND_TYPE_CHECK_INVALID;
 		}
 	}
 	if ((type_mask & MAY_BE_DOUBLE) && zend_parse_arg_double_weak(arg, &dval, 0)) {
 		zval_ptr_dtor(coerce_arg);
 		ZVAL_DOUBLE(coerce_arg, dval);
-		return true;
+		return ZEND_TYPE_CHECK_MAY_COERCE;
 	}
 	if ((type_mask & MAY_BE_STRING) && zend_parse_arg_str_weak(coerce_arg, &str, 0)) {
 		/* on success "arg" is converted to IS_STRING */
-		return true;
+		return ZEND_TYPE_CHECK_MAY_COERCE;
 	}
 	if ((type_mask & MAY_BE_BOOL) == MAY_BE_BOOL && zend_parse_arg_bool_weak(arg, &bval, 0)) {
 		zval_ptr_dtor(coerce_arg);
 		ZVAL_BOOL(coerce_arg, bval);
-		return true;
+		return ZEND_TYPE_CHECK_MAY_COERCE;
 	}
-	return false;
+	return ZEND_TYPE_CHECK_INVALID;
 }
 
 static zend_type_check_status zend_check_type_slow(
@@ -857,14 +856,13 @@ static zend_type_check_status zend_check_type_slow(
 		} else {
 			ZEND_ASSERT(ZEND_TYPE_HAS_LIST(*type));
 			if (ZEND_TYPE_IS_INTERSECTION(*type)) {
-				return zend_check_intersection_type_from_list(ZEND_TYPE_LIST(*type), arg_ce, scope)
-					? ZEND_TYPE_CHECK_VALID : ZEND_TYPE_CHECK_INVALID;
+				return zend_check_intersection_type_from_list(ZEND_TYPE_LIST(*type), arg_ce, scope);
 			} else {
 				/* In a union type may be of simple atomic types or a DNF type */
 				const zend_type *list_type;
 				ZEND_TYPE_LIST_FOREACH(ZEND_TYPE_LIST(*type), list_type) {
 					if (ZEND_TYPE_IS_INTERSECTION(*list_type)) {
-						if (zend_check_intersection_type_from_list(ZEND_TYPE_LIST(*list_type), arg_ce, scope)) {
+						if (zend_check_intersection_type_from_list(ZEND_TYPE_LIST(*list_type), arg_ce, scope) == ZEND_TYPE_CHECK_VALID) {
 							return ZEND_TYPE_CHECK_VALID;
 						}
 					} else {
@@ -913,9 +911,7 @@ static zend_type_check_status zend_check_type_slow(
 		&& (type_mask & (MAY_BE_LONG|MAY_BE_DOUBLE|MAY_BE_STRING|MAY_BE_BOOL))
 	) {
 		if (coerce_arg) {
-			zend_type_check_status status = zend_coerce_weak_scalar_type_declaration(type_mask, arg, coerce_arg)
-				? ZEND_TYPE_CHECK_MAY_COERCE : ZEND_TYPE_CHECK_INVALID;
-			return status;
+			return zend_coerce_weak_scalar_type_declaration(type_mask, arg, coerce_arg);
 		}
 		if (Z_TYPE_P(arg) <= IS_STRING) {
 			return ZEND_TYPE_CHECK_MAY_COERCE;
@@ -3887,8 +3883,7 @@ static zend_always_inline zend_type_check_status i_zend_verify_type_assignable_z
 		bool strict,
 		zval *coerced_value
 ) {
-	zend_type_check_status status = zend_check_type_ex(&info->type, zv, info->ce, strict, 0, coerced_value);
-	return status;
+	return zend_check_type_ex(&info->type, zv, info->ce, strict, 0, coerced_value);
 }
 
 ZEND_API bool ZEND_FASTCALL zend_verify_ref_assignable_zval(zend_reference *ref, zval *zv, bool strict)
