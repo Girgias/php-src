@@ -146,5 +146,5 @@ TypeError: Phar::extractTo(): Argument #2 ($files) must be an array of string el
 PharException: Extraction from phar "%stempmanifest1.phar.php" failed: Cannot extract "file1.txt" to "%sextract%cfile1.txt", path already exists
 string(5) "first"
 string(2) "hi"
-ValueError: Phar::extractTo(): Argument #1 ($directory) must be less than 4096 bytes
+ValueError: Phar::extractTo(): Argument #1 ($directory) must be less than %d bytes
 PharException: Extraction from phar "%stempmanifest1.phar.php" failed: Cannot extract "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa..." to "%s...", extracted filename is too long for filesystem
