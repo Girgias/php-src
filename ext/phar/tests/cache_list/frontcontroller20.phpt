@@ -11,4 +11,4 @@ PATH_INFO=/
 --FILE_EXTERNAL--
 files/frontcontroller11.phar
 --EXPECT--
-TypeError: Phar::mungServer(): Argument #1 ($variables) must be an array of string types, array given
+TypeError: Phar::mungServer(): Argument #1 ($variables) must be an array of strings, array given

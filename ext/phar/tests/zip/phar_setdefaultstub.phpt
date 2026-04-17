@@ -76,11 +76,11 @@ string(60) "<?php // zip-based phar archive stub file
 __HALT_COMPILER();"
 ============================================================================
 ============================================================================
-TypeError: Phar::setDefaultStub(): Argument #1 ($index) must be null for a tar- or zip-based phar stub, string given
+ValueError: Phar::setDefaultStub(): Argument #1 ($index) must be null for a tar- or zip-based phar stub, string given
 string(60) "<?php // zip-based phar archive stub file
 __HALT_COMPILER();"
 ============================================================================
 ============================================================================
-TypeError: Phar::setDefaultStub(): Argument #1 ($index) must be null for a tar- or zip-based phar stub, string given
+ValueError: Phar::setDefaultStub(): Argument #1 ($index) must be null for a tar- or zip-based phar stub, string given
 string(60) "<?php // zip-based phar archive stub file
 __HALT_COMPILER();"

@@ -871,7 +871,7 @@ PHP_METHOD(Phar, mungServer)
 	ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(mungvalues), data) {
 		ZVAL_DEREF(data);
 		if (Z_TYPE_P(data) != IS_STRING) {
-			zend_argument_type_error(1, "must be an array of string types, %s given", zend_zval_value_name(data));
+			zend_argument_type_error(1, "must be an array of strings, %s given", zend_zval_value_name(data));
 			RETURN_THROWS();
 		}
 
@@ -2919,7 +2919,7 @@ PHP_METHOD(Phar, setDefaultStub)
 	}
 
 	if ((index || webindex) && (phar_obj->archive->is_tar || phar_obj->archive->is_zip)) {
-		zend_argument_type_error(index ? 1 : 2, "must be null for a tar- or zip-based phar stub, string given");
+		zend_argument_value_error(index ? 1 : 2, "must be null for a tar- or zip-based phar stub, string given");
 		RETURN_THROWS();
 	}
 
@@ -4294,10 +4294,9 @@ PHP_METHOD(Phar, extractTo)
 		RETURN_THROWS();
 	}
 
-	if (files_ht && UNEXPECTED(zend_hash_num_elements(files_ht) == 0)) {
+	if (UNEXPECTED((files_ht && zend_hash_num_elements(files_ht) == 0) || (filename && ZSTR_LEN(filename) == 0))) {
 		zend_argument_must_not_be_empty_error(2);
-	} else if (filename && UNEXPECTED(ZSTR_LEN(filename) == 0)) {
-		zend_argument_must_not_be_empty_error(2);
+		RETURN_THROWS();
 	}
 
 	fp = php_stream_open_wrapper(phar_obj->archive->fname, "rb", IGNORE_URL|STREAM_MUST_SEEK, NULL);
@@ -4328,7 +4327,7 @@ PHP_METHOD(Phar, extractTo)
 		ZEND_HASH_FOREACH_VAL(files_ht, zval_file) {
 			ZVAL_DEREF(zval_file);
 			if (IS_STRING != Z_TYPE_P(zval_file)) {
-				zend_argument_type_error(2, "must be an array of string elements, %s given", zend_zval_value_name(zval_file));
+				zend_argument_type_error(2, "must be an array of strings, %s given", zend_zval_value_name(zval_file));
 				RETURN_THROWS();
 			}
 			switch (extract_helper(phar_obj->archive, Z_STR_P(zval_file), path_to, overwrite, &error)) {

@@ -142,7 +142,7 @@ TypeError: Phar::extractTo(): Argument #2 ($files) must be of type array|string|
 TypeError: Phar::extractTo(): Argument #1 ($directory) must be of type string, array given
 ValueError: Phar::extractTo(): Argument #1 ($directory) must not be empty
 RuntimeException: Unable to use path "%soops" for extraction, it is a file, must be a directory
-TypeError: Phar::extractTo(): Argument #2 ($files) must be an array of string elements, array given
+TypeError: Phar::extractTo(): Argument #2 ($files) must be an array of strings, array given
 PharException: Extraction from phar "%stempmanifest1.phar.php" failed: Cannot extract "file1.txt" to "%sextract%cfile1.txt", path already exists
 string(5) "first"
 string(2) "hi"

@@ -12,7 +12,7 @@ PATH_INFO=/
 --FILE_EXTERNAL--
 files/frontcontroller11.phar.zip
 --EXPECTF--
-Fatal error: Uncaught TypeError: Phar::mungServer(): Argument #1 ($variables) must be an array of string types, array given in %sfrontcontroller20.phar.php:2
+Fatal error: Uncaught TypeError: Phar::mungServer(): Argument #1 ($variables) must be an array of strings, array given in %sfrontcontroller20.phar.php:2
 Stack trace:
 #0 %sfrontcontroller20.phar.php(2): Phar::mungServer(Array)
 #1 {main}
