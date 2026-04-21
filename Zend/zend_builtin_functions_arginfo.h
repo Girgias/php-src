@@ -1,5 +1,5 @@
 /* This is a generated file, edit zend_builtin_functions.stub.php instead.
- * Stub hash: 9b49f527064695c812cd204d9efc63c13681d942 */
+ * Stub hash: aa235167ada4497f50840ba5c73434b3a59388fa */
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_clone, 0, 1, IS_OBJECT, 0)
 	ZEND_ARG_TYPE_INFO(0, object, IS_OBJECT, 0)
@@ -233,6 +233,25 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_gc_status arginfo_func_get_args
 
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_autoload_register_class, 0, 1, IS_VOID, 0)
+	ZEND_ARG_TYPE_INFO(0, callback, IS_CALLABLE, 0)
+	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, prepend, _IS_BOOL, 0, "false")
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_autoload_register_class_map, 0, 1, IS_VOID, 0)
+	ZEND_ARG_TYPE_INFO(0, classes, IS_ARRAY, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_autoload_unregister_class, 0, 1, _IS_BOOL, 0)
+	ZEND_ARG_TYPE_INFO(0, callback, IS_CALLABLE, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_autoload_call_class, 0, 1, IS_VOID, 0)
+	ZEND_ARG_TYPE_INFO(0, class, IS_STRING, 0)
+ZEND_END_ARG_INFO()
+
+#define arginfo_autoload_list_class arginfo_func_get_args
+
 
 ZEND_FRAMELESS_FUNCTION(property_exists, 2);
 static const zend_frameless_function_info frameless_function_infos_property_exists[] = {
@@ -310,6 +329,11 @@ ZEND_FUNCTION(gc_enabled);
 ZEND_FUNCTION(gc_enable);
 ZEND_FUNCTION(gc_disable);
 ZEND_FUNCTION(gc_status);
+ZEND_FUNCTION(autoload_register_class);
+ZEND_FUNCTION(autoload_register_class_map);
+ZEND_FUNCTION(autoload_unregister_class);
+ZEND_FUNCTION(autoload_call_class);
+ZEND_FUNCTION(autoload_list_class);
 
 static const zend_function_entry ext_functions[] = {
 	ZEND_FE(clone, arginfo_clone)
@@ -377,6 +401,11 @@ static const zend_function_entry ext_functions[] = {
 	ZEND_FE(gc_enable, arginfo_gc_enable)
 	ZEND_FE(gc_disable, arginfo_gc_disable)
 	ZEND_FE(gc_status, arginfo_gc_status)
+	ZEND_FE(autoload_register_class, arginfo_autoload_register_class)
+	ZEND_FE(autoload_register_class_map, arginfo_autoload_register_class_map)
+	ZEND_FE(autoload_unregister_class, arginfo_autoload_unregister_class)
+	ZEND_FE(autoload_call_class, arginfo_autoload_call_class)
+	ZEND_FE(autoload_list_class, arginfo_autoload_list_class)
 	ZEND_FE_END
 };
 
