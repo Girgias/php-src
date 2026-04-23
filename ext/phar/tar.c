@@ -968,9 +968,8 @@ ZEND_ATTRIBUTE_NONNULL_ARGS(1, 4) int phar_tar_flush(phar_archive_data *phar, ze
 	phar_entry_info entry = {0};
 	php_stream *oldfile, *newfile;
 	bool must_close_old_file = false;
-	size_t signature_length;
 	struct _phar_pass_tar_info pass;
-	char *buf, *signature, sigbuf[8];
+	char *buf, sigbuf[8];
 
 	entry.flags = PHAR_ENT_PERM_DEF_FILE;
 	entry.timestamp = time(NULL);
@@ -1168,7 +1167,8 @@ nostub:
 	/* add signature for executable tars or tars explicitly set with setSignatureAlgorithm */
 	if (!phar->is_data || phar->sig_flags) {
 		char *signature_error = NULL;
-		if (FAILURE == phar_create_signature(phar, newfile, &signature, &signature_length, &signature_error)) {
+		zend_string *signature = phar_create_signature(phar, newfile, &signature_error);
+		if (!signature) {
 			spprintf(error, 0, "phar error: unable to write signature to tar-based phar: %s", signature_error);
 			efree(signature_error);
 
@@ -1184,7 +1184,7 @@ nostub:
 		if (entry.fp == NULL) {
 			*error = estrdup("phar error: unable to create temporary file");
 
-			efree(signature);
+			zend_string_release_ex(signature, false);
 			if (must_close_old_file) {
 				php_stream_close(oldfile);
 			}
@@ -1203,10 +1203,10 @@ nostub:
 # define PHAR_SET_32(destination, source) memcpy(destination, &source, 4)
 #endif
 		PHAR_SET_32(sigbuf, phar->sig_flags);
-		PHAR_SET_32(sigbuf + 4, signature_length);
+		PHAR_SET_32(sigbuf + 4, ZSTR_LEN(signature));
 
-		if (8 != php_stream_write(entry.fp, sigbuf, 8) || signature_length != php_stream_write(entry.fp, signature, signature_length)) {
-			efree(signature);
+		if (8 != php_stream_write(entry.fp, sigbuf, 8) || ZSTR_LEN(signature) != php_stream_write(entry.fp, ZSTR_VAL(signature), ZSTR_LEN(signature))) {
+			zend_string_release_ex(signature, false);
 			spprintf(error, 0, "phar error: unable to write signature to tar-based phar %s", ZSTR_VAL(phar->fname));
 
 			if (must_close_old_file) {
@@ -1218,11 +1218,11 @@ nostub:
 
 		ALLOCA_FLAG(use_heap);
 		ZSTR_ALLOCA_INIT(entry.filename, ".phar/signature.bin", sizeof(".phar/signature.bin")-1, use_heap);
-		efree(signature);
-		entry.uncompressed_filesize = entry.compressed_filesize = signature_length + 8;
+		entry.uncompressed_filesize = entry.compressed_filesize = ZSTR_LEN(signature) + 8;
 		/* throw out return value and write the signature */
 		phar_tar_writeheaders_int(&entry, &pass);
 		ZSTR_ALLOCA_FREE(entry.filename, use_heap);
+		zend_string_release_ex(signature, false);
 
 		if (*error) {
 			if (must_close_old_file) {

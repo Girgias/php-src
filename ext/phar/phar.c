@@ -2995,17 +2995,12 @@ ZEND_ATTRIBUTE_NONNULL_ARGS(1, 4) int phar_flush_ex(phar_archive_data *phar, zen
 
 		switch(phar->sig_flags) {
 			default: {
-				char *digest = NULL;
-				size_t digest_len;
-
 				char *signature_error = NULL;
-				if (FAILURE == phar_create_signature(phar, newfile, &digest, &digest_len, &signature_error)) {
+				zend_string *signature = phar_create_signature(phar, newfile, &signature_error);
+				if (!signature) {
 					spprintf(error, 0, "phar error: unable to write signature: %s", signature_error);
 					efree(signature_error);
 
-					if (digest) {
-						efree(digest);
-					}
 					if (must_close_old_file) {
 						php_stream_close(oldfile);
 					}
@@ -3013,14 +3008,14 @@ ZEND_ATTRIBUTE_NONNULL_ARGS(1, 4) int phar_flush_ex(phar_archive_data *phar, zen
 					return EOF;
 				}
 
-				php_stream_write(newfile, digest, digest_len);
-				efree(digest);
+				php_stream_write(newfile, ZSTR_VAL(signature), ZSTR_LEN(signature));
 				if (phar->sig_flags == PHAR_SIG_OPENSSL ||
 					phar->sig_flags == PHAR_SIG_OPENSSL_SHA256 ||
 					phar->sig_flags == PHAR_SIG_OPENSSL_SHA512) {
-					phar_set_32(sig_buf, digest_len);
+					phar_set_32(sig_buf, ZSTR_LEN(signature));
 					php_stream_write(newfile, sig_buf, 4);
 				}
+				zend_string_release_ex(signature, false);
 				break;
 			}
 		}

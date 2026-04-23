@@ -1801,8 +1801,9 @@ zend_result phar_verify_signature(php_stream *fp, size_t end_of_phar, uint32_t s
 }
 /* }}} */
 
-ZEND_ATTRIBUTE_NONNULL zend_result phar_create_signature(phar_archive_data *phar, php_stream *fp, char **signature, size_t *signature_length, char **error) /* {{{ */
+ZEND_ATTRIBUTE_NONNULL zend_string* phar_create_signature(phar_archive_data *phar, php_stream *fp, char **error) /* {{{ */
 {
+	zend_string *signature = NULL;
 	unsigned char buf[1024];
 	size_t sig_len;
 
@@ -1825,8 +1826,7 @@ ZEND_ATTRIBUTE_NONNULL zend_result phar_create_signature(phar_archive_data *phar
 			}
 
 			PHP_SHA512Final(digest, &context);
-			*signature = estrndup((char *) digest, 64);
-			*signature_length = 64;
+			signature = zend_string_init((const char*)digest, 64, false);
 			break;
 		}
 		default:
@@ -1843,8 +1843,7 @@ ZEND_ATTRIBUTE_NONNULL zend_result phar_create_signature(phar_archive_data *phar
 			}
 
 			PHP_SHA256Final(digest, &context);
-			*signature = estrndup((char *) digest, 32);
-			*signature_length = 32;
+			signature = zend_string_init((const char*)digest, 32, false);
 			break;
 		}
 		case PHAR_SIG_OPENSSL_SHA512:
@@ -1870,7 +1869,7 @@ ZEND_ATTRIBUTE_NONNULL zend_result phar_create_signature(phar_archive_data *phar
 
 			if (in == NULL) {
 				spprintf(error, 0, "unable to write to phar \"%s\" with requested openssl signature", ZSTR_VAL(phar->fname));
-				return FAILURE;
+				return NULL;
 			}
 
 			key = PEM_read_bio_PrivateKey(in, NULL,NULL, "");
@@ -1878,14 +1877,14 @@ ZEND_ATTRIBUTE_NONNULL zend_result phar_create_signature(phar_archive_data *phar
 
 			if (!key) {
 				*error = estrdup("unable to process private key");
-				return FAILURE;
+				return NULL;
 			}
 
 			md_ctx = EVP_MD_CTX_create();
 			if (md_ctx == NULL) {
 				EVP_PKEY_free(key);
 				spprintf(error, 0, "unable to initialize openssl signature for phar \"%s\"", ZSTR_VAL(phar->fname));
-				return FAILURE;
+				return NULL;
 			}
 
 			siglen = EVP_PKEY_size(key);
@@ -1896,7 +1895,7 @@ ZEND_ATTRIBUTE_NONNULL zend_result phar_create_signature(phar_archive_data *phar
 				EVP_MD_CTX_destroy(md_ctx);
 				efree(sigbuf);
 				spprintf(error, 0, "unable to initialize openssl signature for phar \"%s\"", ZSTR_VAL(phar->fname));
-				return FAILURE;
+				return NULL;
 			}
 
 			while ((sig_len = php_stream_read(fp, (char*)buf, sizeof(buf))) > 0) {
@@ -1905,7 +1904,7 @@ ZEND_ATTRIBUTE_NONNULL zend_result phar_create_signature(phar_archive_data *phar
 					EVP_MD_CTX_destroy(md_ctx);
 					efree(sigbuf);
 					spprintf(error, 0, "unable to update the openssl signature for phar \"%s\"", ZSTR_VAL(phar->fname));
-					return FAILURE;
+					return NULL;
 				}
 			}
 
@@ -1914,12 +1913,14 @@ ZEND_ATTRIBUTE_NONNULL zend_result phar_create_signature(phar_archive_data *phar
 				EVP_MD_CTX_destroy(md_ctx);
 				efree(sigbuf);
 				spprintf(error, 0, "unable to write phar \"%s\" with requested openssl signature", ZSTR_VAL(phar->fname));
-				return FAILURE;
+				return NULL;
 			}
 
 			sigbuf[siglen] = '\0';
 			EVP_PKEY_free(key);
 			EVP_MD_CTX_destroy(md_ctx);
+			signature = zend_string_init((const char*)sigbuf, siglen, false);
+			efree(sigbuf);
 #else
 			size_t siglen;
 			sigbuf = NULL;
@@ -1928,11 +1929,11 @@ ZEND_ATTRIBUTE_NONNULL zend_result phar_create_signature(phar_archive_data *phar
 
 			if (FAILURE == phar_call_openssl_signverify(true, fp, php_stream_tell(fp), PHAR_G(openssl_privatekey), PHAR_G(openssl_privatekey_len), (char **)&sigbuf, &siglen, phar->sig_flags)) {
 				spprintf(error, 0, "unable to write phar \"%s\" with requested openssl signature", ZSTR_VAL(phar->fname));
-				return FAILURE;
+				return NULL;
 			}
+			signature = zend_string_init((const char*)sigbuf, siglen, false);
+			efree(sigbuf);
 #endif
-			*signature = (char *) sigbuf;
-			*signature_length = siglen;
 		}
 		break;
 		case PHAR_SIG_SHA1: {
@@ -1946,8 +1947,7 @@ ZEND_ATTRIBUTE_NONNULL zend_result phar_create_signature(phar_archive_data *phar
 			}
 
 			PHP_SHA1Final(digest, &context);
-			*signature = estrndup((char *) digest, 20);
-			*signature_length = 20;
+			signature = zend_string_init((const char*)digest, 20, false);
 			break;
 		}
 		case PHAR_SIG_MD5: {
@@ -1961,14 +1961,13 @@ ZEND_ATTRIBUTE_NONNULL zend_result phar_create_signature(phar_archive_data *phar
 			}
 
 			PHP_MD5Final(digest, &context);
-			*signature = estrndup((char *) digest, 16);
-			*signature_length = 16;
+			signature = zend_string_init((const char*)digest, 16, false);
 			break;
 		}
 	}
 
-	phar->sig_len = phar_hex_str((const char *)*signature, *signature_length, &phar->signature);
-	return SUCCESS;
+	phar->sig_len = phar_hex_str(ZSTR_VAL(signature), ZSTR_LEN(signature), &phar->signature);
+	return signature;
 }
 /* }}} */
 

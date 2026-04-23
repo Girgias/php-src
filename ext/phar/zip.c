@@ -1148,8 +1148,7 @@ static zend_result phar_zip_applysignature(phar_archive_data *phar, struct _phar
 {
 	/* add signature for executable tars or tars explicitly set with setSignatureAlgorithm */
 	if (!phar->is_data || phar->sig_flags) {
-		size_t signature_length;
-		char *signature, sigbuf[8];
+		char sigbuf[8];
 		phar_entry_info entry = {0};
 		php_stream *newfile;
 		zend_off_t tell;
@@ -1171,11 +1170,10 @@ static zend_result phar_zip_applysignature(phar_archive_data *phar, struct _phar
 		}
 
 		char *signature_error = NULL;
-		if (FAILURE == phar_create_signature(phar, newfile, &signature, &signature_length, &signature_error)) {
-			if (signature_error) {
-				spprintf(pass->error, 0, "phar error: unable to write signature to zip-based phar: %s", signature_error);
-				efree(signature_error);
-			}
+		zend_string *signature = phar_create_signature(phar, newfile, &signature_error);
+		if (!signature) {
+			spprintf(pass->error, 0, "phar error: unable to write signature to zip-based phar: %s", signature_error);
+			efree(signature_error);
 
 			php_stream_close(newfile);
 			return FAILURE;
@@ -1185,17 +1183,17 @@ static zend_result phar_zip_applysignature(phar_archive_data *phar, struct _phar
 		entry.fp_type = PHAR_MOD;
 		entry.is_modified = 1;
 		if (entry.fp == NULL) {
-			efree(signature);
+			zend_string_release_ex(signature, false);
 			spprintf(pass->error, 0, "phar error: unable to create temporary file for signature");
 			php_stream_close(newfile);
 			return FAILURE;
 		}
 
 		PHAR_SET_32(sigbuf, phar->sig_flags);
-		PHAR_SET_32(sigbuf + 4, signature_length);
+		PHAR_SET_32(sigbuf + 4, ZSTR_LEN(signature));
 
-		if (Z_UL(8) != php_stream_write(entry.fp, sigbuf, 8) || signature_length != php_stream_write(entry.fp, signature, signature_length)) {
-			efree(signature);
+		if (Z_UL(8) != php_stream_write(entry.fp, sigbuf, 8) || ZSTR_LEN(signature) != php_stream_write(entry.fp, ZSTR_VAL(signature), ZSTR_LEN(signature))) {
+			zend_string_release_ex(signature, false);
 			if (pass->error) {
 				spprintf(pass->error, 0, "phar error: unable to write signature to zip-based phar %s", ZSTR_VAL(phar->fname));
 			}
@@ -1206,13 +1204,13 @@ static zend_result phar_zip_applysignature(phar_archive_data *phar, struct _phar
 
 		ALLOCA_FLAG(use_heap);
 		ZSTR_ALLOCA_INIT(entry.filename, ".phar/signature.bin", sizeof(".phar/signature.bin")-1, use_heap);
-		efree(signature);
-		entry.uncompressed_filesize = entry.compressed_filesize = signature_length + 8;
+		entry.uncompressed_filesize = entry.compressed_filesize = ZSTR_LEN(signature) + 8;
 		entry.phar = phar;
 		/* throw out return value and write the signature */
 		phar_zip_changed_apply_int(&entry, (void *)pass);
 		ZSTR_ALLOCA_FREE(entry.filename, use_heap);
 		php_stream_close(newfile);
+		zend_string_release_ex(signature, false);
 
 		if (pass->error && *(pass->error)) {
 			/* error is set by writeheaders */
