@@ -21,7 +21,7 @@ $modifiers = [
 	']',
 ];
 
-$formats = combinatorial_concat('%[', $modifiers);
+$formats = [...combinatorial_concat('%[', $modifiers), '%[abc'];
 
 $str = "Hello World";
 
@@ -42,4 +42,6 @@ ValueError: Unmatched [ in format string
 Using format string '%[^':
 ValueError: Unmatched [ in format string
 Using format string '%[^]':
+ValueError: Unmatched [ in format string
+Using format string '%[abc':
 ValueError: Unmatched [ in format string

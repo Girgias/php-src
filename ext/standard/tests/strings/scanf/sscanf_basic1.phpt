@@ -21,6 +21,11 @@ echo "\n-- Try sccanf() WITH optional args --\n";
 $res = sscanf($str, $format, $part, $number, $stock);
 var_dump($res, $part, $number, $stock);
 
+echo "\n-- Test literal and whitespace formats --\n";
+var_dump(sscanf('%', '%%'));
+var_dump(sscanf(' ', ' '));
+var_dump(sscanf('x', 'y'));
+
 ?>
 --EXPECT--
 *** Testing sscanf() : basic functionality - using string format ***
@@ -35,3 +40,11 @@ int(3)
 string(6) "Widget"
 string(7) "1234789"
 string(2) "25"
+
+-- Test literal and whitespace formats --
+array(0) {
+}
+array(0) {
+}
+array(0) {
+}
