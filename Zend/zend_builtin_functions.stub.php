@@ -53,6 +53,9 @@ function define(string $constant_name, mixed $value, bool $case_insensitive = fa
 
 function defined(string $constant_name): bool {}
 
+/** @compile-time-eval */
+function is_callable_equal(callable $left, callable $right): bool {}
+
 function get_class(object $object = UNKNOWN): string {}
 
 function get_called_class(): string {}

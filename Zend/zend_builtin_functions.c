@@ -620,6 +620,27 @@ ZEND_FUNCTION(defined)
 }
 /* }}} */
 
+ZEND_FUNCTION(is_callable_equal)
+{
+	zend_fcall_info left_fci;
+	zend_fcall_info_cache left_fcc;
+	zend_fcall_info right_fci;
+	zend_fcall_info_cache right_fcc;
+
+	ZEND_PARSE_PARAMETERS_START(2, 2)
+		Z_PARAM_FUNC(left_fci, left_fcc)
+		Z_PARAM_FUNC(right_fci, right_fcc)
+	ZEND_PARSE_PARAMETERS_END();
+
+	/* We have a trampoline.
+	 * TODO: should 2 trampolines be equal? */
+	if (!ZEND_FCI_INITIALIZED(left_fci) || !ZEND_FCI_INITIALIZED(right_fci)) {
+		RETURN_FALSE;
+	}
+
+	RETURN_BOOL(zend_fcc_equals(&left_fcc, &right_fcc));
+}
+
 /* {{{ Retrieves the class name */
 ZEND_FUNCTION(get_class)
 {

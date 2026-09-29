@@ -1,5 +1,5 @@
 /* This is a generated file, edit zend_builtin_functions.stub.php instead.
- * Stub hash: 5d7145b7bc305bb50b45e75c02740206148223b1 */
+ * Stub hash: 12a3b10a06e3df34c1570c85fc5edf386496ca28 */
 
 #include "zend_attributes.h"
 
@@ -58,6 +58,11 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_defined, 0, 1, _IS_BOOL, 0)
 	ZEND_ARG_TYPE_INFO(0, constant_name, IS_STRING, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_is_callable_equal, 0, 2, _IS_BOOL, 0)
+	ZEND_ARG_TYPE_INFO(0, left, IS_CALLABLE, 0)
+	ZEND_ARG_TYPE_INFO(0, right, IS_CALLABLE, 0)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_get_class, 0, 0, IS_STRING, 0)
@@ -264,6 +269,7 @@ ZEND_FUNCTION(strncasecmp);
 ZEND_FUNCTION(error_reporting);
 ZEND_FUNCTION(define);
 ZEND_FUNCTION(defined);
+ZEND_FUNCTION(is_callable_equal);
 ZEND_FUNCTION(get_class);
 ZEND_FUNCTION(get_called_class);
 ZEND_FUNCTION(get_parent_class);
@@ -341,6 +347,7 @@ static const zend_function_entry ext_functions[] = {
 	ZEND_FE(error_reporting, arginfo_error_reporting)
 	ZEND_FE(define, arginfo_define)
 	ZEND_FE(defined, arginfo_defined)
+	ZEND_RAW_FENTRY("is_callable_equal", zif_is_callable_equal, arginfo_is_callable_equal, ZEND_ACC_COMPILE_TIME_EVAL, NULL, NULL)
 	ZEND_FE(get_class, arginfo_get_class)
 	ZEND_FE(get_called_class, arginfo_get_called_class)
 	ZEND_FE(get_parent_class, arginfo_get_parent_class)
