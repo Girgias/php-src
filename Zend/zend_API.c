@@ -1869,7 +1869,7 @@ ZEND_API void object_properties_load(zend_object *object, const HashTable *prope
  * class and all props being public. If only a subset is given or the class
  * has protected members then you need to merge the properties separately by
  * calling zend_merge_properties(). */
-static zend_always_inline zend_result _object_and_properties_init(zval *arg, zend_class_entry *class_type, HashTable *properties) /* {{{ */
+static zend_always_inline zend_object* _object_and_properties_init(zend_class_entry *class_type, HashTable *properties) /* {{{ */
 {
 	if (UNEXPECTED(class_type->ce_flags & ZEND_ACC_UNINSTANTIABLE)) {
 		if (class_type->ce_flags & ZEND_ACC_INTERFACE) {
@@ -1882,55 +1882,62 @@ static zend_always_inline zend_result _object_and_properties_init(zval *arg, zen
 			ZEND_ASSERT(class_type->ce_flags & (ZEND_ACC_IMPLICIT_ABSTRACT_CLASS|ZEND_ACC_EXPLICIT_ABSTRACT_CLASS));
 			zend_throw_error(NULL, "Cannot instantiate abstract class %s", ZSTR_VAL(class_type->name));
 		}
-		ZVAL_NULL(arg);
-		Z_OBJ_P(arg) = NULL;
-		return FAILURE;
+		return NULL;
 	}
 
 	if (UNEXPECTED(!(class_type->ce_flags & ZEND_ACC_CONSTANTS_UPDATED))) {
 		if (UNEXPECTED(zend_update_class_constants(class_type) != SUCCESS)) {
-			ZVAL_NULL(arg);
-			Z_OBJ_P(arg) = NULL;
-			return FAILURE;
+			return NULL;
 		}
 	}
 
 	if (class_type->create_object == NULL) {
 		zend_object *obj = zend_objects_new(class_type);
-
-		ZVAL_OBJ(arg, obj);
 		if (properties) {
 			object_properties_init_ex(obj, properties);
 		} else {
 			_object_properties_init(obj, class_type);
 		}
+		return obj;
 	} else {
-		ZVAL_OBJ(arg, class_type->create_object(class_type));
+		return class_type->create_object(class_type);
 	}
-	return SUCCESS;
 }
 /* }}} */
 
 ZEND_API zend_result object_and_properties_init(zval *arg, zend_class_entry *class_type, HashTable *properties) /* {{{ */
 {
-	return _object_and_properties_init(arg, class_type, properties);
+	zend_object *obj = _object_and_properties_init(class_type, properties);
+	if (UNEXPECTED(!obj)) {
+		ZVAL_NULL(arg);
+		Z_OBJ_P(arg) = NULL;
+		return FAILURE;
+	}
+	ZVAL_OBJ(arg, obj);
+	return SUCCESS;
 }
 /* }}} */
 
 ZEND_API zend_result object_init_ex(zval *arg, zend_class_entry *class_type) /* {{{ */
 {
-	return _object_and_properties_init(arg, class_type, NULL);
+	zend_object *obj = _object_and_properties_init(class_type, NULL);
+	if (UNEXPECTED(!obj)) {
+		ZVAL_NULL(arg);
+		Z_OBJ_P(arg) = NULL;
+		return FAILURE;
+	}
+	ZVAL_OBJ(arg, obj);
+	return SUCCESS;
 }
 /* }}} */
 
 ZEND_API zend_result object_init_with_constructor(zval *arg, zend_class_entry *class_type, uint32_t param_count, zval *params, HashTable *named_params) /* {{{ */
 {
-	zend_result status = _object_and_properties_init(arg, class_type, NULL);
-	if (UNEXPECTED(status == FAILURE)) {
+	zend_object *obj = _object_and_properties_init(class_type, NULL);
+	if (UNEXPECTED(!obj)) {
 		ZVAL_UNDEF(arg);
 		return FAILURE;
 	}
-	zend_object *obj = Z_OBJ_P(arg);
 	zend_function *constructor = obj->handlers->get_constructor(obj);
 	if (constructor == NULL) {
 		/* The constructor can be NULL for 2 different reasons:
@@ -1941,7 +1948,8 @@ ZEND_API zend_result object_init_with_constructor(zval *arg, zend_class_entry *c
 		 * in the latter we need to destroy the object as initialization failed
 		 */
 		if (UNEXPECTED(EG(exception))) {
-			zval_ptr_dtor(arg);
+			zend_object_store_ctor_failed(obj);
+			OBJ_RELEASE(obj);
 			ZVAL_UNDEF(arg);
 			return FAILURE;
 		}
@@ -1957,10 +1965,11 @@ ZEND_API zend_result object_init_with_constructor(zval *arg, zend_class_entry *c
 			zend_throw_error(NULL, "Unknown named parameter $%s", ZSTR_VAL(arg_name));
 			/* Do not call destructor, free object, and set arg to IS_UNDEF */
 			zend_object_store_ctor_failed(obj);
-			zval_ptr_dtor(arg);
+			OBJ_RELEASE(obj);
 			ZVAL_UNDEF(arg);
 			return FAILURE;
 		} else {
+			ZVAL_OBJ(arg, obj);
 			return SUCCESS;
 		}
 	}
@@ -1979,12 +1988,13 @@ ZEND_API zend_result object_init_with_constructor(zval *arg, zend_class_entry *c
 	if (Z_TYPE(retval) == IS_UNDEF) {
 		/* Do not call destructor, free object, and set arg to IS_UNDEF */
 		zend_object_store_ctor_failed(obj);
-		zval_ptr_dtor(arg);
+		OBJ_RELEASE(obj);
 		ZVAL_UNDEF(arg);
 		return FAILURE;
 	} else {
 		/* Unlikely, but user constructors may return any value they want */
 		zval_ptr_dtor(&retval);
+		ZVAL_OBJ(arg, obj);
 		return SUCCESS;
 	}
 }
