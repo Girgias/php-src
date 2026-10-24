@@ -131,8 +131,6 @@ PHPAPI bool php_idate(char format, time_t ts, bool localtime, int *result);
 PHPAPI zend_string *php_format_date(const char *format, size_t format_len, time_t ts, bool localtime);
 PHPAPI zend_string *php_format_date_obj(const char *format, size_t format_len, const php_date_obj *date_obj);
 
-/* Mechanism to set new TZ database */
-PHPAPI void php_date_set_tzdb(timelib_tzdb *tzdb);
 PHPAPI timelib_tzinfo *get_timezone_info(void);
 
 /* Grabbing CE's so that other exts can use the date objects too */

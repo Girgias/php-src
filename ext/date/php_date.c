@@ -232,10 +232,6 @@ static void date_register_classes(void);
 ZEND_DECLARE_MODULE_GLOBALS(date)
 static PHP_GINIT_FUNCTION(date);
 
-/* True global */
-timelib_tzdb *php_date_global_timezone_db;
-int php_date_global_timezone_db_enabled;
-
 #define DATE_DEFAULT_LATITUDE "31.7667"
 #define DATE_DEFAULT_LONGITUDE "35.2333"
 
@@ -444,14 +440,11 @@ ZEND_MODULE_POST_ZEND_DEACTIVATE_D(date)
 	return SUCCESS;
 }
 
-#define DATE_TIMEZONEDB      php_date_global_timezone_db ? php_date_global_timezone_db : timelib_builtin_db()
+#define DATE_TIMEZONEDB timelib_builtin_db()
 
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(date)
 {
-	php_date_global_timezone_db = NULL;
-	php_date_global_timezone_db_enabled = 0;
-
 	REGISTER_INI_ENTRIES();
 	date_register_classes();
 	register_php_date_symbols(module_number);
@@ -488,7 +481,7 @@ PHP_MINFO_FUNCTION(date)
 	php_info_print_table_row(2, "date/time support", "enabled");
 	php_info_print_table_row(2, "timelib version", TIMELIB_ASCII_VERSION);
 	php_info_print_table_row(2, "\"Olson\" Timezone Database Version", tzdb->version);
-	php_info_print_table_row(2, "Timezone Database", php_date_global_timezone_db_enabled ? "external" : "internal");
+	php_info_print_table_row(2, "Timezone Database", "internal");
 	php_info_print_table_row(2, "Default timezone", guess_timezone(tzdb));
 	php_info_print_table_end();
 
@@ -1051,18 +1044,6 @@ PHP_FUNCTION(idate)
 		RETURN_FALSE;
 	}
 	RETURN_LONG(ret);
-}
-/* }}} */
-
-/* {{{ php_date_set_tzdb - NOT THREADSAFE */
-PHPAPI void php_date_set_tzdb(timelib_tzdb *tzdb)
-{
-	const timelib_tzdb *builtin = timelib_builtin_db();
-
-	if (php_version_compare(tzdb->version, builtin->version) > 0) {
-		php_date_global_timezone_db = tzdb;
-		php_date_global_timezone_db_enabled = 1;
-	}
 }
 /* }}} */
 
