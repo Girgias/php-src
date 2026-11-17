@@ -8,14 +8,18 @@ zend_test
 echo "Static methods:\n";
 echo "Variations of internal static method():\n";
 $obj = new _ZendTestClass();
+$obj2 = new _ZendTestClass();
 $fns = [
 	'_ZendTestClass::is_object',
 	['_ZendTestClass', 'is_object'],
 	[$obj, 'is_object'],
+	[$obj2, 'is_object'],
 	_ZendTestClass::is_object(...),
 	_ZendTestClass::is_object(...),
 	$obj->is_object(...),
 	$obj->is_object(...),
+	$obj2->is_object(...),
+	$obj2->is_object(...),
 ];
 foreach ($fns as $fn1) {
 	foreach ($fns as $fn2) {
