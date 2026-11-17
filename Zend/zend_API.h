@@ -796,6 +796,7 @@ static zend_always_inline bool zend_fcc_equals(const zend_fcall_info_cache* a, c
 {
 	if (a->closure || b->closure) {
 		return a->object == b->object
+			&& a->calling_scope == b->calling_scope
 			&& a->called_scope == b->called_scope
 			&& (a->closure == b->closure || zend_fcc_closure_equals_ex(a, b))
 		;
@@ -803,13 +804,13 @@ static zend_always_inline bool zend_fcc_equals(const zend_fcall_info_cache* a, c
 	if (UNEXPECTED((a->function_handler->common.fn_flags & ZEND_ACC_CALL_VIA_TRAMPOLINE) &&
 		(b->function_handler->common.fn_flags & ZEND_ACC_CALL_VIA_TRAMPOLINE))) {
 		return a->object == b->object
-			&& a->called_scope == b->called_scope
+			&& a->calling_scope == b->calling_scope
 			&& zend_string_equals(a->function_handler->common.function_name, b->function_handler->common.function_name)
 		;
 	}
 	return a->function_handler == b->function_handler
 		&& a->object == b->object
-		&& a->called_scope == b->called_scope
+		&& a->calling_scope == b->calling_scope
 	;
 }
 
