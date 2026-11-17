@@ -11,6 +11,7 @@ zend_test
 // Partially supported callables
 // Protected/Private methods from class scope
 // Should static method foo inherited from parent class be equal?
+// Ensure Closure == Closure via operator has same behavior
 ?>
 DONE
 --EXPECT--
