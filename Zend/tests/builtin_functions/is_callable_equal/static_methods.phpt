@@ -30,16 +30,20 @@ class C {
 	public static function foo() {}
 }
 $obj = new C();
+$obj2 = new C();
 
 echo "Variations of userland C::foo():\n";
 $fns = [
 	'C::foo',
 	['C', 'foo'],
 	[$obj, 'foo'],
+	[$obj2, 'foo'],
 	C::foo(...),
 	C::foo(...),
 	$obj->foo(...),
 	$obj->foo(...),
+	$obj2->foo(...),
+	$obj2->foo(...),
 ];
 foreach ($fns as $fn1) {
 	foreach ($fns as $fn2) {
