@@ -628,17 +628,14 @@ ZEND_FUNCTION(is_callable_equal)
 	zend_fcall_info_cache right_fcc;
 
 	ZEND_PARSE_PARAMETERS_START(2, 2)
-		Z_PARAM_FUNC(left_fci, left_fcc)
-		Z_PARAM_FUNC(right_fci, right_fcc)
-	ZEND_PARSE_PARAMETERS_END();
+		Z_PARAM_FUNC_NO_TRAMPOLINE_FREE(left_fci, left_fcc)
+		Z_PARAM_FUNC_NO_TRAMPOLINE_FREE(right_fci, right_fcc)
+	ZEND_PARSE_PARAMETERS_END_EX(goto cleanup);
 
-	/* We have a trampoline.
-	 * TODO: should 2 trampolines be equal? */
-	if (!ZEND_FCI_INITIALIZED(left_fci) || !ZEND_FCI_INITIALIZED(right_fci)) {
-		RETURN_FALSE;
-	}
-
-	RETURN_BOOL(zend_fcc_equals(&left_fcc, &right_fcc));
+	RETVAL_BOOL(zend_fcc_equals(&left_fcc, &right_fcc));
+cleanup:
+	zend_release_fcall_info_cache(&left_fcc);
+	zend_release_fcall_info_cache(&right_fcc);
 }
 
 /* {{{ Retrieves the class name */
