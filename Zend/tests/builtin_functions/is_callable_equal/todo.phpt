@@ -12,6 +12,7 @@ zend_test
 // Protected/Private methods from class scope
 // Should static method foo inherited from parent class be equal?
 // Ensure Closure == Closure via operator has same behavior
+// __invoke() objects/Closures
 ?>
 DONE
 --EXPECT--

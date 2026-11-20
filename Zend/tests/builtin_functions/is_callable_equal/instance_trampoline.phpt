@@ -1,7 +1,5 @@
 --TEST--
 is_callable_equal(): instanced __call() trampoline methods callables.
---EXTENSIONS--
-zend_test
 --FILE--
 <?php
 
